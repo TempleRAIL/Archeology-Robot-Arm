@@ -1,0 +1,5 @@
+When opening gripper:
+
+1. Subscribe to BoundingBoxes_Array message from Bounding_Boxes topic.
+2. Compare BoundingBoxes_Array.detections.bbox.size.x with BoundingBoxes_Array.detections.bbox.size.y
+3. Set gripper spacing to 5% larger than the smallest dimension

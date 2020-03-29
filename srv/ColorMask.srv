@@ -1,0 +1,5 @@
+# request fields
+sensor_msgs/Image image 
+---
+# response fields	
+std_msgs/Int16MultiArray color_mask
