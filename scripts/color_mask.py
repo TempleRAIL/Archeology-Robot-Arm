@@ -50,7 +50,7 @@ def convert_hsv_to_OpenCV(float_hsv_values):
 # publications: Float32MultiArray containg colors
 
 def callback_make_mask(img_msg):
-    number_colors = 5 # total number colors to extract, starting with most dominant
+    number_colors = 10 # total number colors to extract, starting with most dominant
     show_chart = 1 # 1 to show chart, else 0
 
     print 'Extracting top ', number_colors, ' colors.'

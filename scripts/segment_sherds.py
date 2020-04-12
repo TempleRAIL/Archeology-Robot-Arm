@@ -10,8 +10,8 @@ import sys
 # Import ROS libraries and message types
 import rospy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
-#import message_filters
-from sensor_msgs.msg import Image, CameraInfo
+import message_filters
+from sensor_msgs.msg import PointCloud2, Image
 from vision_msgs.msg import Detection2D
 from vision_msgs.msg import Detection2DArray
 from std_msgs.msg import Float32, Int16MultiArray, MultiArrayLayout, MultiArrayDimension
@@ -20,6 +20,8 @@ bridge = CvBridge()  # OpenCV converter
 
 # Publishers
 segmented_sherds_pub = rospy.Publisher('Segmented_Sherds', Image, latch=True, queue_size=1)
+pointcloud_pub = rospy.Publisher('Sherds_PointCloud', PointCloud2, latch=True, queue_size=1)
+
 
 ##############################################################
 # callback_unpack_mask(MultiArray_msg)
@@ -37,12 +39,12 @@ def callback_unpack_mask(MultiArray_msg):
 
 
 ##############################################################
-# callback_apply_mask(color_img)
-# This function applies the previously-unpacked color mask to segment sherds from the image. It also extracts their contours and publishes bounding boxes in a ROS 2DDetectionArray message.
+# callback_apply_mask(color_img, pointcloud)
+# This function segments sherds from the color image by applying the previously-unpacked color mask to  The pointcloud taken simultaneously with the color_img is simply published
 # inputs: color mask floor, color mask ceiling, sensor_msgs/Image
-# publications: vision_msgs/Detection2DArray ROS message
+# publications: vision_msgs/Detection2DArray, sensor_msgs/PointCloud2
 
-def callback_apply_mask(color_img):
+def callback_apply_mask(color_img, pointcloud):
 
     if not has_color_mask:
     	return 'Failed to unpack color mask.'
@@ -71,15 +73,17 @@ def callback_apply_mask(color_img):
     plt.show()
 
     # Convert segmented_sherds from OpenCV to ROS Image message
-    ROS_img_msg = bridge.cv2_to_imgmsg(segmented_sherds, encoding="passthrough")
+    segmented_sherds = bridge.cv2_to_imgmsg(segmented_sherds, encoding="passthrough")
 
-    segmented_sherds_pub.publish(ROS_img_msg)
-    print "Segmented sherds image published to Segmented_Sherds." 
+    segmented_sherds_pub.publish(segmented_sherds)
+    print "Segmented sherds image published to Segmented_Sherds."
+    pointcloud_pub.publish(pointcloud)
+    print "Pointcloud of sherds published to Sherds_PointCloud." 
 
 
 ##############################################################
 # segment_sherds()
-# This function initiates the segment_sherds ROS node. It subscribes to 1) the Color_Mask topic and 2) the camera topic.  It invokes callbacks on messages from both topics.
+# This function initiates the segment_sherds ROS node. It subscribes to  & invokes callbacks on1) the Color_Mask topic and 2) the depth camera's color image and pointcloud in sync.
 # inputs: none
 
   
@@ -92,20 +96,21 @@ def segment_sherds():
     print "Subscribed to Color_Mask."
     callback_unpack_mask( Color_Mask_msg )
 
-    # Subscribe to Camera_Info topic
-    #rospy.Subscriber("/camera/camera_info", CameraInfo, callback_get_conversion, queue_size = 1)
-    #Camera_Info_msg = rospy.wait_for_message("/camera/camera_info", CameraInfo)
-    #callback_get_conversion( Camera_Info_msg )
-
+    # Subscribe in sync to Color Image and Color-Aligned PointCloud topics
+    color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
+    pointcloud_sub = message_filters.Subscriber("/camera/depth_registered/points", PointCloud2)  # this topic from rs_rgbd.launch
+    sync = message_filters.TimeSynchronizer([color_img_sub, pointcloud_sub], 1)
+    sync.registerCallback( callback_apply_mask )
+    #color_img_sub.sub.unregister()
+    #pointcloud_sub.sub.unregister()
+    
     # Subscribe to Color Image topic
-    Color_Image = rospy.wait_for_message("/camera/color/image_raw", Image)
-    print "Subscribed to image."
-    callback_apply_mask( Color_Image )
-    #rospy.Subscriber("/camera/color/image_raw", Image, callback_segment, queue_size = 1)
+    #Color_Image = rospy.wait_for_message("/camera/color/image_raw", Image)
+    #print "Subscribed to image."
+    #callback_apply_mask( Color_Image )
     #rospy.Subscriber("/image_publisher_1584141470620349444/image_raw", Image, callback_segment, queue_size = 1)
 
     rospy.spin() # keeps Python from exiting until this node is stopped
-
 ##############################################################
 # main function
     
