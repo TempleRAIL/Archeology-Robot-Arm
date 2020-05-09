@@ -1,0 +1,240 @@
+#!/usr/bin/env python
+
+#Import Python libraries
+import time
+import math
+import numpy as np
+from pyrobot import Robot
+from pyrobot.locobot.gripper import LoCoBotGripper
+#from pyrobot.core import Robot
+from numpy.random import random_integers as rand
+
+# Import ROS libraries and message types
+#import message_filters
+import rospy
+import ros_numpy
+from std_msgs.msg import Bool, Int16MultiArray
+from vision_msgs.msg import Detection2D, Detection2DArray
+
+# ROS publisher
+calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
+
+# pick-up area geometry [meters]
+x_offset = 0.22
+x_length = 0.25
+x_rects = 3
+x_sublength = x_length/x_rects
+pickup_x_center = (2*x_offset + x_length)/2
+
+y_length = 0.5
+y_rects = 4
+y_sublength = y_length/y_rects
+pickup_y_center = 0
+
+x_centers = [x_offset+0.5*x_sublength, x_offset+1.5*x_sublength, x_offset+2.5*x_sublength]
+y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
+
+# global variables
+DEF_STATUS = True
+DEF_HEIGHT = 0.25
+#DEF_POSITION = np.array([0.04, .18, 0]) # Placeholder
+DEF_ZERO = np.array([0, 0, 0, 0, 0])  # All joints = 0 rad
+DEF_SCALE = np.array([0, 0.175, .05])  # x,y,z meters
+DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
+
+#DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])  # this led to IK failure
+#DEF_ORIENTATION = np.array([0, 1.5, 0])  # abandoning 'set_ee_pose' method for now - MoveIt continuously fails
+DEF_PITCH = 1.5  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
+DEF_NUMERICAL = False # target pose argument
+
+
+DEF_DISCARD = np.array([ -pickup_x_center, pickup_y_center, DEF_HEIGHT]) # Placeholder MAKE SURE YOU DEFINE THIS
+DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0], y_centers[1], DEF_HEIGHT],
+    	    	    	 [x_centers[0], y_centers[2], DEF_HEIGHT], [x_centers[0], y_centers[3], DEF_HEIGHT],
+    	    	    	 [x_centers[1], y_centers[3], DEF_HEIGHT], [x_centers[1], y_centers[2], DEF_HEIGHT],
+    	    	    	 [x_centers[1], y_centers[1], DEF_HEIGHT], [x_centers[1], y_centers[0], DEF_HEIGHT],
+    	    	    	 [x_centers[2], y_centers[0], DEF_HEIGHT], [x_centers[2], y_centers[1], DEF_HEIGHT],
+    	    	    	 [x_centers[2], y_centers[2], DEF_HEIGHT], [x_centers[2], y_centers[3], DEF_HEIGHT] ] ) # x,y,z meters
+
+print("End-effector positions: ",DEF_SHARDS)
+
+bot = Robot("locobot")
+
+
+class AutoCore:
+
+    # Function to trigger generation of color mask
+    # Captures image of empty background mat
+    def calibrateFun(self):
+    	print("AutoCore.calibrateFun(self) triggered.")
+    	calibrate_xyz = np.array( [0.14, 0.24, DEF_HEIGHT] )
+    	calibrateLoc = {"position": calibrate_xyz, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
+    	self.moveFun(**calibrateLoc)
+
+    	generate_mask = True
+    	msg = Bool()
+    	msg.data = generate_mask
+
+    	calibrate_trigger_pub.publish(msg)
+    	print("/Calibrate_Trigger message published.")
+    	
+  
+    # Function to look for object in box
+    # Searches until found and then retrieves
+    def shardFun(self):
+    	print("AutoCore.shardFun(self) triggered.")
+    	loop = 0
+    	status = True
+    	while status:
+    	    for DEF_CURRENT in range(0,12):
+    	    	print("Loop = ", loop)
+    	    	#heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "orientation": DEF_ORIENTATION}
+    	    	heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
+    	    	self.moveFun(**heightLoc)
+    	    	time.sleep(1)
+    	    	found = False
+    	    	#found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
+    	    	if found:  # if sherds is not an empty list
+    	    	    #status = False # may not be necessary here
+    	    	    for sherd in sherds:
+    	    	    	angle = sherd[2]  # Place returned angle here (from DetectionArray msg)
+    	    	    	#pos = (sherd[0], sherd[1])  # (might be redundant) Place returned center position (from DetectionArray msg)
+    	    	    SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
+    	    	    	    	    	    	[math.sin(angle), -math.cos(angle),      0],
+                                                [              0,                0,     -1]])
+    	    	    SHERD_POSITION = np.array([sherd[0], sherd[1], 0]) # Place center location of object her
+    	    	    self.pickPlaceFun(SHERD_POSITION, SHERD_ORIENTATION, 0)
+    	    	loop += 1
+    	    	if loop > 11:
+    	    	    report = False
+    	    	    print ("Returning 'False' to trigger break in process_sherds function.")
+    	    	    return report
+        # Once the object is secured, move to same location but at working height
+
+
+    # Function to call IK to plot and execute trajectory
+    def moveFun(self, **pose):
+    	print("moveFun triggered.")
+    	try:
+    	    bot.arm.set_ee_pose_pitch_roll(**pose)
+    	    #bot.arm.set_ee_pose(**pose)
+    	    time.sleep(1)
+    	except:
+    	    print("Exception to moveFun() thrown.")
+    	    DEF_STATUS = False
+
+    #def callback_found(Detection2DArray)
+    #	index = Detection2DArray.detections
+    #	if not index:
+	#    report = False
+    	#    sherds = []
+    	#    return report, sherds
+    	#else
+    	#    report = True
+    	#    for i in index:
+
+    # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
+    def detectFun(self):
+    	sherds = []
+
+    	# confirm that color mask exists
+    	Color_Mask_msg = rospy.wait_for_message("/Color_Mask", Int16MultiArray)
+    	if Color_Mask_msg.data:
+    	    print("Color mask exists.  Proceed.")
+    	else:
+    	    print("Color mask does not exist.")
+    	    report = False
+    	    return report, sherds
+
+    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
+    	detections = msg.detections
+    	if not detections:
+    	    report = False
+    	    return report, sherds
+    	else:
+    	    report = True
+    	    for i in len(detections):
+    	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
+    	    sherds = np.array(sherds)
+    	    return report, sherds   
+
+    # Function to retrieve or place an object
+    # mode = 0 is retrieve, mode = 1 is place
+    def pickPlaceFun(self, position, orientation, mode):
+    	self.moveFun(position, orientation)
+    	gripper = LocoBotGripper(bot.gripper)
+    	if(mode == 0):
+    	    gripper.close()  # closing around sherd
+    	    time.sleep(2)
+    	    gripper_state = get_gripper_state(gripper)
+    	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	    	DEF_STATUS = False
+    	    time.sleep(1)
+    	else:
+    	    gripper.open()
+    	    time.sleep(1)
+    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
+        # Send command to close gripper
+        # If closed completely, set to False
+        # DEF_STATUS = False
+        # Else, if it does not close completely (meaning it gripped the object), continue
+        # Send the command to rise to the current location up set Z = DEF_HEIGHT
+    	self.moveFun(np.array([position(0), position(1), DEF_HEIGHT]), DEF_ORIENTATION)
+    	time.sleep(5)
+        
+    def discardFun(self):
+        self.moveFun(DEF_DISCARD, DEF_ORIENTATION)
+        pos_x = rand.uniform(-x_offset, -(x_offset + x_length)) # min_x, max_x
+        pos_y = rand.uniform(-y_length/2, y_length/2)  # min_y, max_y
+        self.moveFun(np.array([pos_x, pos_y, DEF_HEIGHT]), DEF_ORIENTATION)
+        self.pickPlaceFun(np.array([pos_x, pos_y, 0]), DEF_ORIENTATION, 1)
+        
+def process_sherds():
+    #rospy.init_node('process_sherds')
+
+    do = AutoCore()
+    print("AutoCore class instantiated.")
+    bot.arm.go_home()
+    print("Arm sent home.")
+
+    while DEF_STATUS:
+        # Calibration
+    	result = do.calibrateFun()
+
+    	# Locate Object
+    	result = do.shardFun()
+    	if not result:
+            break
+
+        # Capture image of object
+    	do.moveFun(np.array([DEF_CAMERA[0], DEF_CAMERA[1], DEF_HEIGHT], DEF_ORIENTATION))
+    	if not DEF_STATUS:
+            break
+    	do.pickPlaceFun(DEF_CAMERA, DEF_ORIENTATION, 1)
+    	if not DEF_STATUS:
+            break
+    	do.pickPlaceFun(DEF_CAMERA, DEF_ORIENTATION, 0)
+    	if not DEF_STATUS:
+            break
+
+        # Weigh object
+    	do.moveFun(np.array([DEF_SCALE[0], DEF_SCALE[1], DEF_HEIGHT]), DEF_ORIENTATION)
+    	if not DEF_STATUS:
+            break
+    	do.pickPlaceFun(DEF_SCALE, DEF_ORIENTATION, 1)
+    	if not DEF_STATUS:
+            break
+    	do.pickPlaceFun(DEF_SCALE, DEF_ORIENTATION, 0)
+    	if not DEF_STATUS:
+            break
+
+        # Discard object
+    	do.discardFun()
+    	if not DEF_STATUS:
+            break
+
+    bot.arm.go_home()
+  
+if __name__ == '__main__':
+    process_sherds()
+
