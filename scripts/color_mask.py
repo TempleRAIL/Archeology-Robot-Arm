@@ -55,7 +55,7 @@ def callback_make_mask(img_msg, Bool):
     	print("Calibration trigger is set to 'False'. Exiting.")
     	sys.exit()
 
-    number_colors = 10 # total number colors to extract, starting with most dominant
+    number_colors = 1 # total number colors to extract, starting with most dominant
     show_chart = 1 # 1 to show chart, else 0
 
     print ("Extracting top ", number_colors, " colors.")
@@ -64,7 +64,6 @@ def callback_make_mask(img_msg, Bool):
     rgb = img[:, :, ::-1]  # flip to RGB
     resized_rgb = cv2.resize(rgb, (600,400), interpolation = cv2.INTER_AREA)
     reshaped_rgb = resized_rgb.reshape(resized_rgb.shape[0]*resized_rgb.shape[1], 3)  # KMeans needs input of 2 dimensions
-
 
     # Create clusters of colors, extract into labels, and order colors in RGB and hex
     clf = KMeans(n_clusters = number_colors) 

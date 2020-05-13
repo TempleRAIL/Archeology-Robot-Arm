@@ -16,8 +16,9 @@ import ros_numpy
 from std_msgs.msg import Bool, Int16MultiArray
 from vision_msgs.msg import Detection2D, Detection2DArray
 
-# ROS publisher
+# ROS publishers
 calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
+detect_trigger_pub = rospy.Publisher('Detect_Trigger', Bool, queue_size=1)
 
 # pick-up area geometry [meters]
 x_offset = 0.22
@@ -92,18 +93,24 @@ class AutoCore:
     	    	heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	    	self.moveFun(**heightLoc)
     	    	time.sleep(1)
-    	    	found = False
-    	    	#found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
+
+    	    	found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
     	    	if found:  # if sherds is not an empty list
-    	    	    #status = False # may not be necessary here
+    	    	    mode = 0  # retrieve mode
+
     	    	    for sherd in sherds:
-    	    	    	angle = sherd[2]  # Place returned angle here (from DetectionArray msg)
     	    	    	#pos = (sherd[0], sherd[1])  # (might be redundant) Place returned center position (from DetectionArray msg)
-    	    	    SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
-    	    	    	    	    	    	[math.sin(angle), -math.cos(angle),      0],
-                                                [              0,                0,     -1]])
-    	    	    SHERD_POSITION = np.array([sherd[0], sherd[1], 0]) # Place center location of object her
-    	    	    self.pickPlaceFun(SHERD_POSITION, SHERD_ORIENTATION, 0)
+    	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
+    	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
+                                                #[              0,                0,     -1]])
+    	    	    	SHERD_POSITION = np.array([sherd[0], sherd[1], 0]) # xyz center location of object
+    	    	    	SHERD_ANGLE = sherd[2]
+    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
+    	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
+    	    	    	if not grasp_success:  # if not, break out of all loops and go home
+    	    	    	    report = False
+    	    	    	    return report
+
     	    	loop += 1
     	    	if loop > 11:
     	    	    report = False
@@ -146,8 +153,16 @@ class AutoCore:
     	    report = False
     	    return report, sherds
 
+    	detect_sherd = True
+    	msg = Bool()
+    	msg.data = detect_sherd
+    	detect_trigger_pub.publish(msg)  # run segment_sherds.py on what robot sees in this position
+    	print("/Detect_Trigger message published.")
+
     	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
     	detections = msg.detections
+    	print("/Bounding_Boxes detections message: ", detections)
+
     	if not detections:
     	    report = False
     	    return report, sherds
@@ -156,30 +171,32 @@ class AutoCore:
     	    for i in len(detections):
     	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
     	    sherds = np.array(sherds)
+    	    print("sherds list = ", sherds)
     	    return report, sherds   
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
-    def pickPlaceFun(self, position, orientation, mode):
-    	self.moveFun(position, orientation)
+    def pickPlaceFun(self, mode, **pose):
+    	self.moveFun(**pose)
     	gripper = LocoBotGripper(bot.gripper)
-    	if(mode == 0):
+
+    	if(mode == 0): # retrieve mode
     	    gripper.close()  # closing around sherd
     	    time.sleep(2)
     	    gripper_state = get_gripper_state(gripper)
     	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	    	DEF_STATUS = False
+    	    	report = False
+   	    	return report
     	    time.sleep(1)
-    	else:
+    	else: # place mode
     	    gripper.open()
     	    time.sleep(1)
+
     	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
-        # Send command to close gripper
-        # If closed completely, set to False
-        # DEF_STATUS = False
-        # Else, if it does not close completely (meaning it gripped the object), continue
-        # Send the command to rise to the current location up set Z = DEF_HEIGHT
-    	self.moveFun(np.array([position(0), position(1), DEF_HEIGHT]), DEF_ORIENTATION)
+
+        # Move gripper straight up z-axis to DEF_HEIGHT
+    	displacement = np.array([0, 0, DEF_HEIGHT])
+    	bot.arm.move_ee_xyz(displacement, plan=True)
     	time.sleep(5)
         
     def discardFun(self):
