@@ -6,7 +6,7 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
-import pyrealsense2 as rs	# Intel RealSense cross-platform open-source API
+#import pyrealsense2 as rs	# Intel RealSense cross-platform open-source API
 
 # Import ROS libraries and message types
 import message_filters
@@ -20,7 +20,6 @@ from std_msgs.msg import Float32, Int16MultiArray, MultiArrayLayout, MultiArrayD
 bridge = CvBridge()  # OpenCV converter
 
 # Publishers
-survey_stamp_pub = rospy.Publisher('Survey_Stamp', Header, queue_size=1, latch=True)
 boundbox_pub = rospy.Publisher('Bounding_Boxes', Detection2DArray, queue_size=1)
 
 ##############################################################
@@ -57,8 +56,9 @@ def callback_boundbox(segmented_img, pointcloud):
     print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
 
     # exclude boxes smaller than a minimum area
-    min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
-    print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
+    #min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
+    min_area = False
+    #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
     # Construct Detection2DArray ROS message to contain all valid bounding boxes
     BoundingBoxes_Array = Detection2DArray()
@@ -128,7 +128,8 @@ def callback_boundbox(segmented_img, pointcloud):
     	width_meter = math.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
     	height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
 
-    	if width_meter*height_meter >= min_area:
+    	#if width_meter*height_meter >= min_area:
+    	if not min_area:
 	    
 	    print("This sherd's bounding box: " + str(rect))
             
