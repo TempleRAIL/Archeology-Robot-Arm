@@ -37,7 +37,7 @@ y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
 
 # global variables
 DEF_STATUS = True
-DEF_HEIGHT = 0.25
+DEF_HEIGHT = 0.3
 #DEF_POSITION = np.array([0.04, .18, 0]) # Placeholder
 DEF_ZERO = np.array([0, 0, 0, 0, 0])  # All joints = 0 rad
 DEF_SCALE = np.array([0, 0.175, .05])  # x,y,z meters
@@ -168,11 +168,17 @@ class AutoCore:
     	    return report, sherds
     	else:
     	    report = True
-    	    for i in len(detections):
-    	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
-    	    sherds = np.array(sherds)
-    	    print("sherds list = ", sherds)
-    	    return report, sherds   
+	    for i in range(len(detections)):
+    	        for item in detections:
+
+    	    	    try:
+    	    	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
+    	    	    except IndexError:
+    	    	    	continue
+
+    	    	sherds = np.array(sherds)
+    	    	print("sherds list = ", sherds)
+    	    	return report, sherds
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
