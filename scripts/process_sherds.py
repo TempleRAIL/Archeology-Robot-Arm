@@ -95,6 +95,7 @@ class AutoCore:
     	    	time.sleep(1)
 
     	    	found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
+    	    	print("Sherds were found: ", found)
     	    	if found:  # if sherds is not an empty list
     	    	    mode = 0  # retrieve mode
 
@@ -168,21 +169,16 @@ class AutoCore:
     	    return report, sherds
     	else:
     	    report = True
-	    for i in range(len(detections)):
-    	        for item in detections:
-
-    	    	    try:
-    	    	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
-    	    	    except IndexError:
-    	    	    	continue
-
-    	    	sherds = np.array(sherds)
-    	    	print("sherds list = ", sherds)
-    	    	return report, sherds
+	    for item in detections:
+    	    	sherds.append( [item.bbox.center.x, item.bbox.center.y, item.bbox.center.theta] )
+	    	    sherds = np.array(sherds)
+    	    print("sherds list = ", sherds)
+    	    return report, sherds
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
     def pickPlaceFun(self, mode, **pose):
+    	print("pickPlacefun triggered.")
     	self.moveFun(**pose)
     	gripper = LocoBotGripper(bot.gripper)
 

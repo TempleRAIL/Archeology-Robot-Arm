@@ -94,6 +94,8 @@ def callback_boundbox(segmented_img, pointcloud):
     	# x,y coordinates of bounding box center in meters
     	x_center = point_map[int(row_center_pos)][int(col_center_pos)][0]
     	y_center = point_map[int(row_center_pos)][int(col_center_pos)][1]
+    	print("x_center as found in pointcloud: ", x_center, "meters.")
+    	print("y_center as found in pointcloud: ", y_center, "meters.")
     	    
 	# endpoints of bounding box minor and major axes in pixel coordinates
     	    
