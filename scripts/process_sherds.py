@@ -13,7 +13,9 @@ from numpy.random import random_integers as rand
 #import message_filters
 import rospy
 import ros_numpy
+import tf
 from std_msgs.msg import Bool, Int16MultiArray
+from geometry_msgs.msg import PointStamped
 from vision_msgs.msg import Detection2D, Detection2DArray
 
 # ROS publishers
@@ -153,13 +155,14 @@ class AutoCore:
     	    print("Color mask does not exist.")
     	    report = False
     	    return report, sherds
-
+  	
+    	# run segment_sherds.py on what robot sees in this position
     	detect_sherd = True
     	msg = Bool()
     	msg.data = detect_sherd
-    	detect_trigger_pub.publish(msg)  # run segment_sherds.py on what robot sees in this position
+    	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
-
+    	
     	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
@@ -169,18 +172,27 @@ class AutoCore:
     	    return report, sherds
     	else:
     	    report = True
-	    for item in detections:
-    	    	sherds.append( [item.bbox.center.x, item.bbox.center.y, item.bbox.center.theta] )
-	    	    sherds = np.array(sherds)
+    	    tf_listener = tf.TransformListener()
+    	    if tf.frameExists("/arm_base_link") and tf.frameExists("/camera_color_optical_frame"):
+    	    	t = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
+	    	for item in detections:
+    	    	    sherd_angle = item.bbox.center.theta  # radians
+    	    	    center_in_camera = PointStamped()
+    	    	    center_in_camera.header.frame_id = "/camera_color_optical_frame"
+    	    	    center_in_camera.point.x, center_in_camera.point.y, center_in_camera.point.z = item.bbox.center.x, item.bbox.center.y, 0
+    	    	    center_in_arm_base = tf_listener.transformPoint("/arm_base_link", center_in_camera)
+    	    	    sherds.append( [center_in_arm_base.point.x, center_in_arm_base.point.y, sherd_angle] )
+    	    	    sherds = np.array(sherds)
     	    print("sherds list = ", sherds)
     	    return report, sherds
+
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
     def pickPlaceFun(self, mode, **pose):
     	print("pickPlacefun triggered.")
     	self.moveFun(**pose)
-    	gripper = LocoBotGripper(bot.gripper)
+    	gripper = LocoBotGripper(bot.Gripper)
 
     	if(mode == 0): # retrieve mode
     	    gripper.close()  # closing around sherd
