@@ -6,7 +6,7 @@ import math
 import numpy as np
 from pyrobot import Robot
 from pyrobot.locobot.gripper import LoCoBotGripper
-#from pyrobot.core import Robot
+from pyrobot.locobot import camera
 from numpy.random import random_integers as rand
 
 # Import ROS libraries and message types
@@ -39,7 +39,7 @@ y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
 
 # global variables
 DEF_STATUS = True
-DEF_HEIGHT = 0.3
+DEF_HEIGHT = 0.25
 #DEF_POSITION = np.array([0.04, .18, 0]) # Placeholder
 DEF_ZERO = np.array([0, 0, 0, 0, 0])  # All joints = 0 rad
 DEF_SCALE = np.array([0, 0.175, .05])  # x,y,z meters
@@ -47,7 +47,7 @@ DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
 #DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])  # this led to IK failure
 #DEF_ORIENTATION = np.array([0, 1.5, 0])  # abandoning 'set_ee_pose' method for now - MoveIt continuously fails
-DEF_PITCH = 1.5  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
+DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
 DEF_NUMERICAL = False # target pose argument
 
 
@@ -162,6 +162,11 @@ class AutoCore:
     	msg.data = detect_sherd
     	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
+
+    	# get current pointcloud
+    	camera = camera.SimpleCamera()
+    	pointcloud_in_base = camera.get_current_pcd(in_cam=False)
+    	print("Got pointcloud in base using pyrobot method.")
     	
     	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
     	detections = msg.detections
@@ -172,17 +177,23 @@ class AutoCore:
     	    return report, sherds
     	else:
     	    report = True
-    	    tf_listener = tf.TransformListener()
-    	    if tf.frameExists("/arm_base_link") and tf.frameExists("/camera_color_optical_frame"):
-    	    	t = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
-	    	for item in detections:
-    	    	    sherd_angle = item.bbox.center.theta  # radians
-    	    	    center_in_camera = PointStamped()
-    	    	    center_in_camera.header.frame_id = "/camera_color_optical_frame"
-    	    	    center_in_camera.point.x, center_in_camera.point.y, center_in_camera.point.z = item.bbox.center.x, item.bbox.center.y, 0
-    	    	    center_in_arm_base = tf_listener.transformPoint("/arm_base_link", center_in_camera)
-    	    	    sherds.append( [center_in_arm_base.point.x, center_in_arm_base.point.y, sherd_angle] )
-    	    	    sherds = np.array(sherds)
+    	    trans_cam2base, _, _ = bot.arm.get_transform("/camera_color_optical_frame", "/map")
+    	    print("X offset from camera lens to /map:", trans_cam2base[0], "Y offset from camera lens to /map:", trans_cam2base[1])
+    	    #trans_cam2armbase, _, _ = bot.arm.get_transform("/camera_color_optical_frame", bot.arm.configs.ARM.ARM_BASE_FRAME)
+    	    #tf_listener = tf.TransformListener()
+    	    #tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", rospy.Time(), rospy.Duration(4.0))
+    	    #while not rospy.is_shutdown():
+    	    #	try:
+    	    #	    now = rospy.Time.now()
+    	    #	    tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", now, rospy.Duration(4.0))
+    	    #	    trans, rot = tf_listener.lookupTransform("/arm_base_link", "/camera_color_optical_frame", now)
+    	    #	except(tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    	    #	    continue
+    	    for item in detections:
+    	    	sherd_angle = item.bbox.center.theta  # radians
+    	    	center_in_base_x, center_in_base_y = item.bbox.center.x + np.asscalar(trans_cam2base[0]), item.bbox.center.y + np.asscalar(trans_cam2base[1])
+    	    	sherds.append( [center_in_base_x, center_in_base_y, sherd_angle] )
+    	    	sherds = np.array(sherds)
     	    print("sherds list = ", sherds)
     	    return report, sherds
 

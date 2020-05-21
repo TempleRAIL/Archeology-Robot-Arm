@@ -73,6 +73,8 @@ def callback_apply_mask(color_img, pointcloud, trigger):
     # Convert segmented_sherds from OpenCV to ROS Image message
     segmented_sherds = bridge.cv2_to_imgmsg(segmented_sherds, encoding="passthrough")
 
+    # Convert points in camera frame to points in [m]
+
     segmented_sherds_pub.publish(segmented_sherds)
     print "Segmented sherds image published to Segmented_Sherds."
     pointcloud_pub.publish(pointcloud)
