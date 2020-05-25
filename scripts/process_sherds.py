@@ -13,7 +13,8 @@ from numpy.random import random_integers as rand
 #import message_filters
 import rospy
 import ros_numpy
-import tf
+#import tf
+import tf2_ros
 from std_msgs.msg import Bool, Int16MultiArray
 from geometry_msgs.msg import PointStamped
 from vision_msgs.msg import Detection2D, Detection2DArray
@@ -173,21 +174,18 @@ class AutoCore:
     	    return report, sherds
     	else:
     	    report = True
-    	    tf_listener = tf.TransformListener()
+    	    tfBuffer = tf2_ros.Buffer()
+    	    tf_listener = tf2_ros.TransformListener(tfBuffer)
     	    print("tf_listener created.")
-    	    
-    	    # first waitForTransform: wait for camera_color_optical_frame to be broadcast at all
-    	    tf_listener.waitForTransform("/camera_color_optical_frame", "/arm_base_link", rospy.Time(), rospy.Duration(4.0))
-    	    print("Waiting for /camera_color_optical_frame to be published.")
 
     	    while not rospy.is_shutdown():  # block until transform between frames becomes available
     	    	try:
     	    	    now = rospy.Time.now()
     	    	    # second waitForTransform: try at time = now
-    	    	    tf_listener.waitForTransform("/camera_color_optical_frame", "/arm_base_link", now, rospy.Duration(4.0))
+    	    	    trans = tfBuffer.lookup_transform("/camera_color_optical_frame", "/arm_base_link", now, rospy.Duration(4.0))
     	    	    print("Waiting for transform from camera_color_optical_frame to arm_base_link at time = now.")
-    	    	    trans, rot = tf_listener.lookupTransform("/camera_color_optical_frame", "/arm_base_link", now)
-    	    	except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    	    	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+    	    	    rate.sleep()
     	    	    continue
 
     	    #time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
