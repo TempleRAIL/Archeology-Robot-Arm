@@ -145,7 +145,6 @@ class AutoCore:
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detectFun(self):
-    	sherds = []
 
     	# confirm that color mask exists
     	Color_Mask_msg = rospy.wait_for_message("/Color_Mask", Int16MultiArray)
@@ -162,25 +161,33 @@ class AutoCore:
     	msg.data = detect_sherd
     	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
-
-    	# get current pointcloud
-    	camera = camera.SimpleCamera()
-    	pointcloud_in_base = camera.get_current_pcd(in_cam=False)
-    	print("Got pointcloud in base using pyrobot method.")
     	
     	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
+
+    	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle] 
 
     	if not detections:
     	    report = False
     	    return report, sherds
     	else:
     	    report = True
-    	    trans_cam2base, _, _ = bot.arm.get_transform("/camera_color_optical_frame", "/map")
-    	    print("X offset from camera lens to /map:", trans_cam2base[0], "Y offset from camera lens to /map:", trans_cam2base[1])
-    	    #trans_cam2armbase, _, _ = bot.arm.get_transform("/camera_color_optical_frame", bot.arm.configs.ARM.ARM_BASE_FRAME)
-    	    #tf_listener = tf.TransformListener()
+    	    tf_listener = tf.TransformListener()
+    	    if tf.frameExists("/arm_base_link") and self.tf.frameExists("/camera_color_optical_frame"):
+    	    	time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
+    	    	for item in detections:
+    	    	    sherd_angle = item.bbox.center.theta  # radians
+    	    	    point_cam = geometry_msgs.msg.PointStamped()  # build ROS message for conversion
+    	    	    point_cam.header.frame_id = "camera_color_optical_frame"
+    	    	    point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
+    	    	    point_base = tf_listener.transformPoint("/arm_base_link", point_cam)  # convert between frames
+    	    	    print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
+    	    	    sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
+    	    	sherds = np.array(sherds)
+    	    	print("sherds list = ", sherds)
+    	    	return report, sherds
+
     	    #tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", rospy.Time(), rospy.Duration(4.0))
     	    #while not rospy.is_shutdown():
     	    #	try:
@@ -189,13 +196,6 @@ class AutoCore:
     	    #	    trans, rot = tf_listener.lookupTransform("/arm_base_link", "/camera_color_optical_frame", now)
     	    #	except(tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
     	    #	    continue
-    	    for item in detections:
-    	    	sherd_angle = item.bbox.center.theta  # radians
-    	    	center_in_base_x, center_in_base_y = item.bbox.center.x + np.asscalar(trans_cam2base[0]), item.bbox.center.y + np.asscalar(trans_cam2base[1])
-    	    	sherds.append( [center_in_base_x, center_in_base_y, sherd_angle] )
-    	    	sherds = np.array(sherds)
-    	    print("sherds list = ", sherds)
-    	    return report, sherds
 
 
     # Function to retrieve or place an object
