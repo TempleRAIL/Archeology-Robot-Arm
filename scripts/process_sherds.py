@@ -198,31 +198,33 @@ class AutoCore:
     	    #	    continue
 
 
-    # Function to retrieve or place an object
-    # mode = 0 is retrieve, mode = 1 is place
-    def pickPlaceFun(self, mode, **pose):
-    	print("pickPlacefun triggered.")
-    	self.moveFun(**pose)
-    	gripper = LocoBotGripper(bot.Gripper)
+    # Function to retrieve or place an object
+    # mode = 0 is retrieve, mode = 1 is place	
+    def pickPlaceFun(self, mode, **pose):
+    	print("pickPlacefun triggered.")
 
-    	if(mode == 0): # retrieve mode
-    	    gripper.close()  # closing around sherd
-    	    time.sleep(2)
-    	    gripper_state = get_gripper_state(gripper)
-    	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	    	report = False
-   	    	return report
-    	    time.sleep(1)
-    	else: # place mode
-    	    gripper.open()
-    	    time.sleep(1)
+    	if(mode == 0): # retrieve mode
+    	    gripper.open()
+    	    self.moveFun(**pose)
+    	    time.sleep(2)
+    	    gripper.close()  # closing around sherd
+    	    time.sleep(2)
+    	    gripper_state = gripper.get_gripper_state()
+    	    print("gripper_state = ", gripper_state)
+    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	    #	report = False
+   	    #	return report
+    	    #time.sleep(1)
+    	else: # place mode
+    	    gripper.open()
+    	    time.sleep(1)
 
-    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
+    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
 
-        # Move gripper straight up z-axis to DEF_HEIGHT
-    	displacement = np.array([0, 0, DEF_HEIGHT])
-    	bot.arm.move_ee_xyz(displacement, plan=True)
-    	time.sleep(5)
+        # Move gripper straight up z-axis to DEF_HEIGHT
+    	displacement = np.array([0, 0, DEF_HEIGHT])
+    	bot.arm.move_ee_xyz(displacement, plan=True)
+    	time.sleep(5)
         
     def discardFun(self):
         self.moveFun(DEF_DISCARD, DEF_ORIENTATION)
