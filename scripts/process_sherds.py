@@ -174,19 +174,18 @@ class AutoCore:
     	else:
     	    report = True
     	    tf_listener = tf.TransformListener()
-    	    if tf.frameExists("/arm_base_link") and self.tf.frameExists("/camera_color_optical_frame"):
-    	    	time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
-    	    	for item in detections:
-    	    	    sherd_angle = item.bbox.center.theta  # radians
-    	    	    point_cam = geometry_msgs.msg.PointStamped()  # build ROS message for conversion
-    	    	    point_cam.header.frame_id = "camera_color_optical_frame"
-    	    	    point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
-    	    	    point_base = tf_listener.transformPoint("/arm_base_link", point_cam)  # convert between frames
-    	    	    print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
-    	    	    sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
-    	    	sherds = np.array(sherds)
-    	    	print("sherds list = ", sherds)
-    	    	return report, sherds
+    	    time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
+    	    for item in detections:
+    	    	sherd_angle = item.bbox.center.theta  # radians
+    	    	point_cam = geometry_msgs.msg.PointStamped()  # build ROS message for conversion
+    	    	point_cam.header.frame_id = "camera_color_optical_frame"
+    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
+    	    	point_base = tf_listener.transformPoint("/arm_base_link", point_cam)  # convert between frames
+    	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
+    	    	sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
+    	    sherds = np.array(sherds)
+    	    print("sherds list = ", sherds)
+    	    return report, sherds
 
     	    #tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", rospy.Time(), rospy.Duration(4.0))
     	    #while not rospy.is_shutdown():
@@ -198,33 +197,33 @@ class AutoCore:
     	    #	    continue
 
 
-    # Function to retrieve or place an object
-    # mode = 0 is retrieve, mode = 1 is place	
-    def pickPlaceFun(self, mode, **pose):
-    	print("pickPlacefun triggered.")
+    # Function to retrieve or place an object
+    # mode = 0 is retrieve, mode = 1 is place
+    def pickPlaceFun(self, mode, **pose):
+    	print("pickPlacefun triggered.")
 
-    	if(mode == 0): # retrieve mode
-    	    gripper.open()
-    	    self.moveFun(**pose)
-    	    time.sleep(2)
-    	    gripper.close()  # closing around sherd
-    	    time.sleep(2)
-    	    gripper_state = gripper.get_gripper_state()
-    	    print("gripper_state = ", gripper_state)
-    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	    #	report = False
-   	    #	return report
-    	    #time.sleep(1)
-    	else: # place mode
-    	    gripper.open()
-    	    time.sleep(1)
+    	if(mode == 0): # retrieve mode
+    	    gripper.open()
+    	    self.moveFun(**pose)
+    	    time.sleep(2)
+    	    gripper.close()  # closing around sherd
+    	    time.sleep(2)
+    	    gripper_state = gripper.get_gripper_state()
+    	    print("gripper_state = ", gripper_state)
+    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	    #  report = False
+    	    #  return report
+    	    #time.sleep(1)
+    	else: # place mode
+    	    gripper.open()
+    	    time.sleep(1)
 
-    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
+    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
 
-        # Move gripper straight up z-axis to DEF_HEIGHT
-    	displacement = np.array([0, 0, DEF_HEIGHT])
-    	bot.arm.move_ee_xyz(displacement, plan=True)
-    	time.sleep(5)
+    	# Move gripper straight up z-axis to DEF_HEIGHT
+    	displacement = np.array([0, 0, DEF_HEIGHT])
+    	bot.arm.move_ee_xyz(displacement, plan=True)
+    	time.sleep(5)
         
     def discardFun(self):
         self.moveFun(DEF_DISCARD, DEF_ORIENTATION)
