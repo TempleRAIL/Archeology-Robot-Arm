@@ -166,7 +166,7 @@ class AutoCore:
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
 
-    	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle] 
+    	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
 
     	if not detections:
     	    report = False
@@ -174,10 +174,17 @@ class AutoCore:
     	else:
     	    report = True
     	    tf_listener = tf.TransformListener()
-    	    time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
+
+    	    while not rospy.is_shutdown():  # block until transform between frames becomes available
+    	    	try:
+    	    	    now = rospy.Time.now()
+    	    	    tf_listener.waitForTransform("/camera_color_optical_frame", "/arm_base_link", rospy.Time(), rospy.Duration(4.0))
+    	    	    trans, rot = tf_listener.lookupTransform("/camera_color_optical_frame", "/arm_base_link", now)
+
+    	    #time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
     	    for item in detections:
     	    	sherd_angle = item.bbox.center.theta  # radians
-    	    	point_cam = geometry_msgs.msg.PointStamped()  # build ROS message for conversion
+    	    	point_cam = PointStamped()  # build ROS message for conversion
     	    	point_cam.header.frame_id = "camera_color_optical_frame"
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
     	    	point_base = tf_listener.transformPoint("/arm_base_link", point_cam)  # convert between frames
