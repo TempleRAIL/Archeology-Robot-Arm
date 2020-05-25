@@ -174,15 +174,18 @@ class AutoCore:
     	else:
     	    report = True
     	    tf_listener = tf.TransformListener()
+    	    print("tf_listener created.")
     	    
     	    # first waitForTransform: wait for camera_color_optical_frame to be broadcast at all
     	    tf_listener.waitForTransform("/camera_color_optical_frame", "/arm_base_link", rospy.Time(), rospy.Duration(4.0))
+    	    print("Waiting for /camera_color_optical_frame to be published.")
 
     	    while not rospy.is_shutdown():  # block until transform between frames becomes available
     	    	try:
     	    	    now = rospy.Time.now()
     	    	    # second waitForTransform: try at time = now
     	    	    tf_listener.waitForTransform("/camera_color_optical_frame", "/arm_base_link", now, rospy.Duration(4.0))
+    	    	    print("Waiting for transform from camera_color_optical_frame to arm_base_link at time = now.")
     	    	    trans, rot = tf_listener.lookupTransform("/camera_color_optical_frame", "/arm_base_link", now)
     	    	except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
     	    	    continue
