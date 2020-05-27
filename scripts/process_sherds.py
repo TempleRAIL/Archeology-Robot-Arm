@@ -95,7 +95,6 @@ class AutoCore:
     	while status:
     	    for DEF_CURRENT in range(0,12):
     	    	print("Loop = ", loop)
-    	    	#heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "orientation": DEF_ORIENTATION}
     	    	heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	    	self.moveFun(**heightLoc)
     	    	time.sleep(1)
@@ -110,7 +109,7 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2] ])
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-5 ]  # correct the z height by 5
      	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
     	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
@@ -191,7 +190,7 @@ class AutoCore:
     	    	    rospy.logerr(e)
     	    	    sys.exit(1)
     	    	print("Obtained transform between camera_link and arm_base_link.")    	    	
-    	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
+    	    	print("Sherd center point (x,y,z) [m] in arm_base_link frame: ", point_base)
     	    	sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
     	    sherds = np.array(sherds)
     	    print("sherds list = ", sherds)
@@ -210,10 +209,10 @@ class AutoCore:
     	    time.sleep(2)
     	    gripper_state = gripper.get_gripper_state()
     	    print("gripper_state = ", gripper_state)
-    	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	      report = False
-    	      return report
-    	      time.sleep(1)
+    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	      #report = False
+    	      #return report
+    	      #time.sleep(1)
     	else: # place mode
     	    gripper.open()
     	    time.sleep(1)
