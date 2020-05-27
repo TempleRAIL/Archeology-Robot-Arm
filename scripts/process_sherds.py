@@ -110,11 +110,10 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_XY_POSITION = np.array([sherd[0], sherd[1], DEF_HEIGHT]) # move gripper to x,y sherd center at height
-    	    	    	SHERD_Z = sherd[2] - 0.005  # move gripper down to 0.5 cm below top face of sherd
-    	    	    	SHERD_ANGLE = sherd[3]
-    	    	    	sherdLoc = {"position": SHERD_XY_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
-    	    	    	grasp_success = self.pickPlaceFun(mode, SHERD_Z, **sherdLoc)  # did gripper grasp sherd?
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2] ])
+     	    	    	SHERD_ANGLE = sherd[3]
+    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
+    	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
     	    	    	if not grasp_success:  # if not, break out of all loops and go home
     	    	    	    report = False
     	    	    	    return report
@@ -181,7 +180,7 @@ class AutoCore:
     	    	point_cam.header.frame_id = "camera_link"
 
     	    	# get center x,y,z from /Bounding_Boxes detections
-    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
+    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, 0
 
     	    	sherd_angle = item.bbox.center.roll  # get sherd rotation angle
 
@@ -200,15 +199,14 @@ class AutoCore:
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
-    def pickPlaceFun(self, mode, grip_height, **pose):
+    def pickPlaceFun(self, mode, **pose):
     	print("pickPlacefun triggered.")
 
     	if(mode == 0): # retrieve mode
     	    gripper.open()
-    	    self.moveFun(**pose) # first rotate gripper (roll angle) and center ABOVE sherd
-    	    bot.arm.move_ee_xyz( np.array([0, 0, grip_height]), plan=True ) # then move gripper down to sherd
+    	    self.moveFun(**pose)  # move gripper down to sherd
     	    time.sleep(2)
-    	    gripper.close()  # closing around sherd
+    	    gripper.close()  # close around sherd
     	    time.sleep(2)
     	    gripper_state = gripper.get_gripper_state()
     	    print("gripper_state = ", gripper_state)
