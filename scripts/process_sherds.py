@@ -73,7 +73,7 @@ class AutoCore:
     # Captures image of empty background mat
     def calibrateFun(self):
     	print("AutoCore.calibrateFun(self) triggered.")
-    	calibrate_xyz = np.array( [0.14, 0.24, DEF_HEIGHT] )
+    	calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
     	calibrateLoc = {"position": calibrate_xyz, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	self.moveFun(**calibrateLoc)
 
@@ -178,19 +178,18 @@ class AutoCore:
     	    report = True
     	    tfBuffer = tf2_ros.Buffer()
     	    tf_listener = tf2_ros.TransformListener(tfBuffer)
-    	    rate = rospy.Rate(10.0)
+    	    rate = rospy.Rate(5.0)
     	    print("tf_listener created.")
 
-    	    while not rospy.is_shutdown():  # block until transform between frames becomes available
-    	    	try:
-    	    	    # second waitForTransform: try at time = now
-    	    	    #trans = tfBuffer.lookup_transform("camera_color_optical_frame", "arm_base_link", now, rospy.Duration(4.0))
-    	    	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", rospy.Time(), rospy.Duration(4.0))
-    	    	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-    	    	    rate.sleep()
-    	    	    raise
+    	    #while not rospy.is_shutdown():  # block until transform between frames becomes available
+    	    #	try:
+    	    #	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", rospy.Time(), rospy.Duration(4.0))
+    	    #	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+    	    #	    rate.sleep()
+    	    #	    continue
 
-    	    print("Obtained transform between camera_link and arm_base_link.")
+    	    rospy.sleep(1.0)
+
 
     	    #time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
     	    for item in detections:
@@ -198,8 +197,13 @@ class AutoCore:
     	    	point_cam = PointStamped()  # build ROS message for conversion
     	    	point_cam.header.frame_id = "camera_link"
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
-    	    	point_base = tfBuffer.transform(point_cam, "arm_base_link")
-    	    	#point_base = tf_listener.transformPoint("arm_base_link", point_cam)  # convert between frames
+    	    	try:
+    	    	    point_base = tfBuffer.transform(point_cam, "arm_base_link")
+    	    	except:  # tf2_ros.buffer_interface.TypeException as e:
+    	    	    e = sys.exc_info()[0]
+    	    	    rospy.logerr(e)
+    	    	    sys.exit(1)
+    	    	print("Obtained transform between camera_link and arm_base_link.")    	    	
     	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
     	    	sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
     	    sherds = np.array(sherds)
@@ -229,10 +233,10 @@ class AutoCore:
     	    time.sleep(2)
     	    gripper_state = gripper.get_gripper_state()
     	    print("gripper_state = ", gripper_state)
-    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	    #  report = False
-    	    #  return report
-    	    #time.sleep(1)
+    	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	      report = False
+    	      return report
+    	      time.sleep(1)
     	else: # place mode
     	    gripper.open()
     	    time.sleep(1)
