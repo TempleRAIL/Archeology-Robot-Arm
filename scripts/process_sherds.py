@@ -13,10 +13,10 @@ from numpy.random import random_integers as rand
 #import message_filters
 import rospy
 import ros_numpy
-#import tf
 import tf2_ros
+from tf2_geometry_msgs import PointStamped
+#from geometry_msgs.msg import PointStamped
 from std_msgs.msg import Bool, Int16MultiArray
-from geometry_msgs.msg import PointStamped
 from vision_msgs.msg import Detection2D, Detection2DArray
 
 # ROS publishers
@@ -181,14 +181,14 @@ class AutoCore:
 
     	    while not rospy.is_shutdown():  # block until transform between frames becomes available
     	    	try:
-    	    	    now = rospy.Time.now()
     	    	    # second waitForTransform: try at time = now
     	    	    #trans = tfBuffer.lookup_transform("camera_color_optical_frame", "arm_base_link", now, rospy.Duration(4.0))
-    	    	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", now, rospy.Duration(4.0))
-    	    	    print("Waiting for transform from camera_link to arm_base_link at time = now.")
+    	    	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", rospy.Time(), rospy.Duration(4.0))
     	    	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
     	    	    rate.sleep()
-    	    	    continue
+    	    	    raise
+
+    	    print("Obtained transform between camera_link and arm_base_link.")
 
     	    #time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
     	    for item in detections:
@@ -196,7 +196,8 @@ class AutoCore:
     	    	point_cam = PointStamped()  # build ROS message for conversion
     	    	point_cam.header.frame_id = "camera_link"
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
-    	    	point_base = tf_listener.transformPoint("arm_base_link", point_cam)  # convert between frames
+    	    	point_base = tfBuffer.transform(point_cam, "arm_base_link")
+    	    	#point_base = tf_listener.transformPoint("arm_base_link", point_cam)  # convert between frames
     	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
     	    	sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
     	    sherds = np.array(sherds)
