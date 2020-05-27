@@ -183,8 +183,9 @@ class AutoCore:
     	    	try:
     	    	    now = rospy.Time.now()
     	    	    # second waitForTransform: try at time = now
-    	    	    trans = tfBuffer.lookup_transform("camera_color_optical_frame", "arm_base_link", now, rospy.Duration(4.0))
-    	    	    print("Waiting for transform from camera_color_optical_frame to arm_base_link at time = now.")
+    	    	    #trans = tfBuffer.lookup_transform("camera_color_optical_frame", "arm_base_link", now, rospy.Duration(4.0))
+    	    	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", now, rospy.Duration(4.0))
+    	    	    print("Waiting for transform from camera_link to arm_base_link at time = now.")
     	    	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
     	    	    rate.sleep()
     	    	    continue
@@ -193,7 +194,7 @@ class AutoCore:
     	    for item in detections:
     	    	sherd_angle = item.bbox.center.theta  # radians
     	    	point_cam = PointStamped()  # build ROS message for conversion
-    	    	point_cam.header.frame_id = "camera_color_optical_frame"
+    	    	point_cam.header.frame_id = "camera_link"
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
     	    	point_base = tf_listener.transformPoint("arm_base_link", point_cam)  # convert between frames
     	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
