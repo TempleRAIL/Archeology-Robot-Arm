@@ -15,9 +15,10 @@ import rospy
 import ros_numpy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
-from tf.transformations import euler_from_quaternion
+#from tf.transformations import euler_from_quaternion
 from std_msgs.msg import Bool, Int16MultiArray
-from vision_msgs.msg import Detection3D, Detection3DArray
+#from vision_msgs.msg import Detection3D, Detection3DArray
+from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
 
 # ROS publishers
 calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
@@ -137,15 +138,6 @@ class AutoCore:
     	    print("Exception to moveFun() thrown.")
     	    DEF_STATUS = False
 
-    #def callback_found(Detection2DArray)
-    #	index = Detection2DArray.detections
-    #	if not index:
-	#    report = False
-    	#    sherds = []
-    	#    return report, sherds
-    	#else
-    	#    report = True
-    	#    for i in index:
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detectFun(self):
@@ -166,7 +158,7 @@ class AutoCore:
     	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
     	
-    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
+    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY)
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
 
@@ -185,16 +177,13 @@ class AutoCore:
     	    rospy.sleep(1.0)
 
    	    for item in detections:
-    	    	sherd_angle = item.bbox.center.theta  # radians
     	    	point_cam = PointStamped()  # build ROS message for conversion
     	    	point_cam.header.frame_id = "camera_link"
 
     	    	# get center x,y,z from /Bounding_Boxes detections
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
 
-    	    	# convert orientation from /Bounding_Boxes to roll, pitch, yaw (only roll will be non-zero)
-    	    	euler_angles = euler_from_quaternion([item.bbox.center.orientation.x, item.bbox.center.orientation.y, item.bbox.center.orientation.z, item.bbox.center.orientation.w])
-    	    	sherd_angle = euler_angles[0]  # set equal to roll
+    	    	sherd_angle = item.bbox.center.roll  # get sherd rotation angle
 
     	    	try:
     	    	    point_base = tfBuffer.transform(point_cam, "arm_base_link")
@@ -211,13 +200,13 @@ class AutoCore:
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
-    def pickPlaceFun(self, mode, **pose):
+    def pickPlaceFun(self, mode, grip_height, **pose):
     	print("pickPlacefun triggered.")
 
     	if(mode == 0): # retrieve mode
     	    gripper.open()
     	    self.moveFun(**pose) # first rotate gripper (roll angle) and center ABOVE sherd
-    	    bot.arm.move_ee_xyz( np.array([0, 0, SHERD_Z]), plan=True ) # then move gripper down to sherd
+    	    bot.arm.move_ee_xyz( np.array([0, 0, grip_height]), plan=True ) # then move gripper down to sherd
     	    time.sleep(2)
     	    gripper.close()  # closing around sherd
     	    time.sleep(2)
