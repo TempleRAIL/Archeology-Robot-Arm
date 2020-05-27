@@ -64,7 +64,8 @@ print("End-effector positions: ",DEF_SHARDS)
 
 bot = Robot("locobot")
 configs = bot.configs
-
+gripper = LoCoBotGripper(configs)
+#camera = SimpleCamera(configs)
 
 class AutoCore:
 
