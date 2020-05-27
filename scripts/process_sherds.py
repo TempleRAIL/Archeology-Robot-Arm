@@ -63,6 +63,7 @@ DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0]
 print("End-effector positions: ",DEF_SHARDS)
 
 bot = Robot("locobot")
+configs = bot.configs
 
 
 class AutoCore:
