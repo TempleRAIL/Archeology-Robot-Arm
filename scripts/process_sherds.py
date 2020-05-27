@@ -15,9 +15,9 @@ import rospy
 import ros_numpy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
-#from geometry_msgs.msg import PointStamped
+from tf.transformations import euler_from_quaternion
 from std_msgs.msg import Bool, Int16MultiArray
-from vision_msgs.msg import Detection2D, Detection2DArray
+from vision_msgs.msg import Detection3D, Detection3DArray
 
 # ROS publishers
 calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
@@ -109,10 +109,11 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = np.array([sherd[0], sherd[1], 0]) # xyz center location of object
-    	    	    	SHERD_ANGLE = sherd[2]
-    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
-    	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
+    	    	    	SHERD_XY_POSITION = np.array([sherd[0], sherd[1], DEF_HEIGHT]) # move gripper to x,y sherd center at height
+    	    	    	SHERD_Z = sherd[2] - 0.005  # move gripper down to 0.5 cm below top face of sherd
+    	    	    	SHERD_ANGLE = sherd[3]
+    	    	    	sherdLoc = {"position": SHERD_XY_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
+    	    	    	grasp_success = self.pickPlaceFun(mode, SHERD_Z, **sherdLoc)  # did gripper grasp sherd?
     	    	    	if not grasp_success:  # if not, break out of all loops and go home
     	    	    	    report = False
     	    	    	    return report
@@ -181,22 +182,20 @@ class AutoCore:
     	    rate = rospy.Rate(5.0)
     	    print("tf_listener created.")
 
-    	    #while not rospy.is_shutdown():  # block until transform between frames becomes available
-    	    #	try:
-    	    #	    trans = tfBuffer.lookup_transform("camera_link", "arm_base_link", rospy.Time(), rospy.Duration(4.0))
-    	    #	except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-    	    #	    rate.sleep()
-    	    #	    continue
-
     	    rospy.sleep(1.0)
 
-
-    	    #time = tf_listener.getLatestCommonTime("/arm_base_link", "/camera_color_optical_frame")
-    	    for item in detections:
+   	    for item in detections:
     	    	sherd_angle = item.bbox.center.theta  # radians
     	    	point_cam = PointStamped()  # build ROS message for conversion
     	    	point_cam.header.frame_id = "camera_link"
-    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.x, item.bbox.center.y, 0
+
+    	    	# get center x,y,z from /Bounding_Boxes detections
+    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
+
+    	    	# convert orientation from /Bounding_Boxes to roll, pitch, yaw (only roll will be non-zero)
+    	    	euler_angles = euler_from_quaternion([item.bbox.center.orientation.x, item.bbox.center.orientation.y, item.bbox.center.orientation.z, item.bbox.center.orientation.w])
+    	    	sherd_angle = euler_angles[0]  # set equal to roll
+
     	    	try:
     	    	    point_base = tfBuffer.transform(point_cam, "arm_base_link")
     	    	except:  # tf2_ros.buffer_interface.TypeException as e:
@@ -205,20 +204,10 @@ class AutoCore:
     	    	    sys.exit(1)
     	    	print("Obtained transform between camera_link and arm_base_link.")    	    	
     	    	print("Sherd center point (x,y) [m] in arm_base_link frame: ", point_base)
-    	    	sherds.append( [point_base.point.x, point_base.point.y, sherd_angle] )
+    	    	sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
     	    sherds = np.array(sherds)
     	    print("sherds list = ", sherds)
     	    return report, sherds
-
-    	    #tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", rospy.Time(), rospy.Duration(4.0))
-    	    #while not rospy.is_shutdown():
-    	    #	try:
-    	    #	    now = rospy.Time.now()
-    	    #	    tf_listener.waitForTransform("/arm_base_link", "/camera_color_optical_frame", now, rospy.Duration(4.0))
-    	    #	    trans, rot = tf_listener.lookupTransform("/arm_base_link", "/camera_color_optical_frame", now)
-    	    #	except(tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-    	    #	    continue
-
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
@@ -227,7 +216,8 @@ class AutoCore:
 
     	if(mode == 0): # retrieve mode
     	    gripper.open()
-    	    self.moveFun(**pose)
+    	    self.moveFun(**pose) # first rotate gripper (roll angle) and center ABOVE sherd
+    	    bot.arm.move_ee_xyz( np.array([0, 0, SHERD_Z]), plan=True ) # then move gripper down to sherd
     	    time.sleep(2)
     	    gripper.close()  # closing around sherd
     	    time.sleep(2)
