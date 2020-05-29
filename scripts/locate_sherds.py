@@ -12,7 +12,6 @@ import matplotlib.image as mpimg
 import message_filters
 import rospy
 import ros_numpy
-#from tf.transformations import quaternion_from_euler
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
 #from vision_msgs.msg import Detection3D, Detection3DArray

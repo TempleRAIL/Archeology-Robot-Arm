@@ -13,7 +13,20 @@
        axis, set the z-distance from the base_footprint
        to 0.352.
       -->
+
+    <link name="world"/>
+    <joint name="fixed" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <parent link="world"/>
+        <child link="base_footprint"/>
+    </joint>
+    <!--
+       World link is created so that base link can be fixed to it.
+       Comment out the chunk above to make the base mobile again.
+    -->
+
     <joint name="base_joint" type="fixed">
+        <!-- <origin rpy="0 0 0" xyz="0 0 0.352"/ -->
         <origin rpy="0 0 0" xyz="0 0 0.0102"/>
         <parent link="base_footprint"/>
         <child link="base_link"/>
@@ -450,6 +463,40 @@
         <axis xyz="-1 0 0"/>
         <limit effort="1" lower="-1.57" upper="1.57" velocity="1"/>
     </joint>
+    <link name="camera_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="-0.0132722976093535 0.00168171470080143 2.49829664994428E-06"/>
+            <!-- <mass value="0.0381925651163644"/>
+            <inertia ixx="2.4688255642946E-05" ixy="1.60697655569215E-07" ixz="1.2993241737711E-08" iyy="3.66669176935806E-06" iyz="1.30215657011203E-08" izz="2.48602467766615E-05"/> -->
+    	    <mass value="0.000381925651163644" />
+            <inertia ixx="2.4688255642946E-07" ixy="1.60697655569215E-09" ixz="1.2993241737711E-010" iyy="3.66669176935806E-08" iyz="1.30215657011203E-010" izz="2.48602467766615E-07"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://locobot_description/meshes/camera_link.STL"/>
+            </geometry>
+            <material name="">
+                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://locobot_description/meshes/camera_link.STL"/>
+            </geometry>
+        </collision>
+    </link>
+    <joint name="camera_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.04 0 0.055"/>
+        <parent link="gripper_link"/>
+        <child link="camera_link"/>
+        <axis xyz="0 0 0"/>
+    </joint>
+    <gazebo reference="camera_joint">
+        <disableFixedJointLumping>true</disableFixedJointLumping> 
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
     <link name="finger_r">
         <inertial>
             <origin rpy="0 0 0" xyz="0.0100191457715113 -0.00843835347348892 -0.00483280251641866"/>
@@ -461,6 +508,14 @@
             <geometry>
                 <mesh filename="package://locobot_description/meshes/finger_r.STL"/>
             </geometry>
+            <surface>
+              <friction>
+                <ode>
+                  <mu>0.9</mu>
+                  <mu2>0.9</mu2>
+                </ode>
+              </friction>
+            </surface>
             <material name="">
                 <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
             </material>
@@ -490,6 +545,14 @@
             <geometry>
                 <mesh filename="package://locobot_description/meshes/finger_l.STL"/>
             </geometry>
+            <surface>
+              <friction>
+                <ode>
+                  <mu>0.9</mu>
+                  <mu2>0.9</mu2>
+                </ode>
+              </friction>
+            </surface>
             <material name="">
                 <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
             </material>
@@ -632,34 +695,6 @@
         <child link="head_tilt_link"/>
         <axis xyz="0 1 0"/>
         <limit effort="1" lower="-1.57" upper="1.57" velocity="1"/>
-    </joint>
-    <link name="camera_link">
-        <inertial>
-            <origin rpy="0 0 0" xyz="-0.0132722976093535 0.00168171470080143 2.49829664994428E-06"/>
-            <mass value="0.0381925651163644"/>
-            <inertia ixx="2.4688255642946E-05" ixy="1.60697655569215E-07" ixz="1.2993241737711E-08" iyy="3.66669176935806E-06" iyz="1.30215657011203E-08" izz="2.48602467766615E-05"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/camera_link.STL"/>
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/camera_link.STL"/>
-            </geometry>
-        </collision>
-    </link>
-    <joint name="camera_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0.04 0 0.055"/>
-        <parent link="gripper_link"/>
-        <child link="camera_link"/>
-        <axis xyz="0 0 0"/>
     </joint>
     <!-- Gazebo Plugins -->
     <gazebo>

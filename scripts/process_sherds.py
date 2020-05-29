@@ -109,7 +109,7 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-5 ]  # correct the z height by 5
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-0.05 ]  # correct the z height by 5 cm
      	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
     	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
@@ -204,7 +204,7 @@ class AutoCore:
     	if(mode == 0): # retrieve mode
     	    gripper.open()
     	    self.moveFun(**pose)  # move gripper down to sherd
-    	    time.sleep(2)
+    	    time.sleep(1)
     	    gripper.close()  # close around sherd
     	    time.sleep(2)
     	    gripper_state = gripper.get_gripper_state()
@@ -222,7 +222,7 @@ class AutoCore:
     	# Move gripper straight up z-axis to DEF_HEIGHT
     	displacement = np.array([0, 0, DEF_HEIGHT])
     	bot.arm.move_ee_xyz(displacement, plan=True)
-    	time.sleep(5)
+    	time.sleep(2)
         
     def discardFun(self):
         self.moveFun(DEF_DISCARD, DEF_ORIENTATION)
