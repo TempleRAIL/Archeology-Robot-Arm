@@ -14,19 +14,20 @@ import rospy
 import ros_numpy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
 from sensor_msgs.msg import Image, CameraInfo, PointCloud2
-from vision_msgs.msg import Detection2D, Detection2DArray
+#from vision_msgs.msg import Detection3D, Detection3DArray
+from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
 from std_msgs.msg import Float32, Int16MultiArray, MultiArrayLayout, MultiArrayDimension
 
 bridge = CvBridge()  # OpenCV converter
 
 # Publishers
-boundbox_pub = rospy.Publisher('Bounding_Boxes', Detection2DArray, queue_size=1)
+boundbox_pub = rospy.Publisher('Bounding_Boxes', Detection3DArrayRPY, queue_size=1)
 
 ##############################################################
 # callback_boundbox( segmented_img, pointcloud )
-# This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
+# This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
-# publications: vision_msgs/Detection2DArray ROS message
+# publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
 
 def callback_boundbox(segmented_img, pointcloud):
 
@@ -60,9 +61,9 @@ def callback_boundbox(segmented_img, pointcloud):
     min_area = False
     #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
-    # Construct Detection2DArray ROS message to contain all valid bounding boxes
-    BoundingBoxes_Array = Detection2DArray()
-    BoundingBoxes_Array.header = segmented_img.header	# meta-data
+    # Construct Detection3DArrayRPY custom ROS message to contain all valid bounding boxes
+    Detection_Array = Detection3DArrayRPY()
+    Detection_Array.header = segmented_img.header	# meta-data
         
     # For each detected contour, find bounding box
     for cnt in contours: 
@@ -90,10 +91,16 @@ def callback_boundbox(segmented_img, pointcloud):
 	else:
     	    grip_angle = -angle
 
+    	#quat = quaternion_from_euler(grip_angle, 0, 0)  # convert to quaternion to store in Detection3DRPY message below
+
 	# get real-world dimensions of boxes using point map
     	# x,y coordinates of bounding box center in meters
     	x_center = point_map[int(row_center_pos)][int(col_center_pos)][0]
     	y_center = point_map[int(row_center_pos)][int(col_center_pos)][1]
+    	z_center = point_map[int(row_center_pos)][int(col_center_pos)][2]
+    	print("x_center as found in pointcloud: ", x_center, "meters.")
+    	print("y_center as found in pointcloud: ", y_center, "meters.")
+    	print("z_center as found in pointcloud: ", z_center, "meters.")
     	    
 	# endpoints of bounding box minor and major axes in pixel coordinates
     	    
@@ -158,22 +165,23 @@ def callback_boundbox(segmented_img, pointcloud):
 	    plt.title("Bounding Box around Sherd")
 	    plt.show()
   
-	    # Construct a Detection2D() msg to add this bounding box to BoundingBoxes_Array
-	    BoundingBoxes_Element = Detection2D()
-            BoundingBoxes_Element.header = BoundingBoxes_Array.header
-            BoundingBoxes_Element.bbox.center.x = x_center
-            BoundingBoxes_Element.bbox.center.y = y_center
-            BoundingBoxes_Element.bbox.center.theta = np.radians(grip_angle)	# angle converted to radians
-            BoundingBoxes_Element.bbox.size_x = width_meter
-            BoundingBoxes_Element.bbox.size_y = height_meter
-            BoundingBoxes_Array.detections.append(BoundingBoxes_Element)
+	    # Construct a Detection3DRPY() msg to add this bounding box to Detection_Array
+	    Detection = Detection3DRPY()
+            Detection.header = Detection_Array.header
+            Detection.bbox.center.position.x = x_center
+            Detection.bbox.center.position.y = y_center
+            Detection.bbox.center.position.z = z_center
+            Detection.bbox.center.roll = np.radians(grip_angle)  # radians
+            Detection.bbox.size.x = width_meter
+            Detection.bbox.size.y = height_meter
+            Detection_Array.detections.append(Detection)
        
 	else:
             pass
   
     # Publish the BoundingBoxes_Array message to the 'Bounding_Boxes' topic
-    boundbox_pub.publish(BoundingBoxes_Array)
-    print "BoundingBoxes_Array msg published to Bounding_Boxes."
+    boundbox_pub.publish(Detection_Array)
+    print "Detection_Array msg published to Bounding_Boxes."
 
 
 

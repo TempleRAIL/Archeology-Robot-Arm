@@ -6,15 +6,19 @@ import math
 import numpy as np
 from pyrobot import Robot
 from pyrobot.locobot.gripper import LoCoBotGripper
-#from pyrobot.core import Robot
+from pyrobot.locobot import camera
 from numpy.random import random_integers as rand
 
 # Import ROS libraries and message types
 #import message_filters
 import rospy
 import ros_numpy
+import tf2_ros
+from tf2_geometry_msgs import PointStamped
+#from tf.transformations import euler_from_quaternion
 from std_msgs.msg import Bool, Int16MultiArray
-from vision_msgs.msg import Detection2D, Detection2DArray
+#from vision_msgs.msg import Detection3D, Detection3DArray
+from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
 
 # ROS publishers
 calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
@@ -37,7 +41,7 @@ y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
 
 # global variables
 DEF_STATUS = True
-DEF_HEIGHT = 0.3
+DEF_HEIGHT = 0.25
 #DEF_POSITION = np.array([0.04, .18, 0]) # Placeholder
 DEF_ZERO = np.array([0, 0, 0, 0, 0])  # All joints = 0 rad
 DEF_SCALE = np.array([0, 0.175, .05])  # x,y,z meters
@@ -45,7 +49,7 @@ DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
 #DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])  # this led to IK failure
 #DEF_ORIENTATION = np.array([0, 1.5, 0])  # abandoning 'set_ee_pose' method for now - MoveIt continuously fails
-DEF_PITCH = 1.5  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
+DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
 DEF_NUMERICAL = False # target pose argument
 
 
@@ -60,7 +64,9 @@ DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0]
 print("End-effector positions: ",DEF_SHARDS)
 
 bot = Robot("locobot")
-
+configs = bot.configs
+gripper = LoCoBotGripper(configs)
+#camera = SimpleCamera(configs)
 
 class AutoCore:
 
@@ -68,7 +74,7 @@ class AutoCore:
     # Captures image of empty background mat
     def calibrateFun(self):
     	print("AutoCore.calibrateFun(self) triggered.")
-    	calibrate_xyz = np.array( [0.14, 0.24, DEF_HEIGHT] )
+    	calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
     	calibrateLoc = {"position": calibrate_xyz, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	self.moveFun(**calibrateLoc)
 
@@ -89,12 +95,12 @@ class AutoCore:
     	while status:
     	    for DEF_CURRENT in range(0,12):
     	    	print("Loop = ", loop)
-    	    	#heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "orientation": DEF_ORIENTATION}
     	    	heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	    	self.moveFun(**heightLoc)
     	    	time.sleep(1)
 
     	    	found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
+    	    	print("Sherds were found: ", found)
     	    	if found:  # if sherds is not an empty list
     	    	    mode = 0  # retrieve mode
 
@@ -103,8 +109,8 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = np.array([sherd[0], sherd[1], 0]) # xyz center location of object
-    	    	    	SHERD_ANGLE = sherd[2]
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-0.03 ] #-0.05 ]  # correct the z height
+     	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
     	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
     	    	    	if not grasp_success:  # if not, break out of all loops and go home
@@ -130,19 +136,9 @@ class AutoCore:
     	    print("Exception to moveFun() thrown.")
     	    DEF_STATUS = False
 
-    #def callback_found(Detection2DArray)
-    #	index = Detection2DArray.detections
-    #	if not index:
-	#    report = False
-    	#    sherds = []
-    	#    return report, sherds
-    	#else
-    	#    report = True
-    	#    for i in index:
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detectFun(self):
-    	sherds = []
 
     	# confirm that color mask exists
     	Color_Mask_msg = rospy.wait_for_message("/Color_Mask", Int16MultiArray)
@@ -152,58 +148,81 @@ class AutoCore:
     	    print("Color mask does not exist.")
     	    report = False
     	    return report, sherds
-
+  	
+    	# run segment_sherds.py on what robot sees in this position
     	detect_sherd = True
     	msg = Bool()
     	msg.data = detect_sherd
-    	detect_trigger_pub.publish(msg)  # run segment_sherds.py on what robot sees in this position
+    	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
-
-    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
+    	
+    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY)
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
+
+    	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
 
     	if not detections:
     	    report = False
     	    return report, sherds
     	else:
     	    report = True
-	    for i in range(len(detections)):
-    	        for item in detections:
+    	    tfBuffer = tf2_ros.Buffer()
+    	    tf_listener = tf2_ros.TransformListener(tfBuffer)
+    	    rate = rospy.Rate(5.0)
+    	    print("tf_listener created.")
 
-    	    	    try:
-    	    	    	sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.theta]
-    	    	    except IndexError:
-    	    	    	continue
+    	    rospy.sleep(1.0)
 
-    	    	sherds = np.array(sherds)
-    	    	print("sherds list = ", sherds)
-    	    	return report, sherds
+   	    for item in detections:
+    	    	point_cam = PointStamped()  # build ROS message for conversion
+    	    	point_cam.header.frame_id = "camera_link"
+
+    	    	# get center x,y,z from /Bounding_Boxes detections
+    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, 0
+
+    	    	sherd_angle = item.bbox.center.roll  # get sherd rotation angle
+
+    	    	try:
+    	    	    point_base = tfBuffer.transform(point_cam, "arm_base_link")
+    	    	except:  # tf2_ros.buffer_interface.TypeException as e:
+    	    	    e = sys.exc_info()[0]
+    	    	    rospy.logerr(e)
+    	    	    sys.exit(1)
+    	    	print("Obtained transform between camera_link and arm_base_link.")    	    	
+    	    	print("Sherd center point (x,y,z) [m] in arm_base_link frame: ", point_base)
+    	    	sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
+    	    sherds = np.array(sherds)
+    	    print("sherds list = ", sherds)
+    	    return report, sherds
 
     # Function to retrieve or place an object
     # mode = 0 is retrieve, mode = 1 is place
     def pickPlaceFun(self, mode, **pose):
-    	self.moveFun(**pose)
-    	gripper = LocoBotGripper(bot.gripper)
+    	print("pickPlacefun triggered.")
 
     	if(mode == 0): # retrieve mode
-    	    gripper.close()  # closing around sherd
-    	    time.sleep(2)
-    	    gripper_state = get_gripper_state(gripper)
-    	    if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	    	report = False
-   	    	return report
+    	    gripper.open()
+    	    self.moveFun(**pose)  # move gripper down to sherd
     	    time.sleep(1)
+    	    gripper.close()  # close around sherd
+    	    time.sleep(2)
+    	    gripper_state = gripper.get_gripper_state()
+    	    print("gripper_state = ", gripper_state)
+    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
+    	      #report = False
+    	      #return report
+    	      #time.sleep(1)
     	else: # place mode
     	    gripper.open()
     	    time.sleep(1)
 
     	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
 
-        # Move gripper straight up z-axis to DEF_HEIGHT
+    	# Move gripper straight up z-axis to DEF_HEIGHT
     	displacement = np.array([0, 0, DEF_HEIGHT])
     	bot.arm.move_ee_xyz(displacement, plan=True)
-    	time.sleep(5)
+    	time.sleep(2)
         
     def discardFun(self):
         self.moveFun(DEF_DISCARD, DEF_ORIENTATION)

@@ -3,6 +3,9 @@
 
   <!-- Static transform to make camera work in sim -->
   <node pkg="tf" type="static_transform_publisher" name="cam_transform" args="0 0 0 0 0 0 /camera_link /camera_color_optical_frame 100" />
+  <node pkg="tf" type="static_transform_publisher" name="$(anon robot_state_publisher-1)" args="0.04 0 0.055 0 0 0 /gripper_link /camera_link 100" />
+
+  <node pkg="tf" type="static_transform_publisher" name="$(anon robot_state_publisher-2)" args="0 0 0 0 0 0 /world /base_footprint 100" />
 
   <include file="$(find locobot_gazebo)/launch/sherd_world.launch">  
     <arg name="paused" value="false"/>
