@@ -328,7 +328,8 @@
       <link name='link'>
         <pose frame=''>0 0 0.005 0 -0 0</pose>
         <inertial>
-          <mass>0.0628</mass>
+          <!-- <mass>0.0628</mass> -->
+          <mass>0.0007</mass>
           <inertia>
             <ixx>3.79417e-06</ixx>
             <ixy>0</ixy>
@@ -362,7 +363,11 @@
                 <surface_radius>0.01</surface_radius>
                 <ode/>
               </torsional>
-              <ode/>
+              <ode>
+                <mu>1.25</mu>
+                <mu2>1.25</mu2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
             </friction>
             <bounce/>
           </surface>
@@ -538,3 +543,4 @@
     </gui>
   </world>
 </sdf>
+
