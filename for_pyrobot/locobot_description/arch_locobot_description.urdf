@@ -488,7 +488,7 @@
         </collision>
     </link>
     <joint name="camera_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0.04 0 0.055"/>
+        <origin rpy="0 0 0" xyz="0.04 0.0 0.055"/>
         <parent link="gripper_link"/>
         <child link="camera_link"/>
         <axis xyz="0 0 0"/>
@@ -511,8 +511,8 @@
             <surface>
               <friction>
                 <ode>
-                  <mu>0.9</mu>
-                  <mu2>0.9</mu2>
+                  <mu>1.0</mu>
+                  <mu2>1.0</mu2>
                 </ode>
               </friction>
             </surface>
@@ -533,6 +533,7 @@
         <child link="finger_r"/>
         <axis xyz="0 1 0"/>
         <limit effort="1" lower="-1" upper="0" velocity="1"/>
+        <!-- <limit effort="999999.9" lower="-100" upper="100" velocity="1"/> -->
     </joint>
     <link name="finger_l">
         <inertial>
@@ -548,8 +549,8 @@
             <surface>
               <friction>
                 <ode>
-                  <mu>0.9</mu>
-                  <mu2>0.9</mu2>
+                  <mu>1.0</mu>
+                  <mu2>1.0</mu2>
                 </ode>
               </friction>
             </surface>
@@ -570,6 +571,7 @@
         <child link="finger_l"/>
         <axis xyz="0 1 0"/>
         <limit effort="1" lower="0" upper="1" velocity="1"/>
+        <!-- <limit effort="999999.9" lower="-100" upper="100" velocity="1"/> -->
     </joint>
     <link name="ar_tag">
         <inertial>
@@ -867,6 +869,14 @@
         <minDepth>0.001</minDepth>
         <maxVel>1.0</maxVel>
     </gazebo>
+   <!-- <gazebo reference="finger_r">
+        <minDepth>0.003</minDepth>
+        <maxVel>0/maxVel>
+    </gazebo>
+   <gazebo reference="finger_l">
+        <minDepth>0.003</minDepth>
+        <maxVel>0/maxVel>
+    </gazebo> -->
 
 
     <gazebo reference="cliff_sensor_left_link">
