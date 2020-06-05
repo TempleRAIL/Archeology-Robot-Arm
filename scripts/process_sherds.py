@@ -109,7 +109,7 @@ class AutoCore:
     	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
     	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
                                                 #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-0.05 ]  # correct the z height by 5 cm
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-0.03 ] #-0.05 ]  # correct the z height
      	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
     	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
