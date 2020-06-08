@@ -41,14 +41,11 @@ y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
 
 # global variables
 DEF_STATUS = True
-DEF_HEIGHT = 0.25
-#DEF_POSITION = np.array([0.04, .18, 0]) # Placeholder
-DEF_ZERO = np.array([0, 0, 0, 0, 0])  # All joints = 0 rad
-DEF_SCALE = np.array([0, 0.175, .05])  # x,y,z meters
+DEF_HEIGHT = 0.25  # working height
+DEF_MAT = np.array( [0.14, -0.24, DEF_HEIGHT] ) # x,y,z meters
+DEF_SCALE = np.array([0.14, 0.24, DEF_HEIGHT])  # x,y,z meters
 DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
-#DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])  # this led to IK failure
-#DEF_ORIENTATION = np.array([0, 1.5, 0])  # abandoning 'set_ee_pose' method for now - MoveIt continuously fails
 DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
 DEF_NUMERICAL = False # target pose argument
 
@@ -74,8 +71,8 @@ class AutoCore:
     # Captures image of empty background mat
     def calibrateFun(self):
     	print("AutoCore.calibrateFun(self) triggered.")
-    	calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
-    	calibrateLoc = {"position": calibrate_xyz, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
+    	#calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
+    	calibrateLoc = {"position": DEF_MAT, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	self.moveFun(**calibrateLoc)
 
     	generate_mask = True
@@ -102,20 +99,25 @@ class AutoCore:
     	    	found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
     	    	print("Sherds were found: ", found)
     	    	if found:  # if sherds is not an empty list
-    	    	    mode = 0  # retrieve mode
 
     	    	    for sherd in sherds:
-    	    	    	#pos = (sherd[0], sherd[1])  # (might be redundant) Place returned center position (from DetectionArray msg)
-    	    	    	#SHERD_ORIENTATION = np.array([[math.cos(angle),  math.sin(angle),      0],
-    	    	    	    	    	    	#[math.sin(angle), -math.cos(angle),      0],
-                                                #[              0,                0,     -1]])
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], sherd[2]-0.03 ] #-0.05 ]  # correct the z height
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
+    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
      	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
-    	    	    	grasp_success = self.pickPlaceFun(mode, **sherdLoc)  # did gripper grasp sherd?
-    	    	    	if not grasp_success:  # if not, break out of all loops and go home
-    	    	    	    report = False
-    	    	    	    return report
+    	    	    	self.pickFun(SHERD_Z, **sherdLoc)  # pick up sherd
+    	    	    	scale_z = 0.07  # move gripper to this z to drop sherd on scale
+    	    	    	scaleLoc = {"position": DEF_SCALE, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL}
+     	    	    	self.placeFun(scale_z, **scaleLoc)  # place sherd on scale
+    	    	    	time.sleep(2)
+    	    	    	found, sherds = self.detectFun()  # re-detect sherd on scale (may have rotated/shifted during place)
+    	    	    	    for sherd in sherds:
+    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
+    	    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+    	    	    	    	SHERD_ANGLE = sherd[3]
+    	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE,
+    	    	    	    	    	    "numerical": DEF_NUMERICAL}
+    	    	    	    	self.pickFun(SHERD_Z, **sherdLoc)
 
     	    	loop += 1
     	    	if loop > 11:
@@ -196,33 +198,44 @@ class AutoCore:
     	    print("sherds list = ", sherds)
     	    return report, sherds
 
-    # Function to retrieve or place an object
-    # mode = 0 is retrieve, mode = 1 is place
-    def pickPlaceFun(self, mode, **pose):
-    	print("pickPlacefun triggered.")
+    # Function to retrieve an object
+    def pickFun(self, z, **pose):
+    	print("pickfun triggered.")
 
-    	if(mode == 0): # retrieve mode
-    	    gripper.open()
-    	    self.moveFun(**pose)  # move gripper down to sherd
-    	    time.sleep(1)
-    	    gripper.close()  # close around sherd
-    	    time.sleep(2)
-    	    gripper_state = gripper.get_gripper_state()
-    	    print("gripper_state = ", gripper_state)
-    	    #if gripper_state == 3:  # gripper is fully closed and failed to grasp sherd
-    	      #report = False
-    	      #return report
-    	      #time.sleep(1)
-    	else: # place mode
-    	    gripper.open()
-    	    time.sleep(1)
+    	self.moveFun(**pose)  # position gripper at working height
+    	gripper.open()
+    	descent_z = np.array( [0, 0, z] )
+    	bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down to sherd
+    	time.sleep(1)
+    	gripper.close()  # close around sherd
+    	time.sleep(1)
+    	#gripper_state = gripper.get_gripper_state()
+    	#print("gripper_state = ", gripper_state)
+    	#if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
+    	    #report = False
+    	    #return report
+    	    #time.sleep(1)
 
-    	DEF_ORIENTATION = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
+    	# Move gripper straight up to working height
+    	ascend_z = np.array([0, 0, DEF_HEIGHT])
+    	bot.arm.move_ee_xyz(ascend_z, plan=True)
 
-    	# Move gripper straight up z-axis to DEF_HEIGHT
-    	displacement = np.array([0, 0, DEF_HEIGHT])
-    	bot.arm.move_ee_xyz(displacement, plan=True)
-    	time.sleep(2)
+    # Function to place an object
+    def placeFun(self, z, **pose):
+    	print("placeFun triggered.")
+
+    	self.moveFun(**pose)  # position gripper at working height
+    	descent_z = np.array( [0, 0, z] )
+    	bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down near surface
+    	gripper.open()
+    	time.sleep(1)
+   	#gripper_state = gripper.get_gripper_state()
+    	#print("gripper_state = ", gripper_state)
+ 
+    	# Move gripper straight up to working height
+    	ascend_z = np.array([0, 0, DEF_HEIGHT])
+    	bot.arm.move_ee_xyz(ascend_z, plan=True)
+
         
     def discardFun(self):
         self.moveFun(DEF_DISCARD, DEF_ORIENTATION)
