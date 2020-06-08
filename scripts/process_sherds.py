@@ -43,7 +43,7 @@ y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
 DEF_STATUS = True
 DEF_HEIGHT = 0.25  # working height
 DEF_MAT = np.array( [0.14, -0.24, DEF_HEIGHT] ) # x,y,z meters
-DEF_SCALE = np.array([0.14, 0.24, DEF_HEIGHT])  # x,y,z meters
+DEF_SCALE = np.array([0.14, 0.3, DEF_HEIGHT])  # x,y,z meters
 DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
 DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
@@ -99,7 +99,6 @@ class AutoCore:
     	    	found, sherds = self.detectFun()  # check for sherd detections and get list of locations / rotations
     	    	print("Sherds were found: ", found)
     	    	if found:  # if sherds is not an empty list
-
     	    	    for sherd in sherds:
     	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
     	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
@@ -111,13 +110,12 @@ class AutoCore:
      	    	    	self.placeFun(scale_z, **scaleLoc)  # place sherd on scale
     	    	    	time.sleep(2)
     	    	    	found, sherds = self.detectFun()  # re-detect sherd on scale (may have rotated/shifted during place)
-    	    	    	    for sherd in sherds:
-    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
-    	    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
-    	    	    	    	SHERD_ANGLE = sherd[3]
-    	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE,
-    	    	    	    	    	    "numerical": DEF_NUMERICAL}
-    	    	    	    	self.pickFun(SHERD_Z, **sherdLoc)
+    	    	    	for sherd in sherds:
+    	    	    	    SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
+    	    	    	    SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+    	    	    	    SHERD_ANGLE = sherd[3]
+    	    	    	    sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
+    	    	    	    self.pickFun(SHERD_Z, **sherdLoc)
 
     	    	loop += 1
     	    	if loop > 11:
@@ -204,7 +202,7 @@ class AutoCore:
 
     	self.moveFun(**pose)  # position gripper at working height
     	gripper.open()
-    	descent_z = np.array( [0, 0, z] )
+    	descent_z = np.array( [0, 0, -(DEF_HEIGHT-z] )  # z-displacement downwards to 3 cm below top face of sherd
     	bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down to sherd
     	time.sleep(1)
     	gripper.close()  # close around sherd
@@ -225,7 +223,7 @@ class AutoCore:
     	print("placeFun triggered.")
 
     	self.moveFun(**pose)  # position gripper at working height
-    	descent_z = np.array( [0, 0, z] )
+    	descent_z = np.array( [0, 0, -(DEF_HEIGHT-z)] )    # z-displacement downwards to z
     	bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down near surface
     	gripper.open()
     	time.sleep(1)
