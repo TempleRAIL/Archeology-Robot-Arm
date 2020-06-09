@@ -7,7 +7,7 @@ import numpy as np
 from pyrobot import Robot
 from pyrobot.locobot.gripper import LoCoBotGripper
 from pyrobot.locobot import camera
-from numpy.random import random_integers as rand
+import random
 
 # Import ROS libraries and message types
 #import message_filters
@@ -29,7 +29,7 @@ x_offset = 0.22
 x_length = 0.25
 x_rects = 3
 x_sublength = x_length/x_rects
-pickup_x_center = (2*x_offset + x_length)/2
+pickup_x_center = x_offset + x_length/2
 
 y_length = 0.5
 y_rects = 4
@@ -47,10 +47,11 @@ DEF_SCALE = np.array([0.14, 0.3, DEF_HEIGHT])  # x,y,z meters
 DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
 DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angle
-DEF_NUMERICAL = True # target pose argument
+DEF_NUMERICAL = False # target pose argument
 
+# random points over discard area
+DEF_DISCARD = np.array([ random.uniform(x_offset, x_offset+x_length), random.uniform(-y_length/2, y_length/2), DEF_HEIGHT])  
 
-DEF_DISCARD = np.array([ -pickup_x_center, pickup_y_center, DEF_HEIGHT]) # Placeholder MAKE SURE YOU DEFINE THIS
 DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0], y_centers[1], DEF_HEIGHT],
     	    	    	 [x_centers[0], y_centers[2], DEF_HEIGHT], [x_centers[0], y_centers[3], DEF_HEIGHT],
     	    	    	 [x_centers[1], y_centers[3], DEF_HEIGHT], [x_centers[1], y_centers[2], DEF_HEIGHT],
@@ -101,7 +102,7 @@ class AutoCore:
     	    	if found:  # if sherds is not an empty list
     	    	    for sherd in sherds:
     	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
-    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+    	    	    	SHERD_Z = sherd[2]-0.030    # correct the target z position from top face of sherd
      	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
 
@@ -110,7 +111,6 @@ class AutoCore:
 
     	    	    	scale_z = 0.08  # move gripper to this z to drop sherd on scale
     	    	    	scaleLoc = {"position": DEF_SCALE, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}
-
      	    	    	self.placeFun(scale_z, **scaleLoc)  # move down and place sherd on scale
     	    	    	self.moveFun(**scaleLoc)  # move back up to scaleLoc, roll gripper to 0
 
@@ -122,7 +122,24 @@ class AutoCore:
     	    	    	    SHERD_ANGLE = sherd[3]
     	    	    	    sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
     	    	    	    self.pickFun(SHERD_Z, **sherdLoc)
-    	    	    	    self.moveFun(**sherdLoc)  # move back up, roll gripper to 0
+  	    	    	    self.moveFun(**sherdLoc)  # move back up, roll gripper to 0
+    	    	    	    camera_z = 0.08  # move gripper to this z to drop sherd on scale
+    	    	    	    cameraLoc = {"position": DEF_CAMERA, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}
+     	    	    	    self.placeFun(camera_z, **cameraLoc)  # move down and place sherd for camera
+    	    	    	    self.moveFun(**cameraLoc)  # move back up to cameraLoc, roll gripper to 0
+
+    	    	    	    time.sleep(2)
+    	    	    	    found, sherds = self.detectFun()  # re-detect sherd (may have rotated/shifted during place)
+    	    	    	    for sherd in sherds:
+    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
+    	    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+    	    	    	    	SHERD_ANGLE = sherd[3]
+    	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
+    	    	    	    	self.pickFun(SHERD_Z, **sherdLoc)
+    	    	    	    	self.moveFun(**sherdLoc)  # move back up, roll gripper to 0
+
+    	    	    	    	self.moveFun(**discardLoc)  # move to random spot over discard area
+    	    	    	    	gripper.open()  # drop sherd
 
     	    	loop += 1
     	    	if loop > 11:
