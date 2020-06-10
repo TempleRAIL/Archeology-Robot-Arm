@@ -331,12 +331,12 @@
           <!-- <mass>0.0628</mass> -->
           <mass>0.0007</mass>
           <inertia>
-            <ixx>3.79417e-06</ixx>
+            <ixx>3.79417e-08</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>5.28567e-05</iyy>
+            <iyy>5.28567e-07</iyy>
             <iyz>0</iyz>
-            <izz>5.56042e-05</izz>
+            <izz>5.56042e-07</izz>
           </inertia>
         </inertial>
         <collision name='collision'>
@@ -352,6 +352,7 @@
               <ode>
                 <kp>100000</kp>
                 <kd>100</kd>
+                <!-- <kd>1.0</kd> -->
                 <max_vel>100</max_vel>
                 <min_depth>0.001</min_depth>
               </ode>
@@ -359,14 +360,15 @@
             <friction>
               <torsional>
                 <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.01</surface_radius>
+                <use_patch_radius>1</use_patch_radius>
+                <surface_radius>0</surface_radius>
                 <ode/>
               </torsional>
               <ode>
-                <mu>1.25</mu>
-                <mu2>1.25</mu2>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
                 <fdir1>0 0 1</fdir1>
+                <fdir2>1 0 0</fdir2>
               </ode>
             </friction>
             <bounce/>
@@ -478,6 +480,15 @@
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
+        <collision name='collision'>
+            <friction>
+             <ode>
+                <mu>1.25</mu>
+                <mu2>1.25</mu2>
+                <!-- no direction specified, so friction automatically in x and y -->
+              </ode>
+            </friction>
+        </collision>
         </link>
       </model>
       <model name='stone_7_2_5_1cm'>

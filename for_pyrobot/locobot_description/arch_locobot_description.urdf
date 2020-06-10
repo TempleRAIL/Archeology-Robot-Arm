@@ -510,9 +510,17 @@
             </geometry>
             <surface>
               <friction>
+                <torsional>
+                  <coefficient>1</coefficient>
+                  <use_patch_radius>1</use_patch_radius>
+                  <surface_radius>0</surface_radius>
+                  <ode/>
+                </torsional>
                 <ode>
-                  <mu>1.0</mu>
-                  <mu2>1.0</mu2>
+                  <mu>1.25</mu>
+                  <mu2>1.25</mu2>
+                  <fdir1>0 0 1</fdir1>
+                  <fdir2>1 0 0</fdir2>
                 </ode>
               </friction>
             </surface>
@@ -548,9 +556,17 @@
             </geometry>
             <surface>
               <friction>
+                <torsional>
+                  <coefficient>1</coefficient>
+                  <use_patch_radius>1</use_patch_radius>
+                  <surface_radius>0</surface_radius>
+                  <ode/>
+                </torsional>
                 <ode>
-                  <mu>1.0</mu>
-                  <mu2>1.0</mu2>
+                  <mu>1.25</mu>
+                  <mu2>1.25</mu2>
+                  <fdir1>0 0 1</fdir1>
+                  <fdir2>1 0 0</fdir2>
                 </ode>
               </friction>
             </surface>
@@ -870,12 +886,20 @@
         <maxVel>1.0</maxVel>
     </gazebo>
    <!-- <gazebo reference="finger_r">
-        <minDepth>0.003</minDepth>
-        <maxVel>0/maxVel>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>1.0</maxVel>
     </gazebo>
    <gazebo reference="finger_l">
-        <minDepth>0.003</minDepth>
-        <maxVel>0/maxVel>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>1.0</maxVel>
     </gazebo> -->
 
 
