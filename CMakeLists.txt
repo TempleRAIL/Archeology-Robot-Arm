@@ -57,17 +57,17 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    BoundingBox3DRPY.msg
-   Detection3DArrayRPY.msg
    Detection3DRPY.msg
+   Detection3DRPYArray.msg
    PoseRPY.msg
  )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  ColorMask.srv
+  SherdDetections.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -114,10 +114,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES robot_arm
+#  INCLUDE_DIRS include
+#  LIBRARIES robot_arm
   CATKIN_DEPENDS camera_calibration camera_info_manager cv_bridge message_runtime polled_camera robot_state_publisher roscpp rospy std_msgs vision_msgs
-  DEPENDS system_lib
+#  DEPENDS system_lib
 )
 
 ###########
