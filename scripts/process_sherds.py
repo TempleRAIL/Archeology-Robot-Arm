@@ -44,20 +44,27 @@ DEF_STATUS = True
 DEF_HEIGHT = 0.25  # working height
 DEF_MAT = np.array( [0.14, -0.24, DEF_HEIGHT] ) # x,y,z meters
 DEF_SCALE = np.array([0.14, 0.3, DEF_HEIGHT])  # x,y,z meters
+SCALE_Z = 0.085
 DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
+CAMERA_Z = SCALE_Z
+
 
 random.seed()
 DEF_DISCARD = np.array( [random.uniform(-x_offset-x_length, -x_offset), random.uniform(-y_length/2, y_length/2), DEF_HEIGHT] )  # random points over discard area 
 
 DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation anglea
-DEF_NUMERICAL = False # target pose argument
+DEF_NUMERICAL = False # required argument for bot.arm.set_ee_pose_pitch_roll
 
-DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0], y_centers[1], DEF_HEIGHT],
-    	    	    	 [x_centers[0], y_centers[2], DEF_HEIGHT], [x_centers[0], y_centers[3], DEF_HEIGHT],
-    	    	    	 [x_centers[1], y_centers[3], DEF_HEIGHT], [x_centers[1], y_centers[2], DEF_HEIGHT],
-    	    	    	 [x_centers[1], y_centers[1], DEF_HEIGHT], [x_centers[1], y_centers[0], DEF_HEIGHT],
-    	    	    	 [x_centers[2], y_centers[0], DEF_HEIGHT], [x_centers[2], y_centers[1], DEF_HEIGHT],
-    	    	    	 [x_centers[2], y_centers[2], DEF_HEIGHT], [x_centers[2], y_centers[3], DEF_HEIGHT] ] ) # x,y,z meters
+# constsruct array of subrectangle centers
+DEF_SHARDS = []
+
+for x in x_centers:
+    for y in y_centers:
+    	center = [x,y]
+    	DEF_SHARDS.append(center)
+
+DEF_SHARDS = np.array(DEF_SHARDS)
+
 
 print("End-effector positions: ",DEF_SHARDS)
 
@@ -91,7 +98,7 @@ class AutoCore:
     	loop = 0
     	status = True
     	while status:
-    	    for DEF_CURRENT in range(0,12):
+    	    for DEF_CURRENT in range(0,len(DEF_SHARDS)):
     	    	print("Loop = ", loop)
     	    	heightLoc = {"position": DEF_SHARDS[DEF_CURRENT], "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL} 
     	    	self.moveFun(**heightLoc)
@@ -101,39 +108,36 @@ class AutoCore:
     	    	print("Sherds were found: ", found)
     	    	if found:  # if sherds is not an empty list
     	    	    for sherd in sherds:
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], 0.085 ]
-    	    	    	#SHERD_Z = sherd[2]-0.030    # correct the target z position from top face of sherd
-     	    	    	SHERD_ANGLE = sherd[3]
+    	    	    	SHERD_Z = sherd[2]-0.030    # correct the target z position from top face of sherd
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]
+    	    	    	SHERD_ANGLE = sherd[3]
     	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
 
-    	    	    	self.pickFun(**sherdLoc)  # pick up sherd
+    	    	    	self.pickFun(SHERD_Z, **sherdLoc)  # pick up sherd
 
-    	    	    	scale_z = 0.085  # move gripper to this z to drop sherd on scale
     	    	    	scaleLoc = {"position": DEF_SCALE, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}
-     	    	    	self.placeFun(scale_z, **scaleLoc)  # move down and place sherd on scale
-    	    	    	self.moveFun(**scaleLoc)  # move back up to scaleLoc, roll gripper to 0
+     	    	    	self.placeFun(SCALE_Z, **scaleLoc)  # move down and place sherd on scale, then move back up
 
     	    	    	time.sleep(1)
     	    	    	found, sherds = self.detectFun()  # re-detect sherd on scale (may have rotated/shifted during place)
     	    	    	for sherd in sherds:
+    	    	    	    SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
     	    	    	    SHERD_POSITION = [ sherd[0], sherd[1], 0.085 ]
-    	    	    	    #SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+
     	    	    	    SHERD_ANGLE = sherd[3]
     	    	    	    sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
-    	    	    	    self.pickFun(**sherdLoc)
-  	    	    	    #self.moveFun(**sherdLoc)  # move back up, roll gripper to 0
-    	    	    	    camera_z = 0.085  # move gripper to this z to drop sherd on scale
+    	    	    	    self.pickFun(SHERD_Z, **sherdLoc)
     	    	    	    cameraLoc = {"position": DEF_CAMERA, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}
-     	    	    	    self.placeFun(camera_z, **cameraLoc)  # move down and place sherd for camera
+     	    	    	    self.placeFun(CAMERA_Z, **cameraLoc)  # move down and place sherd for camera, then move back up
     	    	    	   
     	    	    	    time.sleep(1)
     	    	    	    found, sherds = self.detectFun()  # re-detect sherd (may have rotated/shifted during place)
     	    	    	    for sherd in sherds:
-    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
     	    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
+    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], DEF_HEIGHT ]  # at working height
     	    	    	    	SHERD_ANGLE = sherd[3]
     	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": DEF_PITCH, "roll": SHERD_ANGLE, "numerical": DEF_NUMERICAL}
-    	    	    	    	self.pickFun(**sherdLoc)
+    	    	    	    	self.pickFun(SHERD_Z, **sherdLoc)
     	    	    	    	self.discardFun()
     	    	    	    	
     	    	loop += 1
@@ -216,12 +220,12 @@ class AutoCore:
 
 
     # Function to retrieve an object
-    def pickFun(self, **pose):
+    def pickFun(self, z, **pose):
     	print("pickFun triggered.")
     	gripper.open()
     	self.moveFun(**pose)  # position gripper at working height
-    	#descent_z = np.array( [0, 0, -(DEF_HEIGHT-z)] )  # z-displacement downwards to 3 cm below top face of sherd
-    	#bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down to sherd
+    	descend_z = np.array( [0, 0, -(DEF_HEIGHT-z)] )  # z-displacement downwards to 3 cm below top face of sherd
+    	bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
     	time.sleep(1)
     	gripper.close()  # close around sherd
     	#gripper_state = gripper.get_gripper_state()
@@ -232,8 +236,7 @@ class AutoCore:
     	    #time.sleep(1)
 
     	# Move gripper back up
-    	ascend_z = np.array([0, 0, DEF_HEIGHT])
-    	bot.arm.move_ee_xyz(ascend_z, plan=True)
+    	bot.arm.move_ee_xyz(-descend_z, plan=True)
 
 
     # Function to place an object
@@ -241,8 +244,8 @@ class AutoCore:
     	print("placeFun triggered.")
 
     	self.moveFun(**pose)  # position gripper at working height
-    	descent_z = np.array( [0, 0, -(DEF_HEIGHT-z)] )    # z-displacement downwards to z
-    	bot.arm.move_ee_xyz(descent_z, plan=True)  # move gripper down near surface
+    	descend_z = np.array( [0, 0, -(DEF_HEIGHT-z)] )    # z-displacement downwards to z
+    	bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down near surface
     	time.sleep(2)
     	gripper.open()
     	time.sleep(1)
@@ -250,8 +253,7 @@ class AutoCore:
     	#print("gripper_state = ", gripper_state)
  
     	# Move gripper back up
-    	ascend_z = np.array([0, 0, DEF_HEIGHT])
-    	bot.arm.move_ee_xyz(ascend_z, plan=True)
+    	bot.arm.move_ee_xyz(-descend_z, plan=True)
 
         
     def discardFun(self):
