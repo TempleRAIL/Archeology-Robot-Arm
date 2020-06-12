@@ -178,7 +178,7 @@ class AutoCore:
     	detect_trigger_pub.publish(msg)
     	print("/Detect_Trigger message published.")
     	
-    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY)
+    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY) # set this header equal to header in pointcam
     	detections = msg.detections
     	print("/Bounding_Boxes detections message: ", detections)
 
@@ -198,7 +198,8 @@ class AutoCore:
 
    	    for item in detections:
     	    	point_cam = PointStamped()  # build ROS message for conversion
-    	    	point_cam.header.frame_id = "camera_link"
+    	    	#point_cam.header.frame_id = "camera_link"
+    	    	point_cam.header = msg.header
 
     	    	# get center x,y,z from /Bounding_Boxes detections
     	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, 0
