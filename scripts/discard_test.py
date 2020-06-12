@@ -46,10 +46,6 @@ DEF_MAT = np.array( [0.14, -0.24, DEF_HEIGHT] ) # x,y,z meters
 DEF_SCALE = np.array([0.14, 0.3, DEF_HEIGHT])  # x,y,z meters
 DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
 
-# random points over discard area
-random.seed()
-DEF_DISCARD = np.array( [random.uniform(-x_offset-x_length, -x_offset), random.uniform(-y_length/2, y_length/2), DEF_HEIGHT] ) 
-
 DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation anglea
 DEF_NUMERICAL = False # target pose argument
 
@@ -59,9 +55,6 @@ DEF_SHARDS = np.array( [ [x_centers[0], y_centers[0], DEF_HEIGHT], [x_centers[0]
     	    	    	 [x_centers[1], y_centers[1], DEF_HEIGHT], [x_centers[1], y_centers[0], DEF_HEIGHT],
     	    	    	 [x_centers[2], y_centers[0], DEF_HEIGHT], [x_centers[2], y_centers[1], DEF_HEIGHT],
     	    	    	 [x_centers[2], y_centers[2], DEF_HEIGHT], [x_centers[2], y_centers[3], DEF_HEIGHT] ] ) # x,y,z meters
-
-print("End-effector positions: ",DEF_SHARDS)
-
 bot = Robot("locobot")
 configs = bot.configs
 gripper = LoCoBotGripper(configs)
@@ -69,10 +62,27 @@ gripper = LoCoBotGripper(configs)
 
 class AutoCore:
 
-def discardFun(self):
+    def discardFun(self):
+    	print("discardFun triggered.")
+    	# random points over discard area
+    	random.seed()
+    	discardSpot = np.array( [round(random.uniform(-x_offset-x_length, -x_offset), 4), round(random.uniform(-y_length/2, y_length/2), 4), DEF_HEIGHT] )
+    	print("Generated these random x,y points over discard area: ", discardSpot)
+
     	print("Moving over discard area.")
-    	discardLoc = {"position": DEF_DISCARD, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}    
+    	discardLoc = {"position": discardSpot, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}    
     	self.moveFun(**discardLoc)
+
+    # Function to call IK to plot and execute trajectory
+    def moveFun(self, **pose):
+    	print("moveFun triggered.")
+    	try:
+    	    bot.arm.set_ee_pose_pitch_roll(**pose)
+    	    #bot.arm.set_ee_pose(**pose)
+    	    time.sleep(1)
+    	except:
+    	    print("Exception to moveFun() thrown.")
+    	    DEF_STATUS = False
       
 
 def process_sherds():
