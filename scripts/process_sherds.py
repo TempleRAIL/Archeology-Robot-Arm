@@ -15,14 +15,13 @@ import rospy
 import ros_numpy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
-#from tf.transformations import euler_from_quaternion
-from std_msgs.msg import Bool, Int16MultiArray
-#from vision_msgs.msg import Detection3D, Detection3DArray
-from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
+from robot_arm.srv import *
 
-# ROS publishers
-calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
-detect_trigger_pub = rospy.Publisher('Detect_Trigger', Bool, queue_size=1)
+# ROS service clients
+rospy.wait_for_service('color_mask')
+color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
+rospy.wait_for_service('sherd_detections')
+detection_srv = rospy.ServiceProxy('sherd_detections', SherdDetections)
 
 # pick-up area geometry [meters]
 x_offset = 0.22
@@ -75,6 +74,8 @@ gripper = LoCoBotGripper(configs)
 
 class AutoCore:
 
+    color_mask = None
+
     # Function to trigger generation of color mask
     # Captures image of empty background mat
     def calibrateFun(self):
@@ -82,13 +83,15 @@ class AutoCore:
     	#calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
     	calibrateLoc = {"position": DEF_MAT, "pitch": DEF_PITCH, "numerical": DEF_NUMERICAL} 
     	self.moveFun(**calibrateLoc)
-
-    	generate_mask = True
-    	msg = Bool()
-    	msg.data = generate_mask
-
-    	calibrate_trigger_pub.publish(msg)
-    	print("/Calibrate_Trigger message published.")
+    	
+    	req = ColorMaskRequest()
+    	req.num_colors = 1
+    	req.show_chart = True
+    	
+    	res = color_mask_srv(req)
+    	self.color_mask = res.color_mask
+    	
+    	print("Got color mask.")
     	
   
     # Function to look for object in box
@@ -161,10 +164,8 @@ class AutoCore:
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detectFun(self):
-
-    	# confirm that color mask exists
-    	Color_Mask_msg = rospy.wait_for_message("/Color_Mask", Int16MultiArray)
-    	if Color_Mask_msg.data:
+        # confirm that color mask exists
+    	if not (self.color_mask in None):
     	    print("Color mask exists.  Proceed.")
     	else:
     	    print("Color mask does not exist.")
@@ -172,14 +173,11 @@ class AutoCore:
     	    return report, sherds
   	
     	# run segment_sherds.py on what robot sees in this position
-    	detect_sherd = True
-    	msg = Bool()
-    	msg.data = detect_sherd
-    	detect_trigger_pub.publish(msg)
-    	print("/Detect_Trigger message published.")
+    	req = SherdDetectionsRequest()
+    	req.color_mask = self.color_mask
     	
-    	msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY)
-    	detections = msg.detections
+    	res = detection_srv(req)
+    	detections = res.detections
     	print("/Bounding_Boxes detections message: ", detections)
 
     	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
