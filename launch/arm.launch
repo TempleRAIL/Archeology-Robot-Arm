@@ -1,0 +1,11 @@
+<launch>
+  <param name="pickup_area" value="{'x_rects': 3, 'y_rects': 4, 'x_offset': 0.22, 'y_offset': 0, 'x_length': 0.25, 'y_length': 0.5}" type="dict" />
+  <param name="discard_area" value="{'x_min': 0.09, 'x_max': 0.17, 'y_min': -0.35, 'y_max': -0.22}" type="dict" />
+  <param name="discard_area" value="{'x_min': 0.09, 'x_max': 0.17, 'y_min': -0.35, 'y_max': -0.22}" type="dict" />
+  <param name="working_pose" value="{'z': 0.25, 'pitch': pi/2, 'numerical': False}" type="dict" />
+  <param name="scale" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" type="dict" />
+  <param name="camera" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" type="dict" />
+  <param name="calibrate" value="{'x': 0.14, 'y': -0.24}" type="dict" />
+
+  <node name="process_sherds" pkg="robot_arm" type="process_sherds.py">
+</launch>
