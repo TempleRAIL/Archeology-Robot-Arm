@@ -17,8 +17,9 @@ from std_msgs.msg import MultiArrayDimension
 from robot_arm.srv import *
 
 bridge = CvBridge()  # OpenCV converter
+global img_msg, img_msg_lock
 img_msg = None
-img_msg_lock = threading.lock()
+img_msg_lock = threading.Lock()
 
 ##############################################################
 # RGB2HEX(color)
@@ -46,6 +47,7 @@ def convert_hsv_to_OpenCV(float_hsv_values):
 # inputs: sensor_msgs/Image
 
 def image_callback(msg):
+    global img_msg, img_msg_lock
     img_msg_lock.acquire()
     try:
         img_msg = msg
@@ -60,11 +62,13 @@ def image_callback(msg):
 # returns: robot_arm/ColorMaskResponse 
 
 def color_mask_callback(req):
+    global img_msg, img_msg_lock
+    
     if not req.num_colors == 1:
         rospy.logerr('Only 1 color supported')
         return
     
-    if image is None:
+    if img_msg is None:
         rospy.logerr('No image received yet')
         return
 
