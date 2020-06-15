@@ -19,7 +19,7 @@ from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
 
 class AutoCore():
     
-    def __init__(self, bot):
+    def __init__(self, bot, gripper):
         
         # Robot passed from state machine
         self.bot = bot
@@ -190,12 +190,14 @@ class AutoCore():
     # Function to retrieve an object
     def pickFun(self, z, **pose):
         print("pickFun triggered.")
-        self.bot.gripper.open()
+        #self.bot.gripper.open()
+        self.gripper.open()
         self.moveFun(**pose)  # position gripper at working height
         descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )  # z-displacement downwards to 3 cm below top face of sherd
         self.bot.arm.move_ee_xyz(descend_z, plan = True)  # move gripper down to sherd
         time.sleep(1)
-        self.bot.gripper.close()  # close around sherd
+        #self.bot.gripper.close()
+        self.gripper.close()  # close around sherd
         #gripper_state = gripper.get_gripper_state()
         #print("gripper_state = ", gripper_state)
         #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
@@ -215,7 +217,8 @@ class AutoCore():
         descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )    # z-displacement downwards to z
         self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down near surface
         time.sleep(2)
-        self.bot.gripper.open()
+        #self.bot.gripper.open()
+    	self.gripper.open()
         time.sleep(1)
        #gripper_state = gripper.get_gripper_state()
         #print("gripper_state = ", gripper_state)
