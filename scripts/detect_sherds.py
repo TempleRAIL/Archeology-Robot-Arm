@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import sys
 import threading
+import math
 
 # Import ROS libraries and message types
 import rospy
@@ -37,7 +38,6 @@ def camera_data_callback(im_msg, pc_msg):
         point_cloud_msg = pc_msg
     finally:
         camera_data_lock.release()
-    
 
 ##############################################################
 # segment_sherds(color_mask, img)
@@ -71,7 +71,6 @@ def segment_sherds(color_mask, img):
     
     return sherds_image
 
-
 ##############################################################
 # locate_sherds(sherds_image, points )
 # This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
@@ -79,6 +78,8 @@ def segment_sherds(color_mask, img):
 # publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
 
 def locate_sherds(sherds_image, points, header):
+    point_map = points 
+
     # Find contours in gray 'sherds_image' image.
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY)
     _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
@@ -185,7 +186,6 @@ def locate_sherds(sherds_image, points, header):
             print("Height in meters:  %f." % (height_meter) )
             print("Gripper rotation angle is %f degrees." % grip_angle)
     return detections
-
 
 ##############################################################
 # detect_sherds_callback(req)

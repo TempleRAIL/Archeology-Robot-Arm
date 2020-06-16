@@ -8,6 +8,7 @@ import numpy as np
 from collections import Counter
 from skimage.color import rgb2lab, rgb2hsv, deltaE_cie76
 import threading
+import math
 
 # Import ROS libraries and message types
 import rospy

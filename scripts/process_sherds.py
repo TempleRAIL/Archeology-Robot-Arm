@@ -2,7 +2,6 @@
 
 #Import Python libraries
 import time
-import math
 import numpy as np
 from pyrobot import Robot
 from pyrobot.locobot.gripper import LoCoBotGripper
@@ -21,8 +20,10 @@ from robot_arm.srv import *
 # ROS service clients
 rospy.wait_for_service('color_mask')
 color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
-rospy.wait_for_service('sherd_detections')
-detection_srv = rospy.ServiceProxy('sherd_detections', SherdDetections)
+#rospy.wait_for_service('sherd_detections')
+#detection_srv = rospy.ServiceProxy('sherd_detections', SherdDetections)
+rospy.wait_for_service('detect_sherds')
+detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
 
 bot = Robot("locobot")
 configs = bot.configs
@@ -171,7 +172,7 @@ class AutoCore:
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detectFun(self):
         # confirm that color mask exists
-    	if not (self.color_mask in None):
+    	if not (self.color_mask is None):
     	    print("Color mask exists.  Proceed.")
     	else:
     	    print("Color mask does not exist.")

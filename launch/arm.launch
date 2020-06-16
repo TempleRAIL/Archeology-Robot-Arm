@@ -8,4 +8,4 @@
   <param name="calibrate" value="{'x': 0.14, 'y': -0.24}" type="dict" />
 
   <node name="process_sherds" pkg="robot_arm" type="process_sherds.py">
-</launch>
+</launch> 
