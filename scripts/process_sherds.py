@@ -64,7 +64,7 @@ class AutoCore:
     DEF_CAMERA = DEF_SCALE  # x,y,z meters
     CAMERA_Z = SCALE_Z
 
-    DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation anglea
+    DEF_PITCH = 1.5 #np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation anglea
     DEF_NUMERICAL = False # required argument for bot.arm.set_ee_pose_pitch_roll
 
     # random points over discard area
@@ -184,7 +184,7 @@ class AutoCore:
     	req.color_mask = self.color_mask
     	
     	res = detection_srv(req)
-    	detections = res.detections
+    	detections = res.detections.detections
     	print("/Bounding_Boxes detections message: ", detections)
 
     	sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
@@ -203,7 +203,7 @@ class AutoCore:
 
    	    for item in detections:
     	    	point_cam = PointStamped()  # build ROS message for conversion
-    	    	point_cam.header = msg.header
+    	    	#point_cam.header = res.detections.header
     	    	point_cam.header.frame_id = "camera_link"  # need this to prevent error "frame_ids cannot be empty"
 
     	    	# get center x,y,z from /Bounding_Boxes detections
