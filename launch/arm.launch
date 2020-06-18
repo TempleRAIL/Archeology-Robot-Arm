@@ -1,11 +1,30 @@
 <launch>
-  <param name="pickup_area" value="{'x_rects': 3, 'y_rects': 4, 'x_offset': 0.22, 'y_offset': 0, 'x_length': 0.25, 'y_length': 0.5}" type="dict" />
-  <param name="discard_area" value="{'x_min': 0.09, 'x_max': 0.17, 'y_min': -0.35, 'y_max': -0.22}" type="dict" />
-  <param name="discard_area" value="{'x_min': 0.09, 'x_max': 0.17, 'y_min': -0.35, 'y_max': -0.22}" type="dict" />
-  <param name="working_pose" value="{'z': 0.25, 'pitch': pi/2, 'numerical': False}" type="dict" />
-  <param name="scale" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" type="dict" />
-  <param name="camera" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" type="dict" />
-  <param name="calibrate" value="{'x': 0.14, 'y': -0.24}" type="dict" />
 
-  <node name="process_sherds" pkg="robot_arm" type="process_sherds.py">
+  <node name="process_sherds" pkg="robot_arm" type="process_sherds.py" output="screen">
+
+    <!-- x,y coordinates where arm will generate color mask (viewing empty mat) -->
+    <param name="calibrate_location" value="{'x': 0.14, 'y': -0.24}" />
+
+    <!-- number of sub-rectangles w/i pickup area, in x and y directions -->
+    <!-- offset: x,y coordinates of midpoint of the edge of the pickup area closest to robot origin -->
+    <!-- dimensions of rectangular pickup area -->
+    <param name="pickup_area" value="{'rects_x': 3, 'rects_y': 4, 'offset_x': 0.22, 'offset_y': 0, 'length_x': 0.25, 'length_y': 0.5}" />
+
+    <!-- working pose parameters (for when arm is just moving around, not picking or placing) -->
+    <param name="working_pose" value="{'z': 0.25, 'roll': 0, 'pitch': np.pi/2}" />
+
+    <!-- default boolean value for using numerical method when solving IK -->
+    <param name="numerical" value="False" type="bool" />
+
+    <!-- x,y,z center coordinates of scale top face -->
+    <param name="scale_location" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" />
+
+    <!-- x,y,z center coordinates of sherd position for archival imaging by camera -->
+    <param name="cam_location" value="{'x': 0.14, 'y': 0.3, 'z': 0.085}" />
+
+    <!-- x and y limits of rectangular discard area (actual discard point will be randomly generated within limits) -->
+    <param name="discard_area" value="{'min_x': 0.09, 'max_x': 0.17, 'min_y': -0.35, 'max_y': -0.22}" />
+
+  </node>
+
 </launch> 

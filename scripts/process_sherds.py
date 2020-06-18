@@ -32,63 +32,84 @@ gripper = LoCoBotGripper(configs)
 
 class AutoCore:
 
-    # pick-up area geometry [meters]
-    x_offset = 0.22
-    x_length = 0.25
-    x_rects = 3
-    x_sublength = x_length/x_rects
-    pickup_x_center = x_offset + x_length/2
-
-    y_length = 0.5
-    y_rects = 4
-    y_sublength = y_length/y_rects
-    pickup_y_center = 0
-
-    x_centers = [x_offset+0.5*x_sublength, x_offset+1.5*x_sublength, x_offset+2.5*x_sublength]
-    y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
-
-    # discard area geometry
-    x_discard_lims = (0.09, 0.17)
-    y_discard_lims = (-0.22, -0.35)
-
     DEF_STATUS = True
+    color_mask = None
 
-    DEF_HEIGHT = 0.25  # working height
-    DEF_MAT = np.array([0.14, -0.24, DEF_HEIGHT]) # x,y,z target location for generating color mask
+    # get parameters
+    calibrate_location = eval(rospy.get_param('~calibrate_location'))
+    pickup_area = eval(rospy.get_param('~pickup_area'))
+    working_pose = eval(rospy.get_param('~working_pose'))
+    numerical = rospy.get_param('~numerical')  # default boolean for using numerical method when solving IK
+    scale_location = eval(rospy.get_param('~scale_location'))
+    cam_location = eval(rospy.get_param('~cam_location'))
+    discard_area = eval(rospy.get_param('~discard_area'))
+    
+    # x,y coordinates where arm will generate color mask (viewing empty mat)
+    cal_x, cal_y = calibrate_location['x'], calibrate_location['y']
+    
+    # number of sub-rectangles w/i pickup area, in x and y directions
+    pick_rects_x, pick_rects_y = pickup_area['rects_x'], pickup_area['rects_y']
+    
+    # x,y coordinates of midpoint of the edge of the pickup area closest to robot origin
+    pick_offset_x, pick_offset_y = pickup_area['offset_x'], pickup_area['offset_y']
+ 
+    # dimensions of rectangular pickup area
+    pick_length_x, pick_length_y = pickup_area['length_x'], pickup_area['length_y']
 
-    # scale location
-    DEF_SCALE = np.array([0.14, 0.3, DEF_HEIGHT])
-    SCALE_Z = 0.085
+    # working pose parameters (for when arm is just moving around, not picking or placing)
+    work_height, work_roll, work_pitch = working_pose['z'], working_pose['roll'], working_pose['pitch']
 
-    # camera location
-    DEF_CAMERA = DEF_SCALE  # x,y,z meters
-    CAMERA_Z = SCALE_Z
+    # x,y,z center coordinates of scale top face
+    scale_x, scale_y, scale_z = scale_location['x'], scale_location['y'], scale_location['z']
+    
+    # x,y,z center coordinates of sherd position for archival imaging by camera
+    cam_x, cam_y, cam_z = cam_location['x'], cam_location['y'], cam_location['z']
 
-    DEF_PITCH = 1.5 #np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation anglea
-    DEF_NUMERICAL = False # required argument for bot.arm.set_ee_pose_pitch_roll
+    # x and y limits of rectangular discard area (actual discard point will be randomly generated within limits)
+    dis_min_x, dis_max_x = discard_area['min_x'], discard_area['max_x']
+    dis_min_y, dis_max_y = discard_area['min_y'], discard_area['max_y']
+    
+    # key positions at working height
+    DEF_CAL = np.array([cal_x, cal_y, work_height])
+    DEF_SCALE = np.array([scale_x, scale_y, work_height])
+    DEF_CAM = np.array([cam_x, cam_y, work_height])
+       
+    # pick-up area geometry [meters]
+    rect_length_x = pick_length_x/pick_rects_x  # dimensions of rectangles w/i pickup area
+    rect_length_y = pick_length_y/pick_rects_y
 
-    # random points over discard area
-    random.seed()
-    DEF_DISCARD = np.array([random.uniform(-x_offset-x_length, -x_offset), random.uniform(-y_length/2, y_length/2), DEF_HEIGHT])
+    # construct lists for rectangle centers w/i pickup area: one for x coords of centers, one for y coords of centers
+    frac = 0.5
+    pick_centers_x, pick_centers_y = [], []
+
+    for i in range(0, pick_rects_x):
+    	pick_centers_x.append(pick_offset_x + (frac+i)*rect_length_x)
+
+    for i in range(0, pick_rects_y/2):
+    	pick_centers_y.append(pick_offset_y + (frac+i)*rect_length_y)
+    	pick_centers_y.append(pick_offset_y - (frac+i)*rect_length_y)  # mirror about y = 0
+
+    pick_centers_y.sort()  # place in order
+    print("pick_centers_x: ",pick_centers_x)
+    print("pick_centers_y: ",pick_centers_y)
 
     # constsruct array of subrectangle centers
     DEF_SHARDS = []
 
-    for x in x_centers:
-    	for y in y_centers:
-    	    center = [x, y, DEF_HEIGHT]
+    for x in pick_centers_x:
+    	for y in pick_centers_y:
+    	    center = [x, y, work_height]
     	    DEF_SHARDS.append(center)
 
     DEF_SHARDS = np.array(DEF_SHARDS)
     print("End-effector positions: ",DEF_SHARDS)
 
-    color_mask = None
 
     # Function to trigger generation of color mask
     # Captures image of empty background mat
     def calibrateFun(self):
     	print("AutoCore.calibrateFun(self) triggered.")
-    	calibrateLoc = {"position": self.DEF_MAT, "pitch": self.DEF_PITCH, "numerical": self.DEF_NUMERICAL} 
+    	calibrateLoc = {"position": self.DEF_CAL, "pitch": self.work_pitch, "numerical": self.numerical} 
     	self.moveFun(**calibrateLoc)
     	
     	req = ColorMaskRequest()
@@ -110,7 +131,7 @@ class AutoCore:
     	while status:
     	    for current in range(0,len(self.DEF_SHARDS)):
     	    	print("Loop = ", loop)
-    	    	heightLoc = {"position": self.DEF_SHARDS[current], "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL} 
+    	    	heightLoc = {"position": self.DEF_SHARDS[current], "pitch": self.work_pitch, "roll": self.work_roll, "numerical": self.numerical} 
     	    	self.moveFun(**heightLoc)
     	    	time.sleep(1)
 
@@ -119,14 +140,14 @@ class AutoCore:
     	    	if found:  # if sherds is not an empty list
     	    	    for sherd in sherds:
     	    	    	SHERD_Z = sherd[2]-0.030    # correct the target z position from top face of sherd
-    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], self.DEF_HEIGHT ]
+    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], self.work_height ]
     	    	    	SHERD_ANGLE = sherd[3]
-    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": self.DEF_PITCH, "roll": SHERD_ANGLE, "numerical": self.DEF_NUMERICAL}
+    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": self.work_pitch, "roll": SHERD_ANGLE, "numerical": self.numerical}
 
     	    	    	self.pickFun(SHERD_Z, **sherdLoc)  # pick up sherd
 
-    	    	    	scaleLoc = {"position": self.DEF_SCALE, "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL}
-     	    	    	self.placeFun(self.SCALE_Z, **scaleLoc)  # move down and place sherd on scale, then move back up
+    	    	    	scaleLoc = {"position": self.DEF_SCALE, "pitch": self.work_pitch, "roll": self.work_roll, "numerical": self.numerical}
+     	    	    	self.placeFun(self.scale_z, **scaleLoc)  # move down and place sherd on scale, then move back up
 
     	    	    	time.sleep(1)
     	    	    	found, sherds = self.detectFun()  # re-detect sherd on scale (may have rotated/shifted during place)
@@ -135,18 +156,18 @@ class AutoCore:
     	    	    	    SHERD_POSITION = [ sherd[0], sherd[1], 0.085 ]
 
     	    	    	    SHERD_ANGLE = sherd[3]
-    	    	    	    sherdLoc = {"position": SHERD_POSITION, "pitch": self.DEF_PITCH, "roll": SHERD_ANGLE, "numerical": self.DEF_NUMERICAL}
+    	    	    	    sherdLoc = {"position": SHERD_POSITION, "pitch": self.work_pitch, "roll": SHERD_ANGLE, "numerical": self.numerical}
     	    	    	    self.pickFun(SHERD_Z, **sherdLoc)
-    	    	    	    cameraLoc = {"position": self.DEF_CAMERA, "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL}
-     	    	    	    self.placeFun(self.CAMERA_Z, **cameraLoc)  # move down and place sherd for camera, then move back up
+    	    	    	    cameraLoc = {"position": self.DEF_CAM, "pitch": self.work_pitch, "roll": self.work_roll, "numerical": self.numerical}
+     	    	    	    self.placeFun(self.cam_z, **cameraLoc)  # move down and place sherd for camera, then move back up
     	    	    	   
     	    	    	    time.sleep(1)
     	    	    	    found, sherds = self.detectFun()  # re-detect sherd (may have rotated/shifted during place)
     	    	    	    for sherd in sherds:
     	    	    	    	SHERD_Z = sherd[2]-0.03    # correct the target z position from top face of sherd
-    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], self.DEF_HEIGHT ]  # at working height
+    	    	    	    	SHERD_POSITION = [ sherd[0], sherd[1], self.work_height ]  # at working height
     	    	    	    	SHERD_ANGLE = sherd[3]
-    	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": self.DEF_PITCH, "roll": SHERD_ANGLE, "numerical": self.DEF_NUMERICAL}
+    	    	    	    	sherdLoc = {"position": SHERD_POSITION, "pitch": self.work_pitch, "roll": SHERD_ANGLE, "numerical": self.numerical}
     	    	    	    	self.pickFun(SHERD_Z, **sherdLoc)
     	    	    	    	self.discardFun()
     	    	    	    	
@@ -230,7 +251,7 @@ class AutoCore:
     	print("pickFun triggered.")
     	gripper.open()
     	self.moveFun(**pose)  # position gripper at working height
-    	descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )  # z-displacement downwards to 3 cm below top face of sherd
+    	descend_z = np.array( [0, 0, -(self.work_height-z)] )  # z-displacement downwards to 3 cm below top face of sherd
     	bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
     	time.sleep(1)
     	gripper.close()  # close around sherd
@@ -251,7 +272,7 @@ class AutoCore:
     	print("placeFun triggered.")
 
     	self.moveFun(**pose)  # position gripper at working height
-    	descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )    # z-displacement downwards to z
+    	descend_z = np.array( [0, 0, -(self.work_height-z)] )    # z-displacement downwards to z
     	bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down near surface
     	time.sleep(2)
     	gripper.open()
@@ -268,11 +289,11 @@ class AutoCore:
     	print("discardFun triggered.")
     	# random points over discard area
     	random.seed()
-    	DEF_DISCARD = np.array( [random.uniform(self.x_discard_lims[0], self.x_discard_lims[1]), random.uniform(self.y_discard_lims[0], self.y_discard_lims[1]), DEF_HEIGHT] )
+    	DEF_DISCARD = np.array([random.uniform(dis_min_x, dis_max_x), random.uniform(dis_min_y, dis_max_y), work_height])
     	print("Generated these random x,y points over discard area: ", DEF_DISCARD)
 
     	print("Moving over discard area.")
-    	discardLoc = {"position": DEF_DISCARD, "pitch": DEF_PITCH, "roll": 0, "numerical": DEF_NUMERICAL}    
+    	discardLoc = {"position": DEF_DISCARD, "pitch": self.work_pitch, "roll": self.work_roll, "numerical": self.numerical}    
     	self.moveFun(**discardLoc)
         
 
