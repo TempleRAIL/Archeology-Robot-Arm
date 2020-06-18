@@ -184,7 +184,6 @@ class AutoCore:
     	try:
     	    bot.arm.set_ee_pose_pitch_roll(**pose)
     	    #bot.arm.set_ee_pose(**pose)
-    	    time.sleep(1)
     	except:
     	    print("Exception to moveFun() thrown.")
     	    self.DEF_STATUS = False
@@ -224,11 +223,11 @@ class AutoCore:
 
    	    for item in detections:
     	    	point_cam = PointStamped()  # build ROS message for conversion
-    	    	#point_cam.header = res.detections.header
     	    	point_cam.header.frame_id = "camera_link"  # need this to prevent error "frame_ids cannot be empty"
 
     	    	# get center x,y,z from /Bounding_Boxes detections
-    	    	point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, 0
+    	    	point_cam.point.x, point_cam.point.y = item.bbox.center.position.x, item.bbox.center.position.y
+    	    	point_cam.point.z = item.bbox.center.position.z
 
     	    	sherd_angle = item.bbox.center.roll  # get sherd rotation angle
 
@@ -264,7 +263,6 @@ class AutoCore:
 
     	# Move gripper back up
     	self.moveFun(**pose)
-    	#bot.arm.move_ee_xyz(-descend_z, plan=True)
 
 
     # Function to place an object
@@ -282,7 +280,6 @@ class AutoCore:
  
     	# Move gripper back up
     	self.moveFun(**pose)
-    	#bot.arm.move_ee_xyz(-descend_z, plan=True)
 
         
     def discardFun(self):
