@@ -15,7 +15,7 @@ from tf2_geometry_msgs import PointStamped
 #from tf.transformations import euler_from_quaternion
 from std_msgs.msg import Bool, Int16MultiArray
 #from vision_msgs.msg import Detection3D, Detection3DArray
-from robot_arm.msg import Detection3DRPY, Detection3DArrayRPY
+from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
 
 class AutoCore():
     
@@ -34,15 +34,7 @@ class AutoCore():
         y_sublength = y_length/y_rects
         x_centers = [x_offset+0.5*x_sublength, x_offset+1.5*x_sublength, x_offset+2.5*x_sublength]
         y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
-        
-        # construct array of sub-rectangle centers
-        DEF_SHARDS = []
-        for x in x_centers:
-            for y in y_centers:
-                center = [x,y]
-                DEF_SHARDS.append(center)
-        
-        self.DEF_SHARDS = np.array(DEF_SHARDS)
+       
         
         # class variables
         self.DEF_TRY = 0 # variable used when acquiring sherds to track attempts
@@ -55,7 +47,17 @@ class AutoCore():
         self.DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
         self.SCALE_Z = 0.085
         self.CAMERA_Z = self.SCALE_Z
+
+        # construct array of sub-rectangle centers
+        DEF_SHARDS = []
+        for x in x_centers:
+            for y in y_centers:
+
+                center = [x,y, self.DEF_HEIGHT]
+                DEF_SHARDS.append(center)
         
+        self.DEF_SHARDS = np.array(DEF_SHARDS)
+                
         # Array the State Machine uses to know which location to translate to during each transition
         self.DEF_POS = np.array([[0.250, 0, self.DEF_HEIGHT], [0, -0.175, self.DEF_HEIGHT], [0, 0.175, self.DEF_HEIGHT], [-0.250, 0, self.DEF_HEIGHT]])
         
@@ -91,15 +93,17 @@ class AutoCore():
         print("Examining surface for sherds")
         print("Loop = ", self.DEF_LOOP)
         heightLoc = {'position': self.DEF_SHARDS[self.DEF_CURRENT], "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL} 
+        print('position: ', self.DEF_SHARDS[self.DEF_CURRENT])
         try:
             self.bot.arm.set_ee_pose_pitch_roll(**heightLoc)
             time.sleep(1)
-        except:
+        except Exception as e:
             print("Exception to requested pose thrown.")
+            print(e)
             self.DEF_STATUS = False
         time.sleep(1)
         sherds = []
-        msg = rospy.wait_for_message("/Bounding_Boxes", Detection2DArray)
+        msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DRPYArray)
         detections = msg.detections
         if not detections:
             report = False

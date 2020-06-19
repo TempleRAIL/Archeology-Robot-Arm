@@ -93,7 +93,7 @@ class AutoCore:
     print("pick_centers_x: ",pick_centers_x)
     print("pick_centers_y: ",pick_centers_y)
 
-    # constsruct array of subrectangle centers
+    # construct array of subrectangle centers
     DEF_SHARDS = []
 
     for x in pick_centers_x:
@@ -104,6 +104,9 @@ class AutoCore:
     DEF_SHARDS = np.array(DEF_SHARDS)
     print("End-effector positions: ",DEF_SHARDS)
 
+    def __init__(self, bot, gripper):
+        self.bot = bot
+        self.gripper = gripper
 
     # Function to trigger generation of color mask
     # Captures image of empty background mat
