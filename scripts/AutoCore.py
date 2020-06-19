@@ -17,6 +17,7 @@ from std_msgs.msg import Bool, Int16MultiArray
 #from vision_msgs.msg import Detection3D, Detection3DArray
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
 
+
 class AutoCore():
     
     def __init__(self, bot, gripper):
@@ -34,7 +35,6 @@ class AutoCore():
         y_sublength = y_length/y_rects
         x_centers = [x_offset+0.5*x_sublength, x_offset+1.5*x_sublength, x_offset+2.5*x_sublength]
         y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
-       
         
         # class variables
         self.DEF_TRY = 0 # variable used when acquiring sherds to track attempts
@@ -58,6 +58,7 @@ class AutoCore():
         
         self.DEF_SHARDS = np.array(DEF_SHARDS)
                 
+
         # Array the State Machine uses to know which location to translate to during each transition
         self.DEF_POS = np.array([[0.250, 0, self.DEF_HEIGHT], [0, -0.175, self.DEF_HEIGHT], [0, 0.175, self.DEF_HEIGHT], [-0.250, 0, self.DEF_HEIGHT]])
         
@@ -93,6 +94,7 @@ class AutoCore():
         print("Examining surface for sherds")
         print("Loop = ", self.DEF_LOOP)
         heightLoc = {'position': self.DEF_SHARDS[self.DEF_CURRENT], "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL} 
+
         print('position: ', self.DEF_SHARDS[self.DEF_CURRENT])
         try:
             self.bot.arm.set_ee_pose_pitch_roll(**heightLoc)
@@ -104,6 +106,7 @@ class AutoCore():
         time.sleep(1)
         sherds = []
         msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DRPYArray)
+
         detections = msg.detections
         if not detections:
             report = False
