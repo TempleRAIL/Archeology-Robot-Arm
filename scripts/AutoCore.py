@@ -2,241 +2,219 @@
 
 #Import Python libraries
 import time
-import math
 import numpy as np
 import random
 
+# Import pyrobot libraries
+from pyrobot import Robot
+from pyrobot.locobot.gripper import LoCoBotGripper
+from pyrobot.locobot import camera
+
 # Import ROS libraries and message types
-#import message_filters
 import rospy
-import ros_numpy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
-#from tf.transformations import euler_from_quaternion
-from std_msgs.msg import Bool, Int16MultiArray
-#from vision_msgs.msg import Detection3D, Detection3DArray
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-
+from robot_arm.srv import *
 
 class AutoCore():
     
     def __init__(self, bot, gripper):
-        
         # Robot passed from state machine
         self.bot = bot
+        self.gripper = gripper
+        
+        # Pyrobot parameters
+        self.use_numerical_ik = rospy.get_param('~use_numerical_ik', False)  # default boolean for using numerical method when solving IK
+        
+        # Initialize standard operation parameters (when not picking/placing)
+        working_pose = rospy.get_param('~working_pose')
+        self.working_z, self.working_r, self.working_p = working_pose['z'], working_pose['roll'], working_pose['pitch']
+        
+        # Initialize calibration information
+        calibrate_location = rospy.get_param('~calibrate_location')
+        self.DEF_CAL = np.array([calibrate_location['x'], calibrate_location['y'], self.working_z])
+        
+        # Initialize pickup area
+        pickup_area = rospy.get_param('~pickup_area')
+        sherd_locations = []
+        for i in range(0, pickup_area['rects_x']):
+            x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / pickup_area['rects_x']
+            y_vals = range(0, pickup_area['rects_y'])
+            for j in y_vals if i % 2 == 0 else reversed(y_vals):
+                y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / pickup_area['rects_y']
+                sherd_locations.append([x, y, self.working_z])
+        self.pickup_locations = np.array(sherd_locations)
+        rospy.loginfo("Sherd locations:\n{}".format(self.pickup_locations))
+        
+        # Initialize scale location
+        scale_location = rospy.get_param('~scale_location')
+        self.scale_location = np.array([scale_location['x'], scale_location['y'], self.working_z])
+        self.scale_z = scale_location['z']
+        
+        # Initialize camera location
+        cam_location = rospy.get_param('~cam_location')
+        self.camera_location = np.array([cam_location['x'], cam_location['y'], self.working_z])
+        self.cam_z = cam_location['z']
+        
+        # Initialize discard_area
+        discard_area = rospy.get_param('~discard_area')
+        self.discard_offset_x, self.discard_offset_y = discard_area['offset_x'], discard_area['offset_y']
+        self.discard_length_x, self.discard_length_y = discard_area['length_x'], discard_area['length_y'] # dimensions of rectangular pickup area
+        
+        # Initialize other class members
+        self.status = True # variable used to track when errors occur
+        self.color_mask = None # color mask for sherd detection
+        self.location = None # placeholder for current location dictionary
+        
+        # ROS service clients
+        rospy.wait_for_service('color_mask')
+        self.color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
+        rospy.wait_for_service('detect_sherds')
+        self.detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
+        self.tfBuffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tfBuffer)
     
-        # pick-up area geometry [meters]
-        x_offset = 0.22
-        x_length = 0.25
-        x_rects = 3
-        x_sublength = x_length/x_rects
-        y_length = 0.5
-        y_rects = 4
-        y_sublength = y_length/y_rects
-        x_centers = [x_offset+0.5*x_sublength, x_offset+1.5*x_sublength, x_offset+2.5*x_sublength]
-        y_centers = [-1.5*y_sublength, -.5*y_sublength, .5*y_sublength, 1.5*y_sublength]
-        
-        # class variables
-        self.DEF_TRY = 0 # variable used when acquiring sherds to track attempts
-        self.DEF_LOOP = 0 # variable used when examining sherd boxes to track unoccupied boxes
-        self.DEF_CURRENT = 0 # variable used when examining sherd boxes to track current box 
-        self.DEF_STATUS = True # variable used to track when errors occur
-        self.DEF_HEIGHT = 0.25  # working height
-        self.DEF_MAT = np.array([0.14, -0.24, self.DEF_HEIGHT]) # x,y,z meters
-        self.DEF_SCALE = np.array([0.14, 0.3, self.DEF_HEIGHT])  # x,y,z meters
-        self.DEF_CAMERA = np.array([0, -0.175, 0])  # x,y,z meters
-        self.SCALE_Z = 0.085
-        self.CAMERA_Z = self.SCALE_Z
-
-        # construct array of sub-rectangle centers
-        DEF_SHARDS = []
-        for x in x_centers:
-            for y in y_centers:
-
-                center = [x,y, self.DEF_HEIGHT]
-                DEF_SHARDS.append(center)
-        
-        self.DEF_SHARDS = np.array(DEF_SHARDS)
-                
-
-        # Array the State Machine uses to know which location to translate to during each transition
-        self.DEF_POS = np.array([[0.250, 0, self.DEF_HEIGHT], [0, -0.175, self.DEF_HEIGHT], [0, 0.175, self.DEF_HEIGHT], [-0.250, 0, self.DEF_HEIGHT]])
-        
-        random.seed()
-        self.DEF_DISCARD = np.array([random.uniform(-x_offset-x_length, -x_offset), random.uniform(-y_length/2, y_length/2), self.DEF_HEIGHT])  # random points over discard area 
-        self.DEF_ORIENTATION = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]) # placeholder for gripper orientation
-        self.DEF_POSITION = np.array([0, 0, 0]) # placeholder for gripper position
-        self.DEF_Z = 0 # placeholder for sherd height
-        self.DEF_PITCH = np.pi/2  # gripper orthogonal to ground; roll will be defined by sherd rotation angles
-        self.DEF_NUMERICAL = False # required argument for bot.arm.set_ee_pose_pitch_roll
-
-    # Function to trigger generation of color mask
-    # Captures image of empty background mat
-    def calibrateFun(self):
-        print("AutoCore.calibrateFun(self) triggered.")
-        # ROS publishers
-        calibrate_trigger_pub = rospy.Publisher('Calibrate_Trigger', Bool, queue_size=1)
-        #calibrate_xyz = np.array( [0.14, -0.24, DEF_HEIGHT] )
-        calibrateLoc = {"position": self.DEF_MAT, "pitch": self.DEF_PITCH, "numerical": self.DEF_NUMERICAL} 
-        self.moveFun(**calibrateLoc)
-
-        generate_mask = True
-        msg = Bool()
-        msg.data = generate_mask
-
-        calibrate_trigger_pub.publish(msg)
-        print("/Calibrate_Trigger message published.")
-        
-  
-    # Function to look for object in box
-    # Searches until found and then retrieves
-    def shardFun(self):
-        print("Examining surface for sherds")
-        print("Loop = ", self.DEF_LOOP)
-        heightLoc = {'position': self.DEF_SHARDS[self.DEF_CURRENT], "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL} 
-
-        print('position: ', self.DEF_SHARDS[self.DEF_CURRENT])
-        try:
-            self.bot.arm.set_ee_pose_pitch_roll(**heightLoc)
-            time.sleep(1)
-        except Exception as e:
-            print("Exception to requested pose thrown.")
-            print(e)
-            self.DEF_STATUS = False
-        time.sleep(1)
-        sherds = []
-        msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DRPYArray)
-
-        detections = msg.detections
-        if not detections:
-            report = False
-        else:
-            report = True
-            for i in len(detections):
-                sherds[i] = [detections[i].bbox.center.x, detections[i].bbox.center.y, detections[i].bbox.center.z, detections[i].bbox.center.theta]
-            sherds = np.array(sherds)
-        if report: # Place returned variable here
-            self.DEF_Z = sherds[0][2] # Place returned height here (from DetectionArray msg)
-            self.DEF_ORIENTATION = sherds[0][3] # Place returned angle here (from DetectionArray msg)
-            self.DEF_POSITION = np.array([sherds[0][0], sherds[0][1], 0]) # Place returned center position (from DetectionArray msg)
-        return report
+    
+    ########## pyrobot interface ##########
+    # Function to go home
+    def go_home(self):
+        self.bot.arm.go_home()
 
 
     # Function to call IK to plot and execute trajectory
-    def moveFun(self, **pose):
-        print("moveFun triggered.")
+    def move_fun(self, pose):
+        rospy.logdebug("AutoCore: move_fun triggered.")
         try:
             self.bot.arm.set_ee_pose_pitch_roll(**pose)
-            #bot.arm.set_ee_pose(**pose)
+            self.location = pose
             time.sleep(1)
-        except:
-            print("Exception to moveFun() thrown.")
-            self.DEF_STATUS = False
+        except Exception as e:
+            rospy.logwarn("AutoCore: Exception to move_fun() thrown. {}".format(e))
+            self.status = False
 
 
+    ########## Sensor interface ##########
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
-    def detectFun(self):
-
+    def detect_fun(self):
+        sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
         # confirm that color mask exists
-        Color_Mask_msg = rospy.wait_for_message("/Color_Mask", Int16MultiArray)
-        if Color_Mask_msg.data:
-            print("Color mask exists.  Proceed.")
+        if not (self.color_mask is None):
+            rospy.logdebug("AutoCore: Color mask exists.")
         else:
-            print("Color mask does not exist.")
-            return False
+            rospy.logwarn("AutoCore: No color mask received.")
+            report = False
+            return report, sherds
       
         # run segment_sherds.py on what robot sees in this position
-        detect_trigger_pub = rospy.Publisher('Detect_Trigger', Bool, queue_size=1)
-        detect_sherd = True
-        msg = Bool()
-        msg.data = detect_sherd
-        detect_trigger_pub.publish(msg)
-        print("/Detect_Trigger message published.")
+        req = SherdDetectionsRequest()
+        req.color_mask = self.color_mask
         
-        msg = rospy.wait_for_message("/Bounding_Boxes", Detection3DArrayRPY)
-        detections = msg.detections
-        print("/Bounding_Boxes detections message: ", detections)
-
-        sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_angle]
+        res = self.detection_srv(req)
+        detections = res.detections.detections
+        rospy.logdebug("Bounding boxes message: {}".format(detections))
 
         if not detections:
             report = False
             return report, sherds
         else:
             report = True
-            tfBuffer = tf2_ros.Buffer()
-            tf_listener = tf2_ros.TransformListener(tfBuffer)
-            rate = rospy.Rate(5.0)
-            print("tf_listener created.")
-
-            rospy.sleep(1.0)
-
             for item in detections:
                 point_cam = PointStamped()  # build ROS message for conversion
-                point_cam.header.frame_id = "camera_link"
-
+                point_cam.header.frame_id = "camera_link"  # need this to prevent error "frame_ids cannot be empty" # TODO set up these frames as parameters
                 # get center x,y,z from /Bounding_Boxes detections
-                point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, 0
-
+                point_cam.point = item.bbox.center.position
+                #point_cam.point.x, point_cam.point.y = item.bbox.center.position.x, item.bbox.center.position.y
+                #point_cam.point.z = item.bbox.center.position.z
                 sherd_angle = item.bbox.center.roll  # get sherd rotation angle
-
                 try:
                     point_base = tfBuffer.transform(point_cam, "arm_base_link")
                 except:  # tf2_ros.buffer_interface.TypeException as e:
                     e = sys.exc_info()[0]
                     rospy.logerr(e)
                     sys.exit(1)
-                print("Obtained transform between camera_link and arm_base_link.")                
-                print("Sherd center point (x,y,z) [m] in arm_base_link frame: ", point_base)
+                rospy.logdebug("Obtained transform between camera_link and arm_base_link.")                
+                rospy.logdebug("Sherd center point (x,y,z) [m] in arm_base_link frame: ", point_base)
                 sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
             sherds = np.array(sherds)
-            print("sherds list = ", sherds)
+            rospy.logdebug("sherds list = {}".format(sherds))
             return report, sherds
+            
+    
+    ########## Motion primitives ##########
+    # Function to trigger generation of color mask
+    # Captures image of empty background mat
+    def calibrate_fun(self):
+        rospy.logdebug("AutoCore: calibrate_fun triggered.")
+        # Move arm to calibration location
+        calibrateLoc = {"position": self.DEF_CAL, "pitch": self.working_p, "roll": 0., "numerical": self.use_numerical_ik} 
+        self.move_fun(calibrateLoc)
+        # Request data from service
+        req = ColorMaskRequest()
+        req.num_colors = 1
+        req.show_chart = False
+        # Save results from service
+        try:
+            res = self.color_mask_srv(req)
+            self.color_mask = res.color_mask
+            rospy.loginfo("AutoCore: Got color mask.")
+        except rospy.ServiceException as e:
+            rospy.logwarn("AutoCore: Color mask service call failed: {}".format(e))
+        
+  
+    # Function to look for object in box
+    def shard_fun(self, location):
+        rospy.loginfo("Examining surface for sherds")
+        rospy.loginfo('position: {}'.format(self.pickup_locations[location]))
+        # Move to search location
+        heightLoc = {'position': self.pickup_locations[location], "pitch": self.working_p, "roll": 0., "numerical": self.use_numerical_ik}
+        self.move_fun(heightLoc)
+        # Check for sherd detections and get list of locations / rotations
+        found, sherds = self.detect_fun()  
+        if found:
+            self.location['position'] = np.array(sherds[0, 0:3]) # Place returned center position (from DetectionArray msg)
+            self.location['roll'] = sherds[0, 3]
+        return found
 
 
     # Function to retrieve an object
-    def pickFun(self, z, **pose):
-        print("pickFun triggered.")
-        #self.bot.gripper.open()
-        self.gripper.open()
-        self.moveFun(**pose)  # position gripper at working height
-        descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )  # z-displacement downwards to 3 cm below top face of sherd
-        self.bot.arm.move_ee_xyz(descend_z, plan = True)  # move gripper down to sherd
+    def pick_place_fun(self, pose, z, pick=False, place=False):
+        rospy.logdebug("AutoCore: pickFun triggered.")
+        if pick and place:
+            rospy.logwarn("Only one of pick or place can be selected")
+        # Ensure gripper open if picking up a sherd
+        if pick:
+            self.gripper.open()
+        # Move to desired location
+        self.move_fun(pose)  # position gripper at working height
+        # Descend down to table
+        descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
+        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
         time.sleep(1)
-        #self.bot.gripper.close()
-        self.gripper.close()  # close around sherd
+        # Toggle the gripper
+        if pick:
+            self.gripper.close()  # close around sherd
+        elif place:
+            self.gripper.open()
+        else:
+            rospy.logwarn("Pick or place must be selected")
+        time.sleep(1)
         #gripper_state = gripper.get_gripper_state()
         #print("gripper_state = ", gripper_state)
         #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
             #report = False
             #return report
             #time.sleep(1)
-
         # Move gripper back up
         self.bot.arm.move_ee_xyz(-descend_z, plan=True)
-
-
-    # Function to place an object
-    def placeFun(self, z, **pose):
-        print("placeFun triggered.")
-
-        self.moveFun(**pose)  # position gripper at working height
-        descend_z = np.array( [0, 0, -(self.DEF_HEIGHT-z)] )    # z-displacement downwards to z
-        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down near surface
-        time.sleep(2)
-        #self.bot.gripper.open()
-    	self.gripper.open()
-        time.sleep(1)
-       #gripper_state = gripper.get_gripper_state()
-        #print("gripper_state = ", gripper_state)
- 
-        # Move gripper back up
-        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
-
         
-    def discardFun(self):
-        print("Moving over discard area.")
-        discardLoc = {"position": self.DEF_DISCARD, "pitch": self.DEF_PITCH, "roll": 0, "numerical": self.DEF_NUMERICAL}    
-        self.moveFun(**discardLoc)
-        
+    
+    # Randomly draw dropoff location
+    def dropoff_location(self):
+        rospy.logdebug("AutoCore: Discard triggered.")
+        # Generate random location in dropoff area
+        discard_x = self.dicard.offset_x + random.random() * self.discard_length_x
+        discard_y = self.dicard.offset_y + random.random() * self.discard_length_y
+        discard_z = self.working_z
+        return np.array(discard_x, discard_y, discard_z)
         
