@@ -10,12 +10,12 @@ calibrate_location:
   y: -0.24
 
 pickup_area:
-  rects_x: 2
-  rects_y: 8
+  rects_x: 3 #2
+  rects_y: 4 #8
   offset_x: 0.22
-  offset_y: -0.5
+  offset_y: 0
   length_x: 0.25
-  length_y: 1.0
+  length_y: 0.5 #1.0
 
 scale_location:
   x: 0.14
