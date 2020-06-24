@@ -7,7 +7,7 @@
 
   <!-- <node pkg="tf" type="static_transform_publisher" name="$(anon robot_state_publisher-2)" args="0 0 0 0 0 0 /world /base_footprint 100" /> -->
 
-  <include file="$(find locobot_gazebo)/launch/sherd_world.launch">  
+  <include file="$(find robot_arm)/launch/sherd_world.launch">  
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
@@ -30,14 +30,14 @@
   </group>
 
   <group if="$(eval base =='kobuki')">
-    <param name="robot_description" textfile="$(find locobot_description)/urdf/arch_locobot_description.urdf"/>
+    <param name="robot_description" textfile="$(find robot_arm)/urdf/arch_locobot_description.urdf"/>
 
     <include file="$(find locobot_moveit_config)/launch/planning_context.launch">
       <arg name="load_robot_description" value="true"/>
     </include>
 
     <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
-          args="-file $(find locobot_description)/urdf/arch_locobot_description.urdf -urdf -z 0.05 -model locobot" >
+          args="-file $(find robot_arm)/urdf/arch_locobot_description.urdf -urdf -z 0.05 -model locobot" >
     </node>
 
     <!-- Velocity muxer -->
