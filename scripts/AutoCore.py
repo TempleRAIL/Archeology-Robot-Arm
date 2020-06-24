@@ -30,7 +30,7 @@ class AutoCore():
         # Initialize standard operation parameters (when not picking/placing)
         working_pose = rospy.get_param('~working_pose')
         self.working_z, self.working_r, self.working_p = working_pose['z'], working_pose['roll'], working_pose['pitch']
-        
+
         # Initialize calibration information
         calibrate_location = rospy.get_param('~calibrate_location')
         self.DEF_CAL = np.array([calibrate_location['x'], calibrate_location['y'], self.working_z])
@@ -81,10 +81,10 @@ class AutoCore():
     def go_home(self):
         self.bot.arm.go_home()
 
-
     # Function to call IK to plot and execute trajectory
-    def move_fun(self, pose):
-        rospy.logdebug("AutoCore: move_fun triggered.")
+    def move_fun(self, **pose):
+        #rospy.logdebug("AutoCore: move_fun triggered.")
+        rospy.loginfo("AutoCore: move_fun triggered.")
         try:
             self.bot.arm.set_ee_pose_pitch_roll(**pose)
             self.location = pose
@@ -123,16 +123,17 @@ class AutoCore():
                 point_cam = PointStamped()  # build ROS message for conversion
                 point_cam.header.frame_id = "camera_link"  # need this to prevent error "frame_ids cannot be empty" # TODO set up these frames as parameters
                 # get center x,y,z from /Bounding_Boxes detections
-                point_cam.point = item.bbox.center.position
-                #point_cam.point.x, point_cam.point.y = item.bbox.center.position.x, item.bbox.center.position.y
-                #point_cam.point.z = item.bbox.center.position.z
+                #point_cam.point = item.bbox.center.position
+                point_cam.point.x, point_cam.point.y = item.bbox.center.position.x, item.bbox.center.position.y
+                point_cam.point.z = item.bbox.center.position.z
                 sherd_angle = item.bbox.center.roll  # get sherd rotation angle
                 try:
-                    point_base = tfBuffer.transform(point_cam, "arm_base_link")
-                except:  # tf2_ros.buffer_interface.TypeException as e:
+                    point_base = self.tfBuffer.transform(point_cam, "arm_base_link")
+                except tf2_ros.buffer_interface.TypeException as e:
                     e = sys.exc_info()[0]
                     rospy.logerr(e)
                     sys.exit(1)
+                    print e
                 rospy.logdebug("Obtained transform between camera_link and arm_base_link.")                
                 rospy.logdebug("Sherd center point (x,y,z) [m] in arm_base_link frame: ", point_base)
                 sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
@@ -147,8 +148,8 @@ class AutoCore():
     def calibrate_fun(self):
         rospy.logdebug("AutoCore: calibrate_fun triggered.")
         # Move arm to calibration location
-        calibrateLoc = {"position": self.DEF_CAL, "pitch": self.working_p, "roll": 0., "numerical": self.use_numerical_ik} 
-        self.move_fun(calibrateLoc)
+        calibrateLoc = {"position": self.DEF_CAL, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik} 
+        self.move_fun(**calibrateLoc)
         # Request data from service
         req = ColorMaskRequest()
         req.num_colors = 1
@@ -159,7 +160,8 @@ class AutoCore():
             self.color_mask = res.color_mask
             rospy.loginfo("AutoCore: Got color mask.")
         except rospy.ServiceException as e:
-            rospy.logwarn("AutoCore: Color mask service call failed: {}".format(e))
+			rospy.logwarn("AutoCore: Color mask service call failed: {}".format(e))
+			self.status = False
         
   
     # Function to look for object in box
@@ -167,8 +169,8 @@ class AutoCore():
         rospy.loginfo("Examining surface for sherds")
         rospy.loginfo('position: {}'.format(self.pickup_locations[location]))
         # Move to search location
-        heightLoc = {'position': self.pickup_locations[location], "pitch": self.working_p, "roll": 0., "numerical": self.use_numerical_ik}
-        self.move_fun(heightLoc)
+        heightLoc = {'position': self.pickup_locations[location], "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
+        self.move_fun(**heightLoc)
         # Check for sherd detections and get list of locations / rotations
         found, sherds = self.detect_fun()  
         if found:
@@ -186,7 +188,7 @@ class AutoCore():
         if pick:
             self.gripper.open()
         # Move to desired location
-        self.move_fun(pose)  # position gripper at working height
+        self.move_fun(**pose)  # position gripper at working height
         # Descend down to table
         descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
         self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
