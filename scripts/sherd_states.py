@@ -75,7 +75,7 @@ class Translate(smach.State):
         elif userdata.station == 3:
             pos = self.core.dropoff_location()
         location = {"position": pos, "pitch": self.core.location["pitch"], "roll": 0, "numerical": self.core.use_numerical_ik}
-        self.core.move_fun(location)
+        self.core.move_fun(**location)
         # SMACH logic
         if self.core.status == True:
             if userdata.station == 0:
@@ -113,7 +113,7 @@ class Acquire(smach.State):
         self.core = core
     
     def execute(self, userdata):
-        self.core.pick_place_fun(self.core.location, self.core.working_z, pick=True)
+        self.core.pick_place_fun(self.core.working_z, self.core.location, pick=True, place=False)
         # SMACH logic
         # TODO need to update logic here to account for stations other than pick up
         if self.core.status == True:

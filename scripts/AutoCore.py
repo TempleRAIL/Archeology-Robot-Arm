@@ -40,8 +40,8 @@ class AutoCore():
         sherd_locations = []
         for i in range(0, pickup_area['rects_x']):
             x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / pickup_area['rects_x']
-            y_vals = range(0, pickup_area['rects_y'])
-            for j in y_vals if i % 2 == 0 else reversed(y_vals):
+            y_vals = range(-pickup_area['rects_y']/2, pickup_area['rects_y']/2)
+            for j in y_vals if i % 2 == 0 else reversed(y_vals): #TODO edit to mirror about y=0
                 y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / pickup_area['rects_y']
                 sherd_locations.append([x, y, self.working_z])
         self.pickup_locations = np.array(sherd_locations)
@@ -180,7 +180,7 @@ class AutoCore():
 
 
     # Function to retrieve an object
-    def pick_place_fun(self, pose, z, pick=False, place=False):
+    def pick_place_fun((self, z, **pose, pick=False, place=False):
         rospy.logdebug("AutoCore: pickFun triggered.")
         if pick and place:
             rospy.logwarn("Only one of pick or place can be selected")
