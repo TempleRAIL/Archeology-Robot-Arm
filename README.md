@@ -6,21 +6,21 @@ While this package is intended ultimately for use with the physical LoCoBot, cur
 
 ## Quick Start (Simulation in Gazebo)
 
-### 1) Copy these files from the robot\_arm package to these directories in the PyRobot low\_cost\_ws
+### 1) Copy these files from the robot_arm package to these directories in the PyRobot low_cost_ws
 
 From the command line, execute:  
  
-From `~/catkin_ws/robot\_arm/src/launch`:  
+From `~/catkin_ws/robot_arm/src/launch`:  
 
 `cd ~/catkin_ws/src/robot_arm/launch`  
-`cp archaeology.launch ~/low\_cost\_ws/src/pyrobot/robots/LoCoBot/locobot\_control/launch`  
-`cp gazebo_locobot_archaeology.launch sherd_world.launch ~/low\_cost\_ws/src/pyrobot/robots/LoCoBot/locobot\_gazebo/launch`  
+`cp archaeology.launch ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_control/launch`  
+`cp gazebo_locobot_archaeology.launch sherd_world.launch ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_gazebo/launch`  
 
-`cd ~/catkin_ws/robot\_arm/src/worlds`  
-`cp sherd.world ~/low\_cost\_ws/src/pyrobot/robots/LoCoBot/locobot\_gazebo/worlds`  
+`cd ~/catkin_ws/robot_arm/src/worlds`  
+`cp sherd.world ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_gazebo/worlds`  
 
 `cd ~/catkin_ws/robot_arm/src/urdf`
-`cp arch_locobot_description.urdf ~/low\_cost\_ws/src/pyrobot/robots/LoCoBot/locobot\_description/urdf`  
+`cp arch_locobot_description.urdf ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_description/urdf`  
 
 ### 2) Create SherdMat model
 
@@ -31,6 +31,6 @@ The custom **sherd.world** Gazebo world referenced by the launch files above con
 `chmod +x SherdMat.dae`  
     
 ### 3) Launch the Simulation
-1. In a the terminal: `roslaunch locobot\_control archaeology.launch use\_sim:=true use\_arm:=true use:\_camera:=true`  
-2. In a new terminal window: `roslaunch robot\_arm perception.launch`  
-3. In a new terminal window: `roslaunch robot\_arm arm.launch` 
+1. In a the terminal: `roslaunch locobot_control archaeology.launch use_sim:=true use_arm:=true use:_camera:=true`  
+2. In a new terminal window: `roslaunch robot_arm perception.launch`  
+3. In a new terminal window: `roslaunch robot_arm arm.launch` 
