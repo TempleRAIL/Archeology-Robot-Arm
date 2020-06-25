@@ -19,7 +19,7 @@ From `~/catkin_ws/robot_arm/src/launch`:
 `cd ~/catkin_ws/robot_arm/src/worlds`  
 `cp sherd.world ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_gazebo/worlds`  
 
-`cd ~/catkin_ws/robot_arm/src/urdf`
+`cd ~/catkin_ws/robot_arm/src/urdf`  
 `cp arch_locobot_description.urdf ~/low_cost_ws/src/pyrobot/robots/LoCoBot/locobot_description/urdf`  
 
 ### 2) Create SherdMat model
