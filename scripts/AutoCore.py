@@ -176,11 +176,11 @@ class AutoCore():
         if found:
             self.location['position'] = np.array(sherds[0, 0:3]) # Place returned center position (from DetectionArray msg)
             self.location['roll'] = sherds[0, 3]
+            rospy.loginfo('Sherd position is: {}'.format(self.location))
         return found
 
 
-    # Function to retrieve an object
-    def pick_place_fun((self, z, **pose, pick=False, place=False):
+    def pick_place_fun(self, z, pose, pick=False, place=False): #  should be **pose as final argument, but Python 2 cannot accomodate mixed default arguments and non-default **kwargs
         rospy.logdebug("AutoCore: pickFun triggered.")
         if pick and place:
             rospy.logwarn("Only one of pick or place can be selected")
@@ -200,6 +200,51 @@ class AutoCore():
             self.gripper.open()
         else:
             rospy.logwarn("Pick or place must be selected")
+        time.sleep(1)
+        #gripper_state = gripper.get_gripper_state()
+        #print("gripper_state = ", gripper_state)
+        #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
+            #report = False
+            #return report
+            #time.sleep(1)
+        # Move gripper back up
+        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
+
+
+    ########## Separate pick and place functions to accomodate **kwarg and default argument order restrictions in Python 2##########
+    # Function to retrieve an object
+    def pick_fun(self, z, **pose):
+        # Ensure gripper open to pick up sherd
+        self.gripper.open()
+        # Move to desired location
+        self.move_fun(**pose)  # position gripper at working height
+        # Descend down to table
+        descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
+        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
+        time.sleep(1)
+        # Toggle the gripper
+        self.gripper.close()  # close around sherd
+        time.sleep(1)
+        #gripper_state = gripper.get_gripper_state()
+        #print("gripper_state = ", gripper_state)
+        #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
+            #report = False
+            #return report
+            #time.sleep(1)
+        # Move gripper back up
+        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
+
+    # Function to discard an object
+    def place_fun(self, z, **pose):
+        rospy.logdebug("AutoCore: placeFun triggered.")
+        # Move to desired location
+        self.move_fun(**pose)  # position gripper at working height
+        # Descend down to table
+        descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
+        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
+        time.sleep(1)
+        # Toggle the gripper
+        self.gripper.open()  # release sherd
         time.sleep(1)
         #gripper_state = gripper.get_gripper_state()
         #print("gripper_state = ", gripper_state)

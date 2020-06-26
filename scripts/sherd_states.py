@@ -113,7 +113,8 @@ class Acquire(smach.State):
         self.core = core
     
     def execute(self, userdata):
-        self.core.pick_place_fun(self.core.working_z, self.core.location, pick=True, place=False)
+        #self.core.pick_place_fun(self.core.working_z, self.core.location, pick=True)
+        self.core.pick_fun(self.core.working_z, **self.core.location)
         # SMACH logic
         # TODO need to update logic here to account for stations other than pick up
         if self.core.status == True:
@@ -135,7 +136,8 @@ class Discard(smach.State):
         self.core = core
         
     def execute(self, userdata):
-        self.core.pick_place_fun(self.core.location, self.core.working_z, place=True)
+        #self.core.pick_place_fun(self.core.working_z, self.core.location, place=True)
+        self.core.place_fun(self.core.working_z, **self.core.location)
         # SMACH logic
         if self.core.status == True:
             if userdata.station == 3:
