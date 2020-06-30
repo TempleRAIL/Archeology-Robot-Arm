@@ -1,7 +1,7 @@
 <launch>
 
   <node name="sherd_states" pkg="robot_arm" type="sherd_states.py" output="screen">
-    <rosparam command="load" file="$(find robot_arm)/launch/configuration.yaml"/>
+    <rosparam command="load" file="$(find robot_arm)/config/mat_layout.yaml"/>
   </node>
 
 </launch> 

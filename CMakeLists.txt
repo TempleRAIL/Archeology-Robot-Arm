@@ -18,6 +18,12 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   vision_msgs
+  sensor_msgs
+  geometry_msgs
+  actionlib
+  dynamixel_workbench_msgs
+  actionlib_msgs
+  gazebo_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -114,9 +120,9 @@ add_service_files(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES robot_arm
-  CATKIN_DEPENDS camera_calibration camera_info_manager cv_bridge message_runtime polled_camera robot_state_publisher roscpp rospy std_msgs vision_msgs
+ CATKIN_DEPENDS camera_calibration camera_info_manager cv_bridge message_runtime polled_camera robot_state_publisher roscpp rospy std_msgs vision_msgs sensor_msgs geometry_msgs actionlib actionlib_msgs dynamixel_workbench_msgs
 #  DEPENDS system_lib
 )
 
@@ -127,9 +133,12 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+ include
   ${catkin_INCLUDE_DIRS}
 )
+add_executable(locobot_gazebo_no_pan_tilt src/gazebo_locobot_control.cpp)
+add_dependencies(locobot_gazebo_no_pan_tilt ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(locobot_gazebo_no_pan_tilt ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
