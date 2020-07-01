@@ -73,7 +73,7 @@ def color_mask_callback(req):
         rospy.logerr('No image received yet')
         return
 
-    print ("Extracting top ", req.num_colors, " colors.")
+    #print ("Extracting top ", req.num_colors, " colors.")
     
     img_msg_lock.acquire()
     try:
@@ -90,7 +90,7 @@ def color_mask_callback(req):
     counts = Counter(labels)
     center_colors = clf.cluster_centers_
     ordered_colors = [center_colors[i] for i in counts.keys()] 
-    print ("Ordered colors: ", ordered_colors)
+    #print ("Ordered colors: ", ordered_colors)
     hex_colors = [RGB2HEX(ordered_colors[i]) for i in counts.keys()]
 
     if (req.show_chart):
@@ -108,7 +108,7 @@ def color_mask_callback(req):
     
     hsv = rgb2hsv(img_to_cvt)  # convert image to HSV
     
-    print ("HSV image of top colors: ", hsv)    
+    #print ("HSV image of top colors: ", hsv)    
 
     # Set bounds of color mask
     huethresh = 0.05
@@ -126,13 +126,13 @@ def color_mask_callback(req):
     floor = convert_hsv_to_OpenCV([minhue, minsat, minval])	# lower bound of mask
     ceiling = convert_hsv_to_OpenCV([maxhue, maxsat, maxval])	# upper bound of mask
 
-    print ("Floor: ", floor)
-    print ("Ceiling: ", ceiling)
+    #print ("Floor: ", floor)
+    #print ("Ceiling: ", ceiling)
 
     # Combine floor and ceiling into flat list for ROS message
     flat_mask = floor + ceiling
 
-    print ('Flat mask: ', flat_mask)
+    #print ('Flat mask: ', flat_mask)
 
     # Construct message for color mask
     # TODO set this up for more than a single color
@@ -150,7 +150,7 @@ def color_mask_callback(req):
     res.color_mask.layout.dim[2].size = 3
     res.color_mask.layout.dim[2].stride = 3
 
-    print ("Color mask sent.")
+    #print ("Color mask sent.")
     
     return res
 

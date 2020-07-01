@@ -1,5 +1,5 @@
 working_pose:
-  z: 0.3
+  z: 0.1
   roll: 0
   pitch: 1.5708
 
@@ -10,6 +10,7 @@ calibrate_location:
   y: -0.24
 
 pickup_area:
+  z: 0.3
   rects_x: 3 #2
   rects_y: 4 #8
   offset_x: 0.22

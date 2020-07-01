@@ -61,14 +61,14 @@ def segment_sherds(color_mask, img):
     # Apply final mask to show sherds and black out background
     rgb = img[:, :, ::-1]  # flip to RGB for display
     sherds_image = cv2.bitwise_and(rgb, rgb, mask=fg_mask)
-
+    """
     # Display original image and segmented objects
     plt.subplot(121),plt.imshow(rgb)
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
     plt.subplot(122),plt.imshow(sherds_image)
     plt.title('Sherds'), plt.xticks([]), plt.yticks([])
     plt.show()
-    
+    """
     return sherds_image
 
 ##############################################################
@@ -84,7 +84,7 @@ def locate_sherds(sherds_image, points, header):
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY)
     _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
 
-    print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
+    #print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
     # exclude boxes smaller than a minimum area
     use_min_area = False
     min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
@@ -120,10 +120,11 @@ def locate_sherds(sherds_image, points, header):
         x_center = points[row_center_pos][col_center_pos][0]
         y_center = points[row_center_pos][col_center_pos][1]
         z_center = points[row_center_pos][col_center_pos][2]
+        """
         print("x_center as found in pointcloud: ", x_center, "meters.")
         print("y_center as found in pointcloud: ", y_center, "meters.")
         print("z_center as found in pointcloud: ", z_center, "meters.")
-           
+        """
         # endpoints of bounding box minor and major axes in pixel coordinates
         # pixel coordinates of width endpoints
         col_width_end1 = int( col_center_pos + math.trunc( 0.5*width_px*np.cos( np.radians(grip_angle) ) ) )
@@ -154,7 +155,7 @@ def locate_sherds(sherds_image, points, header):
         width_meter = math.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
         height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
         if not use_min_area or (use_min_area and width_meter*height_meter >= min_area):
-            print("This sherd's bounding box: " + str(rect))
+            # print("This sherd's bounding box: " + str(rect))
             # Construct a Detection3DRPY() msg to add this bounding box to detections
             detection = Detection3DRPY()
             detection.header = detections.header
@@ -169,6 +170,7 @@ def locate_sherds(sherds_image, points, header):
             # Debugging: draw bounding boxes around sherds
             # Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
+            """
             box = cv2.boxPoints(rect)
             box = np.int0(box)
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
@@ -185,6 +187,7 @@ def locate_sherds(sherds_image, points, header):
             print("Width in meters: %f." % (width_meter) )
             print("Height in meters:  %f." % (height_meter) )
             print("Gripper rotation angle is %f degrees." % grip_angle)
+            """
     return detections
 
 ##############################################################

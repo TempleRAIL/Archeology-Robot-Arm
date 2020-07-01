@@ -617,103 +617,6 @@
         <child link="ar_tag"/>
         <axis xyz="0 0 0"/>
     </joint>
-    <!-- need to add camera assembly -->
-    <link name="cam_mount">
-        <inertial>
-            <origin rpy="0 0 1.57079632679" xyz="-0.0053535000 -0.0030566200 0.1091990000"/>
-            <!-- <mass value="1"/> -->
-            <!-- <mass value="2.091937"/>
-            <inertia ixx="0.0376600000" ixy="-0.0001113000" ixz="-0.0004178000" iyy="0.0440300000" iyz="0.0001531000" izz="0.0116800000"/> -->
-            <mass value="0.001"/>
-            <inertia ixx="1E-8" ixy="1E-8" ixz="1E-8" iyy="1E-8" iyz="1E-8" izz="1E-8"/>
-        </inertial>
-        <visual>
-            <origin rpy="1.57079632679 0 1.57079632679" xyz="0.03751 0 -0.146150"/>
-            <geometry>
-                <!-- <mesh filename="package://locobot_description/meshes/interbotix_cam_mount.STL" scale="0.001 0.001 0.001"/> -->
-                <cylinder length="0.001" radius=".0001"/>
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="1.57079632679 0 1.57079632679" xyz="0.03751 0 -0.146150"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/interbotix_cam_mount.STL" scale="0.001 0.001 0.001"/>
-            </geometry>
-        </collision>
-    </link>
-    <joint name="cam_mount_joint" type="fixed">a
-        <origin rpy="0 0 0" xyz="-0.03751 0 0.13775"/>
-        <parent link="base_link"/>
-        <child link="cam_mount"/>
-        <axis xyz="0 0 0"/>
-    </joint>
-    <link name="head_pan_link">
-        <inertial>
-            <origin rpy="0 0 0" xyz="-1.35308431126191E-16 -2.97071395261028E-17 0.0220876265081744"/>
-            <!-- <mass value="0.0182769203076134"/>
-            <inertia ixx="1.32243845065555E-05" ixy="5.07660179129181E-13" ixz="1.067515220067E-20" iyy="7.13386116649085E-06" iyz="-1.32882457845217E-20" izz="7.83291781352837E-06"/> -->
-            <mass value="0.001"/>
-            <inertia ixx="1E-8" ixy="1E-8" ixz="1E-8" iyy="1E-8" iyz="1E-8" izz="1E-8"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <!-- <mesh filename="package://locobot_description/meshes/tilt_link.STL"/> -->
-                <cylinder length="0.001" radius=".0001"/>
-            </geometry>
-            <material name="">
-                <color rgba="0.250980392156863 0.250980392156863 0.250980392156863 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/tilt_link.STL"/>
-            </geometry>
-        </collision>
-    </link>
-    <joint name="head_pan_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0.01755 -0.00008 0.3975"/>
-        <parent link="cam_mount"/>
-        <child link="head_pan_link"/>
-        <axis xyz="0 0 1"/>
-        <limit effort="1" lower="-1.57" upper="1.57" velocity="1"/>
-    </joint>
-    <link name="head_tilt_link">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.0168744200088311 -0.000442984145897884 -0.00405256422002387"/>
-            <!-- <mass value="0.0547677687275323"/>
-            <inertia ixx="1.07071738005716E-05" ixy="-1.46854788384565E-07" ixz="5.59529059364376E-08" iyy="1.77011620295824E-05" iyz="1.27587154712834E-09" izz="2.01583693170578E-05"/> -->
-            <mass value="0.001"/>
-            <inertia ixx="1E-8" ixy="1E-8" ixz="1E-8" iyy="1E-8" iyz="1E-8" izz="1E-8"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <!-- <mesh filename="package://locobot_description/meshes/roll_link.STL"/> -->
-                <cylinder length="0.001" radius=".0001"/>
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/roll_link.STL"/>
-            </geometry>
-        </collision>
-    </link>
-    <joint name="head_tilt_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0 0.05"/>
-        <parent link="head_pan_link"/>
-        <child link="head_tilt_link"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="1" lower="-1.57" upper="1.57" velocity="1"/>
-    </joint>
     <!-- Gazebo Plugins -->
     <gazebo>
         <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
@@ -721,25 +624,6 @@
             <legacyModeNS>true</legacyModeNS>
         </plugin>
     </gazebo>
-    <!-- Camera joints -->
-    <transmission name="tran_head_tilt">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="head_tilt_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="head_tilt_motor">
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="tran_head_pan">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="head_pan_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="head_pan_motor">
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
     <!-- Arm joints -->
     <transmission name="tran_1">
         <type>transmission_interface/SimpleTransmission</type>
