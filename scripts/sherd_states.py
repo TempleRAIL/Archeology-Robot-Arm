@@ -155,7 +155,7 @@ class Discard(smach.State):
 def process_sherds():
     rospy.init_node('sherd_states')
     # Initialize pyrobot objects
-    bot = Robot("locobot")
+    bot = Robot("locobot", use_base=False)
     configs = bot.configs
     gripper = LoCoBotGripper(configs)
     # Initialize AutoCore
