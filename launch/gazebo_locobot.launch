@@ -2,7 +2,7 @@
   <arg name="base"/>
 
   <!-- Static transform to make camera work in sim -->
-  <node pkg="tf" type="static_transform_publisher" name="cam_transform" args="0 0 0 1.5708 3.1416 0 /camera_link /camera_color_optical_frame 100" />
+  <node pkg="tf" type="static_transform_publisher" name="cam_transform" args="0 0 0 -1.5708 0 -1.5708 /camera_link /camera_color_optical_frame 100" />
 
   <include file="$(find robot_arm)/launch/sherd_world.launch">  
     <arg name="paused" value="false"/>
