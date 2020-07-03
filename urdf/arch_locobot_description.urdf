@@ -589,7 +589,9 @@
         <limit effort="1" lower="0" upper="1" velocity="1"/>
         <!-- <limit effort="999999.9" lower="-100" upper="100" velocity="1"/> -->
     </joint>
-    <link name="ar_tag">
+
+<!-- ar_tag link and joint sometimes causes MoveIt to sense contact even when collisions are disabled in config/locobot.srdf -->
+    <!--<link name="ar_tag">
         <inertial>
             <origin rpy="0 0 0" xyz="-1.59182528269852E-09 1.70641183422241E-09 -0.00509579048106218"/>
             <mass value="0.0202622634619862"/>
@@ -616,7 +618,7 @@
         <parent link="gripper_link"/>
         <child link="ar_tag"/>
         <axis xyz="0 0 0"/>
-    </joint>
+    </joint> -->
     <!-- Gazebo Plugins -->
     <gazebo>
         <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
