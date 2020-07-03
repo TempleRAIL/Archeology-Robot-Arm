@@ -140,7 +140,7 @@ class AutoCore():
                     sys.exit(1)
                 rospy.logwarn('point_base = {}'.format(point_base))
                 rospy.logdebug('Obtained transform between camera_link and arm_base_link.')                
-                rospy.logdebug('Sherd center point (x,y,z) [m] in arm_base_link frame: ', point_base)
+                rospy.logdebug('Sherd center point (x,y,z) [m] in arm_base_link frame: {}'.format(point_base))
                 sherd_angle = item.bbox.center.roll  # get sherd rotation angle
                 sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
             sherds = np.array(sherds)
@@ -225,8 +225,8 @@ class AutoCore():
     def dropoff_position(self):
         rospy.logdebug('AutoCore: Discard triggered.')
         # Generate random location in dropoff area
-        discard_x = self.dicard.offset_x + random.random() * self.discard_length_x
-        discard_y = self.dicard.offset_y + random.random() * self.discard_length_y
+        discard_x = self.discard_offset_x + random.random() * self.discard_length_x
+        discard_y = self.discard_offset_y + random.random() * self.discard_length_y
         discard_z = self.working_z
         return np.array(discard_x, discard_y, discard_z)
         
