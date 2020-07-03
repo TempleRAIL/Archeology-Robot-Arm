@@ -29,7 +29,7 @@ from AutoCore import AutoCore
 # ** First state of State Machine: Sends the arm to the home configuration **
 class Zero(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready', 'no_mask', 'ready'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'no_mask', 'ready'], input_keys = [], output_keys = [])
         self.core = core
         
     def execute(self, userdata):
@@ -47,12 +47,13 @@ class Zero(smach.State):
 # ** Second state of State Machine: Sends the arm to capture image of empty background mat **
 class Calibrate(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready', 'ready'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'ready'], input_keys = [], output_keys = ['station'])
         self.core = core
         
     def execute(self, userdata):
         self.core.calibrate_fun()
         # SMACH Logic
+        userdata.station = 0
         if self.core.status == True:
             return 'ready'
         else:
@@ -67,14 +68,14 @@ class Translate(smach.State):
         
     def execute(self, userdata):
         if userdata.station == 0:
-            pos = self.core.pickup_locations[0]
+            pos = self.core.pickup_positions[0]
         elif userdata.station == 1:
-            pos = self.core.scale_location
+            pos = self.core.scale_position
         elif userdata.station == 2:
-            pos = self.core.camera_location
+            pos = self.core.camera_position
         elif userdata.station == 3:
-            pos = self.core.dropoff_location()
-        location = {"position": pos, "pitch": self.core.location["pitch"], "roll": 0, "numerical": self.core.use_numerical_ik}
+            pos = self.core.dropoff_position()
+        location = {"position": pos, "pitch": self.core.pose["pitch"], "roll": 0, "numerical": self.core.use_numerical_ik}
         self.core.move_fun(location)
         # SMACH logic
         if self.core.status == True:
@@ -89,18 +90,19 @@ class Translate(smach.State):
 # ** Fourth state of the State Machine: Examines the area below the camera for sherds **
 class Examine(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'pose'])
         self.core = core
         
     def execute(self, userdata):
-        found = self.core.shard_fun(userdata.attempts)
+        (found, sherd_pose) = self.core.shard_fun(userdata.attempts)
         # SMACH logic
         if found:
             userdata.attempts = 0
+            userdata.pose = sherd_pose
             return 'sherd_found'
         else:
             userdata.attempts += 1
-            if userdata.attempts == np.size(self.core.pickup_locations, 0):
+            if userdata.attempts == np.size(self.core.pickup_positions, 0):
                 userdata.attempts = 0
                 return 'none_found'
             return 'next_location'
@@ -109,11 +111,11 @@ class Examine(smach.State):
 # ** Fifth state of the State Machine: Lowers the gripper to acquire the sherd and returns to working height **
 class Acquire(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts', 'pose'], output_keys = ['station', 'attempts', 'pose'])
         self.core = core
     
     def execute(self, userdata):
-        self.core.pick_place_fun(self.core.location, self.core.working_z, pick=True)
+        self.core.pick_place_fun(userdata.pose, pick=True)
         # SMACH logic
         # TODO need to update logic here to account for stations other than pick up
         if self.core.status == True:
@@ -131,11 +133,11 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class Discard(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'pickup', 'discard'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['failed', 'pickup', 'discard'], input_keys = ['station', 'pose'], output_keys = ['station'])
         self.core = core
         
     def execute(self, userdata):
-        self.core.pick_place_fun(self.core.location, self.core.working_z, place=True)
+        self.core.pick_place_fun(userdata.pose, place=True)
         # SMACH logic
         if self.core.status == True:
             if userdata.station == 3:
@@ -153,7 +155,7 @@ class Discard(smach.State):
 def process_sherds():
     rospy.init_node('sherd_states')
     # Initialize pyrobot objects
-    bot = Robot("locobot")
+    bot = Robot("locobot", use_base=False)
     configs = bot.configs
     gripper = LoCoBotGripper(configs)
     # Initialize AutoCore
@@ -163,6 +165,7 @@ def process_sherds():
     sm = smach.StateMachine(outcomes = ['NotReady'])
     sm.userdata.station = 0
     sm.userdata.attempts = 0
+    sm.userdata.pose = None
     # ** Opens state machine container **
     with sm:
         # ** Adds the states to the container **
