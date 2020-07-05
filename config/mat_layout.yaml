@@ -1,5 +1,7 @@
+clearance: 0.00025  # gap between end of fingers and table/mat [m]
+
 working_pose:
-  z: 0.1
+  z: 0.2
   roll: 0
   pitch: 1.5708
 
