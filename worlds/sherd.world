@@ -26,8 +26,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -173,7 +173,12 @@
                 <surface_radius>0.01</surface_radius>
                 <ode/>
               </torsional>
-              <ode/>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+                <fdir1>0 0 1</fdir1>
+                <fdir2>1 0 0</fdir2>
+              </ode>
             </friction>
             <bounce/>
           </surface>
@@ -236,7 +241,12 @@
                 <surface_radius>0.01</surface_radius>
                 <ode/>
               </torsional>
-              <ode/>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+                <fdir1>0 0 1</fdir1>
+                <fdir2>1 0 0</fdir2>
+              </ode>
             </friction>
             <bounce/>
           </surface>
@@ -299,7 +309,12 @@
                 <surface_radius>0.01</surface_radius>
                 <ode/>
               </torsional>
-              <ode/>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+                <fdir1>0 0 1</fdir1>
+                <fdir2>1 0 0</fdir2>
+              </ode>
             </friction>
             <bounce/>
           </surface>
@@ -432,7 +447,12 @@
                 <surface_radius>0.01</surface_radius>
                 <ode/>
               </torsional>
-              <ode/>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+                <fdir1>0 0 1</fdir1>
+                <fdir2>1 0 0</fdir2>
+              </ode>
             </friction>
             <bounce/>
           </surface>
@@ -483,8 +503,8 @@
         <collision name='collision'>
             <friction>
              <ode>
-                <mu>1.25</mu>
-                <mu2>1.25</mu2>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
                 <!-- no direction specified, so friction automatically in x and y -->
               </ode>
             </friction>
