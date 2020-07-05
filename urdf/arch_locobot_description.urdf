@@ -517,8 +517,8 @@
                   <ode/>
                 </torsional>
                 <ode>
-                  <mu>1.25</mu>
-                  <mu2>1.25</mu2>
+                  <mu>1.0</mu>
+                  <mu2>1.0</mu2>
                   <fdir1>0 0 1</fdir1>
                   <fdir2>1 0 0</fdir2>
                 </ode>
@@ -563,8 +563,8 @@
                   <ode/>
                 </torsional>
                 <ode>
-                  <mu>1.25</mu>
-                  <mu2>1.25</mu2>
+                  <mu>1.0</mu>
+                  <mu2>1.0</mu2>
                   <fdir1>0 0 1</fdir1>
                   <fdir2>1 0 0</fdir2>
                 </ode>
