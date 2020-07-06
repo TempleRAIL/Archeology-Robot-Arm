@@ -1,26 +1,47 @@
 #!/usr/bin/env python
 
-# Import Python libraries
+#Import Python libraries
 import cv2
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import numpy as np
 from collections import Counter
 from skimage.color import rgb2lab, rgb2hsv, deltaE_cie76
+import numpy as np
+from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
+import sys
 import threading
 import math
 
 # Import ROS libraries and message types
 import rospy
+import ros_numpy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
-from sensor_msgs.msg import Image
+import message_filters
 from std_msgs.msg import MultiArrayDimension
+from sensor_msgs.msg import PointCloud2, Image
+from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
 from robot_arm.srv import *
 
 bridge = CvBridge()  # OpenCV converter
-global img_msg, img_msg_lock
-img_msg = None
-img_msg_lock = threading.Lock()
+
+global image_msg, point_cloud_msg, camera_data_lock
+image_msg = None
+point_cloud_msg = None
+camera_data_lock = threading.Lock()
+
+##############################################################
+# camera_data_callback(msg)
+# This function saves the time-synced image and point cloud
+# inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
+
+def camera_data_callback(im_msg, pc_msg):
+    global image_msg, point_cloud_msg, camera_data_lock
+    camera_data_lock.acquire()
+    try:
+        image_msg = im_msg
+        point_cloud_msg = pc_msg
+    finally:
+        camera_data_lock.release()
 
 ##############################################################
 # RGB2HEX(color)
@@ -48,12 +69,12 @@ def convert_hsv_to_OpenCV(float_hsv_values):
 # inputs: sensor_msgs/Image
 
 def image_callback(msg):
-    global img_msg, img_msg_lock
-    img_msg_lock.acquire()
+    global image_msg, image_msg_lock
+    image_msg_lock.acquire()
     try:
-        img_msg = msg
+        image_msg = msg
     finally:
-        img_msg_lock.release()
+        image_msg_lock.release()
 
       
 ##############################################################
@@ -63,23 +84,26 @@ def image_callback(msg):
 # returns: robot_arm/ColorMaskResponse 
 
 def color_mask_callback(req):
-    global img_msg, img_msg_lock
+    global image_msg, point_cloud_msg, camera_data_lock
     
     if not req.num_colors == 1:
         rospy.logerr('Only 1 color supported')
         return
     
-    if img_msg is None:
+    if image_msg is None:
         rospy.logerr('No image received yet')
         return
 
     #print ("Extracting top ", req.num_colors, " colors.")
     
-    img_msg_lock.acquire()
+    camera_data_lock.acquire()
     try:
-        img = bridge.imgmsg_to_cv2(img_msg, "bgr8")  # BGR OpenCV image
+        img = bridge.imgmsg_to_cv2(image_msg, "bgr8")  # BGR OpenCV image
+        # convert PointCloud2 ROS msg to numpy array (cloud corresponds to segmented sherds image)
+        point_cloud = ros_numpy.numpify( point_cloud_msg )  # pointcloud should be dense (2D data structure corresponding to image)
     finally:
-        img_msg_lock.release()
+        camera_data_lock.release()
+
     rgb = img[:, :, ::-1]  # flip to RGB
     resized_rgb = cv2.resize(rgb, (600,400), interpolation = cv2.INTER_AREA)
     reshaped_rgb = resized_rgb.reshape(resized_rgb.shape[0]*resized_rgb.shape[1], 3)  # KMeans needs input of 2 dimensions
@@ -137,6 +161,8 @@ def color_mask_callback(req):
     # Construct message for color mask
     # TODO set this up for more than a single color
     res = ColorMaskResponse()
+    res.mat_z = np.average(point_cloud['z'])
+
     res.color_mask.data = flat_mask
     res.color_mask.layout.dim = [MultiArrayDimension(), MultiArrayDimension(), MultiArrayDimension()]
     
@@ -162,8 +188,19 @@ def color_mask_callback(req):
  
 def color_mask():
     rospy.init_node('color_mask')
+
+    # Subscribe in sync to Color Image and Color-Aligned PointCloud
+    color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
+    print("Subscribed to color image.")
+
+    # use rs_rgbd.launch with physical RealSense camera
+    pointcloud_sub = message_filters.Subscriber("/camera/depth_registered/points", PointCloud2)  
+    print("Subscribed to point cloud.")
+
+    sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
+    sync.registerCallback( camera_data_callback )
     
-    color_img_sub = rospy.Subscriber("/camera/color/image_raw", Image, image_callback)
+    #color_img_sub = rospy.Subscriber("/camera/color/image_raw", Image, image_callback)
     color_mask_server = rospy.Service('color_mask', ColorMask, color_mask_callback)
  
     rospy.spin() # simply keeps python from exiting until this node is stopped
