@@ -235,7 +235,8 @@ def detect_sherds():
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
     print("Subscribed to color image.")
 
-    pointcloud_sub = message_filters.Subscriber("/camera/depth_registered/points", PointCloud2)  # use rs_rgbd.launch
+    # use rs_rgbd.launch with physical RealSense camera
+    pointcloud_sub = message_filters.Subscriber("/camera/depth_registered/points", PointCloud2)
     print("Subscribed to point cloud.")
 
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
