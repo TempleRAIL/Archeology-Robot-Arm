@@ -1,4 +1,4 @@
-clearance: 0.00025  # gap between end of fingers and table/mat [m]
+clearance: .001  # gap between end of fingers and table/mat [m]
 
 working_pose:
   z: 0.2
@@ -23,12 +23,12 @@ pickup_area:
 scale_location:
   x: 0.14
   y: 0.3
-  z: 0.085
+  z: 0.2 #0.085
   
 cam_location:
   x: 0.14
   y: 0.3
-  z: 0.085
+  z: 0.2 #0.085
 
 discard_area:
   offset_x: 0.09
