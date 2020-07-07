@@ -23,9 +23,10 @@ class AutoCore():
         # Robot passed from state machine
         self.bot = bot
         self.gripper = gripper
-        
+ 
         # Pyrobot parameters
         self.use_numerical_ik = rospy.get_param('~use_numerical_ik', False)  # default boolean for using numerical method when solving IK
+        self.clearance = rospy.get_param('~clearance')
         
         # Initialize standard operation parameters (when not picking/placing)
         working_pose = rospy.get_param('~working_pose')
@@ -36,14 +37,14 @@ class AutoCore():
         self.calibrate_position = np.array([calibrate_location['x'], calibrate_location['y'], self.working_z])
         
         # Initialize pickup area
-        pickup_area = rospy.get_param('~pickup_area')
         pickup_positions = []
+        pickup_area = rospy.get_param('~pickup_area')
         for i in range(0, pickup_area['rects_x']):
             x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / pickup_area['rects_x']
             y_vals = range(-pickup_area['rects_y']/2, pickup_area['rects_y']/2)
-            for j in y_vals if i % 2 == 0 else reversed(y_vals): #TODO edit to mirror about y=0
+            for j in y_vals if i % 2 == 0 else reversed(y_vals):
                 y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / pickup_area['rects_y']
-                pickup_positions.append([x, y, pickup_area['z']])
+                pickup_positions.append([x, y, self.working_z])
         self.pickup_positions = np.array(pickup_positions)
         rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
@@ -63,6 +64,7 @@ class AutoCore():
         # Initialize other class members
         self.status = True # variable used to track when errors occur
         self.color_mask = None # color mask for sherd detection
+        self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
         
         # ROS service clients
@@ -118,22 +120,22 @@ class AutoCore():
             found = True
             point_cam = PointStamped()  # build ROS message for conversion
             point_cam.header = res.detections.header
-            point_cam.point.x, point_cam.point.y, point_cam.point.z = 0., 0., 0.0
+            point_cam.point.x, point_cam.point.y, point_cam.point.z = 0., 0., 0.
             rospy.logwarn('point_cam = {}'.format(point_cam))
-            point_base = self.tfBuffer.transform(point_cam, 'arm_base_link')
+            point_base = self.tfBuffer.transform(point_cam, 'base_link')
             rospy.logwarn('point_base = {}'.format(point_base))
             point_cam.point.x, point_cam.point.y, point_cam.point.z = 0., 0., 0.3
             rospy.logwarn('point_cam = {}'.format(point_cam))
-            point_base = self.tfBuffer.transform(point_cam, 'arm_base_link')
+            point_base = self.tfBuffer.transform(point_cam, 'base_link')
             rospy.logwarn('point_base = {}'.format(point_base))
             for item in detections:
                 #rospy.logwarn('item = {}'.format(item))
                 point_cam = PointStamped()  # build ROS message for conversion
                 point_cam.header = item.header
-                point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
+                point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, self.mat_z
                 rospy.logwarn('point_cam = {}'.format(point_cam))
                 try:
-                    point_base = self.tfBuffer.transform(point_cam, 'arm_base_link')
+                    point_base = self.tfBuffer.transform(point_cam, 'base_link')
                 except tf2_ros.buffer_interface.TypeException as e:
                     e = sys.exc_info()[0]
                     rospy.logerr(e)
@@ -154,7 +156,7 @@ class AutoCore():
     def calibrate_fun(self):
         rospy.logdebug('AutoCore: calibrate_fun triggered.')
         # Move arm to calibration location
-        calibrate_pose = {'position': self.calibrate_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik} 
+        calibrate_pose = {'position': self.calibrate_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
         self.move_fun(calibrate_pose)
         # Request data from service
         req = ColorMaskRequest()
@@ -164,7 +166,9 @@ class AutoCore():
         try:
             res = self.color_mask_srv(req)
             self.color_mask = res.color_mask
+            self.mat_z = res.mat_z
             rospy.loginfo('AutoCore: Got color mask.')
+            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
         except rospy.ServiceException as e:
 			rospy.logwarn('AutoCore: Color mask service call failed: {}'.format(e))
 			self.status = False
@@ -181,7 +185,11 @@ class AutoCore():
         found, sherds = self.detect_fun()
         sherd_pose = None
         if found:
-            sherd_pose = {'position': np.array(sherds[0, 0:3]), 'roll': sherds[0, 3], 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
+            sherd_x, sherd_y = sherds[0,0], sherds[0,1]
+            targ_z = sherds[0,2] + self.clearance 
+            sherd_roll = sherds[0,3]
+            #sherd_pose = {'position': np.array(sherds[0, 0:3]), 'roll': sherds[0, 3], 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
+            sherd_pose = {'position': np.array([sherd_x, sherd_y, targ_z]), 'roll': sherd_roll, 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
             rospy.logwarn('pose = {}'.format(self.pose))
             rospy.logwarn('sherd_pose = {}'.format(sherd_pose))
         return found, sherd_pose
@@ -192,16 +200,11 @@ class AutoCore():
         rospy.logdebug('AutoCore: pickFun triggered.')
         if pick and place:
             rospy.logwarn('Only one of pick or place can be selected')
-        # Move to desired location
-        temp_pose = pose
-        temp_pose['position'][2] = self.working_z
-        self.move_fun(temp_pose)  # position gripper at working height
         # Ensure gripper open if picking up a sherd
         if pick:
             self.gripper.open()
-        # Descend down to table
-        descend_z = np.array( [0, 0, pose['position'][2] - self.working_z] )  # z-displacement downwards to 3 cm below top face of sherd
-        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
+        # Descend down to sherd on table
+        self.move_fun(pose)        
         time.sleep(1)
         # Toggle the gripper
         if pick:
@@ -218,53 +221,9 @@ class AutoCore():
             #return report
             #time.sleep(1)
         # Move gripper back up
-        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
+        ascend_z = np.array( [0, 0, self.working_z-pose['position'][2]] )  # z-displacement downwards to 3 cm below top face of sherd
+        self.bot.arm.move_ee_xyz(ascend_z, plan=True)
 
-
-    ########## Separate pick and place functions to accomodate **kwarg and default argument order restrictions in Python 2##########
-    # Function to retrieve an object
-    def pick_fun(self, z, **pose):
-        # Ensure gripper open to pick up sherd
-        self.gripper.open()
-        # Move to desired location
-        self.move_fun(**pose)  # position gripper at working height
-        # Descend down to table
-        descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
-        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
-        time.sleep(1)
-        # Toggle the gripper
-        self.gripper.close()  # close around sherd
-        time.sleep(1)
-        #gripper_state = gripper.get_gripper_state()
-        #print("gripper_state = ", gripper_state)
-        #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
-            #report = False
-            #return report
-            #time.sleep(1)
-        # Move gripper back up
-        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
-
-    # Function to discard an object
-    def place_fun(self, z, **pose):
-        rospy.logdebug("AutoCore: placeFun triggered.")
-        # Move to desired location
-        self.move_fun(**pose)  # position gripper at working height
-        # Descend down to table
-        descend_z = np.array( [0, 0, -(self.working_z - z)] )  # z-displacement downwards to 3 cm below top face of sherd
-        self.bot.arm.move_ee_xyz(descend_z, plan=True)  # move gripper down to sherd
-        time.sleep(1)
-        # Toggle the gripper
-        self.gripper.open()  # release sherd
-        time.sleep(1)
-        #gripper_state = gripper.get_gripper_state()
-        #print("gripper_state = ", gripper_state)
-        #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
-            #report = False
-            #return report
-            #time.sleep(1)
-        # Move gripper back up
-        self.bot.arm.move_ee_xyz(-descend_z, plan=True)
-        
     
     # Randomly draw dropoff location
     def dropoff_position(self):
