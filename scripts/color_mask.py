@@ -158,11 +158,12 @@ def color_mask_callback(req):
 
     #print ('Flat mask: ', flat_mask)
 
+
+    res = ColorMaskResponse()
+    res.mat_z = np.average(point_cloud['z']) # get average z value of top face of mat
+
     # Construct message for color mask
     # TODO set this up for more than a single color
-    res = ColorMaskResponse()
-    res.mat_z = np.average(point_cloud['z'])
-
     res.color_mask.data = flat_mask
     res.color_mask.layout.dim = [MultiArrayDimension(), MultiArrayDimension(), MultiArrayDimension()]
     
