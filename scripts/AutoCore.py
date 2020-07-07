@@ -26,6 +26,7 @@ class AutoCore():
  
         # Pyrobot parameters
         self.use_numerical_ik = rospy.get_param('~use_numerical_ik', False)  # default boolean for using numerical method when solving IK
+        self.gripper_len = rospy.get_param('~gripper_len')
         self.clearance = rospy.get_param('~clearance')
         
         # Initialize standard operation parameters (when not picking/placing)
@@ -58,6 +59,7 @@ class AutoCore():
         
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
+        self.discard_z = discard_area['z']
         self.discard_offset_x, self.discard_offset_y = discard_area['offset_x'], discard_area['offset_y']
         self.discard_length_x, self.discard_length_y = discard_area['length_x'], discard_area['length_y'] # dimensions of rectangular pickup area
         
@@ -132,7 +134,7 @@ class AutoCore():
                 #rospy.logwarn('item = {}'.format(item))
                 point_cam = PointStamped()  # build ROS message for conversion
                 point_cam.header = item.header
-                point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, self.mat_z
+                point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
                 rospy.logwarn('point_cam = {}'.format(point_cam))
                 try:
                     point_base = self.tfBuffer.transform(point_cam, 'base_link')
@@ -141,8 +143,8 @@ class AutoCore():
                     rospy.logerr(e)
                     sys.exit(1)
                 rospy.logwarn('point_base = {}'.format(point_base))
-                rospy.logdebug('Obtained transform between camera_link and arm_base_link.')                
-                rospy.logdebug('Sherd center point (x,y,z) [m] in arm_base_link frame: {}'.format(point_base))
+                rospy.logdebug('Obtained transform between camera_link and base_link.')                
+                rospy.logdebug('Sherd center point (x,y,z) [m] in base_link frame: {}'.format(point_base))
                 sherd_angle = item.bbox.center.roll  # get sherd rotation angle
                 sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
             sherds = np.array(sherds)
@@ -168,7 +170,7 @@ class AutoCore():
             self.color_mask = res.color_mask
             self.mat_z = res.mat_z
             rospy.loginfo('AutoCore: Got color mask.')
-            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
+            rospy.logwarn('Average z value of mat (top face): {}'.format(self.mat_z))
         except rospy.ServiceException as e:
 			rospy.logwarn('AutoCore: Color mask service call failed: {}'.format(e))
 			self.status = False
@@ -186,7 +188,7 @@ class AutoCore():
         sherd_pose = None
         if found:
             sherd_x, sherd_y = sherds[0,0], sherds[0,1]
-            targ_z = sherds[0,2] + self.clearance 
+            targ_z = sherds[0,2] + self.gripper_len + self.clearance
             sherd_roll = sherds[0,3]
             #sherd_pose = {'position': np.array(sherds[0, 0:3]), 'roll': sherds[0, 3], 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
             sherd_pose = {'position': np.array([sherd_x, sherd_y, targ_z]), 'roll': sherd_roll, 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
@@ -203,8 +205,8 @@ class AutoCore():
         # Ensure gripper open if picking up a sherd
         if pick:
             self.gripper.open()
-        # Descend down to sherd on table
-        self.move_fun(pose)        
+        # Move down to table
+        self.move_fun(pose)
         time.sleep(1)
         # Toggle the gripper
         if pick:
@@ -221,8 +223,9 @@ class AutoCore():
             #return report
             #time.sleep(1)
         # Move gripper back up
-        ascend_z = np.array( [0, 0, self.working_z-pose['position'][2]] )  # z-displacement downwards to 3 cm below top face of sherd
-        self.bot.arm.move_ee_xyz(ascend_z, plan=True)
+        pose['position'][2] = self.working_z
+        rospy.logwarn('Moving back up to {}'.format(self.pose))
+        self.move_fun(pose)
 
     
     # Randomly draw dropoff location
@@ -231,6 +234,5 @@ class AutoCore():
         # Generate random location in dropoff area
         discard_x = self.discard_offset_x + random.random() * self.discard_length_x
         discard_y = self.discard_offset_y + random.random() * self.discard_length_y
-        discard_z = self.working_z
-        return np.array(discard_x, discard_y, discard_z)
+        return np.array(discard_x, discard_y, self.discard_z)
         
