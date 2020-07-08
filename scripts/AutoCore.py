@@ -202,14 +202,10 @@ class AutoCore():
         rospy.logdebug('AutoCore: pickFun triggered.')
         if pick and place:
             rospy.logwarn('Only one of pick or place can be selected')
-        # Ensure gripper open if picking up a sherd
         if pick:
-            self.gripper.open()
-        # Move down to table
-        self.move_fun(pose)
-        time.sleep(1)
-        # Toggle the gripper
-        if pick:
+            self.gripper.open() # ensure gripper open if picking up a sherd
+            self.move_fun(pose) # move down to table
+            time.sleep(1)
             self.gripper.close()  # close around sherd
         elif place:
             self.gripper.open()
@@ -234,5 +230,6 @@ class AutoCore():
         # Generate random location in dropoff area
         discard_x = self.discard_offset_x + random.random() * self.discard_length_x
         discard_y = self.discard_offset_y + random.random() * self.discard_length_y
-        return np.array(discard_x, discard_y, self.discard_z)
-        
+        dropoff_pos = np.array([discard_x, discard_y, self.discard_z])
+        rospy.logwarn('Dropff position: {}'.format(dropoff_pos))
+        return dropoff_pos
