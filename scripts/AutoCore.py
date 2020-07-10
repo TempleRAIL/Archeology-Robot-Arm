@@ -116,12 +116,14 @@ class AutoCore():
         #rospy.logdebug('AutoCore: move_fun triggered.')
         rospy.loginfo('AutoCore: move_fun triggered.')
         try:
-            if not self.bot.arm.set_ee_pose_pitch_roll(**pose):
+            success = self.bot.arm.set_ee_pose_pitch_roll(**pose):
+        except Exception:
+            raise
+        else:
+            if not success:
                 raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
             self.pose = pose
             time.sleep(1)
-        except Exception:
-            raise
 
 
     ########## Sensor interface ##########
@@ -139,11 +141,12 @@ class AutoCore():
         req.color_mask = self.color_mask
         try:
             res = self.detection_srv(req)
-            detections = res.detections.detections
-            rospy.logdebug('Bounding boxes message: {}'.format(detections))
         except rospy.ServiceException as e:
             rospy.logerr('AutoCore: Bounding box service call failed: {}'.format(e))
             raise
+        else:
+            detections = res.detections.detections
+            rospy.logdebug('Bounding boxes message: {}'.format(detections))
         
         if detections:
             found = True
@@ -187,13 +190,14 @@ class AutoCore():
         # Save results from service
         try:
             res = self.color_mask_srv(req)
+        except rospy.ServiceException as e:
+            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
+            raise
+        else:
             self.color_mask = res.color_mask
             self.mat_z = res.mat_z
             rospy.loginfo('AutoCore: Got color mask.')
             rospy.logwarn('Average z value of mat (top face): {}'.format(self.mat_z))
-        except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
-            raise
         
   
     # Function to look for object in box
