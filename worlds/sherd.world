@@ -71,15 +71,6 @@
       <name>stone4</name>
       <pose frame=''>0.428 0.032499 0.029998 0 -0 1.5302</pose>
     </include>
-    <state world_name='default'>
-      <sim_time>418 904000000</sim_time>
-      <real_time>727 263741024</real_time>
-      <wall_time>1588971578 290154047</wall_time>
-      <iterations>418904</iterations>
-      <light name='sun'>
-        <pose frame=''>0 0 10 0 -0 0</pose>
-      </light>
-    </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
         <pose frame=''>1.1573 -0.271554 1.7148 0 1.01164 3.02819</pose>
