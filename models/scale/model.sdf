@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="scale">
+    <pose frame=''>0 0 0 0 0 0</pose>
+    <link name="scale_link">
+      <pose frame=''>0.05 0.05 0.005 0 0 0</pose>
+      <inertial>
+        <inertia>
+          <ixx>8.333e-4</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>8.333e-4</iyy>
+          <iyz>0.0</iyz>
+          <izz>1.6667e-3</izz>
+        </inertia>
+        <mass>1.0</mass>
+      </inertial>
+      <visual name="visual_square">
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.01</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="collision_square">
+        <max_contacts>250</max_contacts>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="scale_joint" type="fixed">
+      <parent>mat_link</parent>
+      <child>scale_link</child>
+      <pose>0 0 0.03 0 0 0</pose>
+      <sensor name="scale_sensor" type="force_torque">
+        <update_rate>30</update_rate>
+      </sensor>
+    </joint>
+  </model>
+</sdf>

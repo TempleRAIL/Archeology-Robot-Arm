@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name='stone'>
+    <pose frame=''>0 0 0 0 0 0</pose>
+    <static>false</static>
+    <link name='link'>
+      <pose frame=''>0 0 0.005 0 -0 0</pose>
+      <inertial>
+        <mass>0.0628</mass>
+        <inertia>
+          <ixx>3.79417e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>5.28567e-05</iyy>
+          <iyz>0</iyz>
+          <izz>5.56042e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>0.07 0.025 0.01</size>
+          </box>
+        </geometry>
+        <surface>
+          <contact>
+            <poissons_ratio>0.15</poissons_ratio>
+            <elastic_modulus>8e+10</elastic_modulus>
+            <ode>
+              <kp>100000</kp>
+              <kd>100</kd>
+              <max_vel>100</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <torsional>
+              <coefficient>1</coefficient>
+              <use_patch_radius>0</use_patch_radius>
+              <surface_radius>0.01</surface_radius>
+              <ode/>
+            </torsional>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>0 0 1</fdir1>
+              <fdir2>1 0 0</fdir2>
+            </ode>
+          </friction>
+          <bounce/>
+        </surface>
+        <max_contacts>10</max_contacts>
+      </collision>
+      <visual name='visual'>
+        <geometry>
+          <box>
+            <size>0.07 0.025 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+        </material>
+      </visual>
+      <self_collide>0</self_collide>
+      <kinematic>0</kinematic>
+      <gravity>1</gravity>
+    </link>
+  </model>
+</sdf>
