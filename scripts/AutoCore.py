@@ -15,7 +15,36 @@ import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import *
+from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest
+
+
+class PlanningFailure(Exception):
+    """
+    Exception raised for errors in movement
+
+    Attributes:
+        goal_pose -- where the robot was trying to go
+        message -- explanation of the error
+    """
+
+    def __init__(self, goal_pose, message):
+        self.goal_pose = goal_pose
+        self.message = message
+
+
+class GraspFailure(Exception):
+    """
+    Exception raised when gripper does not grasp object
+
+    Attributes:
+        goal_pose -- where the robot was trying to go
+        message -- explanation of the error
+    """
+
+    def __init__(self, goal_pose, message):
+        self.goal_pose = goal_pose
+        self.message = message
+
 
 class AutoCore():
     
@@ -64,7 +93,6 @@ class AutoCore():
         self.discard_length_x, self.discard_length_y = discard_area['length_x'], discard_area['length_y'] # dimensions of rectangular pickup area
         
         # Initialize other class members
-        self.status = True # variable used to track when errors occur
         self.color_mask = None # color mask for sherd detection
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
@@ -81,26 +109,26 @@ class AutoCore():
     ########## pyrobot interface ##########
     # Function to go home
     def go_home(self):
-        self.bot.arm.go_home()
+        self.bot.arm.go_home(plan=True)
 
     # Function to call IK to plot and execute trajectory
     def move_fun(self, pose):
         #rospy.logdebug('AutoCore: move_fun triggered.')
         rospy.loginfo('AutoCore: move_fun triggered.')
         try:
-            self.bot.arm.set_ee_pose_pitch_roll(**pose)
+            if not self.bot.arm.set_ee_pose_pitch_roll(**pose):
+                raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
             self.pose = pose
             time.sleep(1)
-        except Exception as e:
-            rospy.logwarn('AutoCore: Exception to move_fun() thrown. {}'.format(e))
-            self.status = False
+        except Exception:
+            raise
 
 
     ########## Sensor interface ##########
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
         found = False
-        sherds = [] # initialize empty list of lists: [sherd_x, sherd_y, sherd_z, sherd_angle]
+        sherds = None # initialize empty list of lists: [sherd_x, sherd_y, sherd_z, sherd_angle]
         # confirm that color mask exists
         if self.color_mask is None:
             rospy.logwarn('AutoCore: No color mask received.')
@@ -114,35 +142,24 @@ class AutoCore():
             detections = res.detections.detections
             rospy.logdebug('Bounding boxes message: {}'.format(detections))
         except rospy.ServiceException as e:
-			rospy.logwarn('AutoCore: Bounding box service call failed: {}'.format(e))
-			self.status = False
-			return found, sherds
-            
+            rospy.logerr('AutoCore: Bounding box service call failed: {}'.format(e))
+            raise
+        
         if detections:
             found = True
-            point_cam = PointStamped()  # build ROS message for conversion
-            point_cam.header = res.detections.header
-            point_cam.point.x, point_cam.point.y, point_cam.point.z = 0., 0., 0.
-            rospy.logwarn('point_cam = {}'.format(point_cam))
-            point_base = self.tfBuffer.transform(point_cam, 'base_link')
-            rospy.logwarn('point_base = {}'.format(point_base))
-            point_cam.point.x, point_cam.point.y, point_cam.point.z = 0., 0., 0.3
-            rospy.logwarn('point_cam = {}'.format(point_cam))
-            point_base = self.tfBuffer.transform(point_cam, 'base_link')
-            rospy.logwarn('point_base = {}'.format(point_base))
+            sherds = []
             for item in detections:
                 #rospy.logwarn('item = {}'.format(item))
                 point_cam = PointStamped()  # build ROS message for conversion
                 point_cam.header = item.header
                 point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
-                rospy.logwarn('point_cam = {}'.format(point_cam))
+                #rospy.logwarn('point_cam = {}'.format(point_cam))
                 try:
                     point_base = self.tfBuffer.transform(point_cam, 'base_link')
                 except tf2_ros.buffer_interface.TypeException as e:
-                    e = sys.exc_info()[0]
-                    rospy.logerr(e)
-                    sys.exit(1)
-                rospy.logwarn('point_base = {}'.format(point_base))
+                    rospy.logerr('AutoCore: tf failure: {}'.format(e))
+                    raise
+                #rospy.logwarn('point_base = {}'.format(point_base))
                 rospy.logdebug('Obtained transform between camera_link and base_link.')                
                 rospy.logdebug('Sherd center point (x,y,z) [m] in base_link frame: {}'.format(point_base))
                 sherd_angle = item.bbox.center.roll  # get sherd rotation angle
@@ -159,7 +176,10 @@ class AutoCore():
         rospy.logdebug('AutoCore: calibrate_fun triggered.')
         # Move arm to calibration location
         calibrate_pose = {'position': self.calibrate_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
-        self.move_fun(calibrate_pose)
+        try:
+            self.move_fun(calibrate_pose)
+        except:
+            raise
         # Request data from service
         req = ColorMaskRequest()
         req.num_colors = 1
@@ -172,8 +192,8 @@ class AutoCore():
             rospy.loginfo('AutoCore: Got color mask.')
             rospy.logwarn('Average z value of mat (top face): {}'.format(self.mat_z))
         except rospy.ServiceException as e:
-			rospy.logwarn('AutoCore: Color mask service call failed: {}'.format(e))
-			self.status = False
+            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
+            raise
         
   
     # Function to look for object in box
@@ -184,7 +204,10 @@ class AutoCore():
         search_pose = {'position': self.pickup_positions[index], 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
         self.move_fun(search_pose)
         # Check for sherd detections and get list of locations / rotations
-        found, sherds = self.detect_fun()
+        try:
+            found, sherds = self.detect_fun()
+        except:
+            raise
         sherd_pose = None
         if found:
             sherd_x, sherd_y = sherds[0,0], sherds[0,1]
@@ -201,27 +224,38 @@ class AutoCore():
     def pick_place_fun(self, pose, pick=False, place=False):
         rospy.logdebug('AutoCore: pickFun triggered.')
         if pick and place:
-            rospy.logwarn('Only one of pick or place can be selected')
+            rospy.logerr('Only one of pick or place can be selected')
+        elif not (pick or place):
+            rospy.logerr('Pick or place must be selected')
+        # Get gripper ready
         if pick:
             self.gripper.open() # ensure gripper open if picking up a sherd
-            self.move_fun(pose) # move down to table
-            time.sleep(1)
-            self.gripper.close()  # close around sherd
         elif place:
             self.gripper.open()
-        else:
-            rospy.logwarn('Pick or place must be selected')
+        # Move gripper
+        try:
+            pose['position'][2] += 0.05
+            self.move_fun(pose) # move above sherd and orient
+            pose['position'][2] -= 0.05
+            self.move_fun(pose) # move down to table
+        except:
+            raise
         time.sleep(1)
-        gripper_state = self.gripper.get_gripper_state()
-        rospy.logwarn('gripper_state = {}'.format(gripper_state))
-        #if gripper_state == 3:  # '3' is even when gripper has closed around sherd, so this check does not work
-            #report = False
-            #return report
-            #time.sleep(1)
+        #Finish gripper motion
+        if pick:
+            self.gripper.close()
+            gripper_state = self.gripper.get_gripper_state()
+            if not gripper_state == 2:
+                raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
+        elif place:
+            self.gripper.open()
         # Move gripper back up
         pose['position'][2] = self.working_z
         rospy.logwarn('Moving back up to {}'.format(self.pose))
-        self.move_fun(pose)
+        try:
+            self.move_fun(pose) # move down to table
+        except:
+            raise
 
     
     # Randomly draw dropoff location
