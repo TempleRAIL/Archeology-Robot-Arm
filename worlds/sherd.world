@@ -47,6 +47,11 @@
       <pose frame=''>0.09 0.3 0.03 0 0 0</pose>
     </include>
     <include>
+      <uri>model://overhead_camera</uri>
+      <name>overhead_camera</name>
+      <pose frame=''>0.559163 0.514650 0 0 0 2.894019</pose>
+    </include>
+    <include>
       <uri>model://stone</uri>
       <name>stone0</name>
       <pose frame=''>0.26 -0.0625 0.029998 0 0 -0.47644</pose>
