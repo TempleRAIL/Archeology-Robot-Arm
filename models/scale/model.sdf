@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
   <model name="scale">
+    <static>true</static>
     <pose frame=''>0 0 0 0 0 0</pose>
     <link name="scale_link">
       <pose frame=''>0.05 0.05 0.005 0 0 0</pose>
