@@ -116,7 +116,7 @@ class AutoCore():
         #rospy.logdebug('AutoCore: move_fun triggered.')
         rospy.loginfo('AutoCore: move_fun triggered.')
         try:
-            success = self.bot.arm.set_ee_pose_pitch_roll(**pose):
+            success = self.bot.arm.set_ee_pose_pitch_roll(**pose)
         except Exception:
             raise
         else:
