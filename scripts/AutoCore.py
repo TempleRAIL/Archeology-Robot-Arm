@@ -249,8 +249,8 @@ class AutoCore():
         if pick:
             self.gripper.close()
             gripper_state = self.gripper.get_gripper_state()
-            if not gripper_state == 2:
-                raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
+            #if not gripper_state == 2:  # commented out for now because LoCoBot never publishes '2' to /gripper/state topic
+                #raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
         elif place:
             self.gripper.open()
         # Move gripper back up
