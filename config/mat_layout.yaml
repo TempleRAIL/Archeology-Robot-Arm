@@ -20,14 +20,14 @@ pickup_area:
   length_y: 0.5 #1.0
 
 scale_location:
-  x: 0.14
+  x: 0.09
   y: 0.3
-  z: 0.2 #0.085
+  z: 0.1 #0.085
   
 cam_location:
-  x: 0.14
-  y: 0.3
-  z: 0.2 #0.085
+  x: 0.559163
+  y: 0.27465
+  z: 0.1 #0.085
 
 discard_area:
   z: 0.1
