@@ -9,7 +9,7 @@
 
 bool isClose(const double a, const double b)
 {
-    if (abs(a-b) > 0.005) return false;
+    if (fabs(a-b) > 0.005) return false;
     return true;
 }
 
@@ -203,31 +203,43 @@ void GazeboInteface::gripperOpen(const std_msgs::Empty & mg) {
     joint_6_pub.publish(msg);
     msg.data = GRIPPER_OPEN_POS;
     joint_7_pub.publish(msg);
-
-    ros::Duration(1).sleep();
+    ros::Duration(2).sleep();
+    ros::spinOnce();
     
     if (!isClose(arm_state[5], -1*GRIPPER_OPEN_POS) || 
         !isClose(arm_state[6], GRIPPER_OPEN_POS))
         gripper_state = -1;  // unknown
     else
         gripper_state = 0; // open
+    
+    std_msgs::Int8 gripper_state_msg;
+    gripper_state_msg.data = gripper_state;
+    gripper_state_pub.publish(gripper_state_msg);
 }
 
 void GazeboInteface::gripperClose(const std_msgs::Empty & mg) {
     gripper_state = 1; // closing
+    
+    std_msgs::Int8 gripper_state_msg;
+    gripper_state_msg.data = gripper_state;
+    gripper_state_pub.publish(gripper_state_msg);
 
     std_msgs::Float64 msg;
     msg.data = GRIPPER_CLOSE_POS;
     joint_6_pub.publish(msg);
     joint_7_pub.publish(msg);
-
-    ros::Duration(1).sleep();
+    ros::Duration(2).sleep();
+    ros::spinOnce();
 
     if (!isClose(arm_state[5], GRIPPER_CLOSE_POS) || 
         !isClose(arm_state[6], GRIPPER_CLOSE_POS))
         gripper_state = 2;    //object in hand
     else
         gripper_state = 3; //Fully closed
+    
+    ROS_WARN("close: gipper_state %d (%d, %d)", gripper_state, isClose(arm_state[5], GRIPPER_CLOSE_POS), isClose(arm_state[6], GRIPPER_CLOSE_POS));
+    gripper_state_msg.data = gripper_state;
+    gripper_state_pub.publish(gripper_state_msg);
 }
 
 void GazeboInteface::executeJointTrajectory(const control_msgs::FollowJointTrajectoryGoalConstPtr & goal) {

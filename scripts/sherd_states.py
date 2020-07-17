@@ -155,7 +155,7 @@ def process_sherds():
     # Initialize pyrobot objects
     bot = Robot("locobot", use_base=False)
     configs = bot.configs
-    gripper = LoCoBotGripper(configs, wait_time=1)
+    gripper = LoCoBotGripper(configs, wait_time=3)
     # Initialize AutoCore
     core = AutoCore(bot, gripper)
     core.calibrate_fun()
@@ -175,7 +175,7 @@ def process_sherds():
         smach.StateMachine.add('Discard', Discard(core), transitions = {'failed': 'Zero', 'pickup': 'Examine', 'discard': 'Translate'})
     # TODO add behavior for arm to move out of way of camera when taking picture / should be taken care of in core.pick_place_fun (final line).  Need to add sleep?
     # ** Execute the SMACH plan **
-    outcome = sm.execute()
+    sm.execute()
   
 if __name__ == '__main__':
     process_sherds()
