@@ -237,7 +237,6 @@ void GazeboInteface::gripperClose(const std_msgs::Empty & mg) {
     else
         gripper_state = 3; //Fully closed
     
-    ROS_WARN("close: gipper_state %d (%d, %d)", gripper_state, isClose(arm_state[5], GRIPPER_CLOSE_POS), isClose(arm_state[6], GRIPPER_CLOSE_POS));
     gripper_state_msg.data = gripper_state;
     gripper_state_pub.publish(gripper_state_msg);
 }
