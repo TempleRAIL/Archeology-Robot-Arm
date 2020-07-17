@@ -91,7 +91,7 @@ GazeboInteface::GazeboInteface(): node_handle_("") {
     }
     else
     {
-        for (int index = 0; index < 9; index++) {
+        for (int index = 0; index < 7; index++) {
             std_msgs::Float64 msg;
             msg.data = 0;
             pub_arr[index].publish(msg);
@@ -172,8 +172,8 @@ void GazeboInteface::goalJointPositionCallback(const sensor_msgs::JointState::Co
 void GazeboInteface::recordArmJoints(const sensor_msgs::JointState::ConstPtr & msg) {
     int msgSize = msg->position.size();
     if (msgSize == 7) {
-        for (int index = 0; index < 5; ++index)
-            arm_state[index] = msg->position.at(index + 2); //the index of arm joints starts at 2
+        for (int index = 0; index < 7; ++index)
+            arm_state[index] = msg->position.at(index);
     } else if (msgSize == 2) {
         // wheel joint states
     } else {
