@@ -4,7 +4,7 @@
     <pose frame=''>0 0 0 0 0 0</pose>
     <static>true</static>
     <link name='mat_link'>
-      <pose frame=''>0 0 0.031 0 -0 0</pose>
+      <pose frame=''>0 0 0.0025 0 0 0</pose>
       <inertial>
         <mass>5</mass>
         <inertia>
@@ -18,10 +18,13 @@
       </inertial>
       <collision name='collision'>
         <geometry>
-          <mesh>
+          <box>
+            <size>1.25 1.25 0.005</size>
+          </box>
+          <!-- <mesh>
             <uri>model://sherdmat/meshes/SherdMat.dae</uri>
             <scale>1 1 1</scale>
-          </mesh>
+          </mesh> -->
         </geometry>
         <max_contacts>10</max_contacts>
         <surface>
@@ -33,7 +36,11 @@
             <torsional>
               <ode/>
             </torsional>
-            <ode/>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>1 0 0</fdir1>
+            </ode>
           </friction>
         </surface>
       </collision>
@@ -45,10 +52,13 @@
           </script>
         </material>
         <geometry>
-          <mesh>
+          <box>
+            <size>1.25 1.25 0.005</size>
+          </box>
+          <!--<mesh>
             <uri>model://sherdmat/meshes/SherdMat.dae</uri>
             <scale>1 1 1</scale>
-          </mesh>
+          </mesh> -->
         </geometry>
       </visual>
       <self_collide>0</self_collide>
