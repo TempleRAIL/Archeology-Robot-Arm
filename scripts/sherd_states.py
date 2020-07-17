@@ -34,6 +34,7 @@ class Zero(smach.State):
         
     def execute(self, userdata):
         self.core.go_home()
+        self.core.gripper.open()
         print("Arm sent home.")
         # SMACH Logic
         if self.core.color_mask is None:
@@ -60,10 +61,11 @@ class Calibrate(smach.State):
 # ** Third state of the State Machine: Moves the arm to a desired configuration **
 class Translate(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready', 'search', 'put_down'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'search', 'put_down'], input_keys = ['station', 'attempts', 'pose'], output_keys = ['station', 'attempts', 'pose'])
         self.core = core
         
     def execute(self, userdata):
+        rospy.logwarn('Userdata.station is {}'.format(userdata.station))
         if userdata.station == 0:
             pos = self.core.pickup_positions[0]
         elif userdata.station == 1:
@@ -72,9 +74,10 @@ class Translate(smach.State):
             pos = self.core.camera_position
         elif userdata.station == 3:
             pos = self.core.dropoff_position()
-        location = {"position": pos, "pitch": self.core.pose["pitch"], "roll": 0, "numerical": self.core.use_numerical_ik}
+        userdata.pose = {"position": pos, "pitch": self.core.pose["pitch"], "roll": 0, "numerical": self.core.use_numerical_ik}
         try:
-            self.core.move_fun(location)
+            rospy.logwarn('Location: {}'.format(userdata.pose))
+            self.core.move_fun(userdata.pose)
             if userdata.station == 0:
                 return 'search'
             else:
