@@ -589,36 +589,6 @@
         <limit effort="1" lower="0" upper="1" velocity="1"/>
         <!-- <limit effort="999999.9" lower="-100" upper="100" velocity="1"/> -->
     </joint>
-
-<!-- ar_tag link and joint sometimes causes MoveIt to sense contact even when collisions are disabled in config/locobot.srdf -->
-    <!--<link name="ar_tag">
-        <inertial>
-            <origin rpy="0 0 0" xyz="-1.59182528269852E-09 1.70641183422241E-09 -0.00509579048106218"/>
-            <mass value="0.0202622634619862"/>
-            <inertia ixx="4.71058333074219E-06" ixy="3.03778067070489E-12" ixz="6.65421687578365E-13" iyy="4.05773489073818E-06" iyz="1.37033485576347E-13" izz="7.92378853658606E-06"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/ar_tag.STL"/>
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="package://locobot_description/meshes/ar_tag.STL"/>
-            </geometry>
-        </collision>
-    </link>
-    <joint name="ar_tag_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0.0269499999999999 0 0.04315"/>
-        <parent link="gripper_link"/>
-        <child link="ar_tag"/>
-        <axis xyz="0 0 0"/>
-    </joint> -->
     <!-- Gazebo Plugins -->
     <gazebo>
         <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
@@ -928,10 +898,10 @@
 	 </gazebo> -->
 
 
-      <gazebo>
-         <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller">
-             <alwaysOn>true</alwaysOn>
-             <legacyMode>false</legacyMode>
+    <gazebo>
+        <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller">
+            <alwaysOn>true</alwaysOn>
+            <legacyMode>false</legacyMode>
             <updateRate>40</updateRate>
             <leftJoint>wheel_left_joint</leftJoint>
             <rightJoint>wheel_right_joint</rightJoint>
@@ -956,24 +926,21 @@
             <rpyOffsets>0 0 0</rpyOffsets>
             <!--<interface:position name="p3d_base_position"/>-->
         </plugin>
-      </gazebo>
-
-      <gazebo>
-         <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
-              <arm>
-                 <arm_name>locobot_arm</arm_name>
-                 <palm_link>gripper_link</palm_link>
-                 <gripper_link>finger_r</gripper_link>
-                 <gripper_link>finger_l</gripper_link>
-              </arm>
-              <forces_angle_tolerance>100</forces_angle_tolerance>
-              <update_rate>4</update_rate>
-              <grip_count_threshold>4</grip_count_threshold>
-              <max_grip_count>8</max_grip_count>
-              <release_tolerance>0.005</release_tolerance>
-              <disable_collisions_on_attach>false</disable_collisions_on_attach>
-              <contact_topic>__default_topic__</contact_topic>
-         </plugin>
-      </gazebo>
+        <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
+            <arm>
+                <arm_name>locobot_arm</arm_name>
+                <palm_link>gripper_link</palm_link>
+                <gripper_link>finger_r</gripper_link>
+                <gripper_link>finger_l</gripper_link>
+            </arm>
+            <forces_angle_tolerance>100</forces_angle_tolerance>
+            <update_rate>4</update_rate>
+            <grip_count_threshold>4</grip_count_threshold>
+            <max_grip_count>8</max_grip_count>
+            <release_tolerance>0.005</release_tolerance>
+            <disable_collisions_on_attach>false</disable_collisions_on_attach>
+            <contact_topic>__default_topic__</contact_topic>
+        </plugin>
+    </gazebo>
 
 </robot>

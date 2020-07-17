@@ -44,7 +44,6 @@
               <mu>1.0</mu>
               <mu2>1.0</mu2>
               <fdir1>0 0 1</fdir1>
-              <fdir2>1 0 0</fdir2>
             </ode>
           </friction>
           <bounce/>
