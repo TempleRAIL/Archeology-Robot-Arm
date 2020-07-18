@@ -118,7 +118,7 @@ class Acquire(smach.State):
     
     def execute(self, userdata):
         try:
-            self.core.pick_place_fun(userdata.pose, pick=True)
+            self.core.pick_place_fun(userdata.pose, userdata.station, pick=True)
             userdata.station += 1
             userdata.attempts = 0
             return 'acquired'
@@ -135,19 +135,21 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class Discard(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'pickup', 'discard'], input_keys = ['station', 'pose'], output_keys = ['station'])
+        smach.State.__init__(self, outcomes = ['failed', 'regrasp', 'pickup', 'discard'], input_keys = ['station', 'pose'], output_keys = ['station'])
         self.core = core
         
     def execute(self, userdata):
         try:
-            self.core.pick_place_fun(userdata.pose, place=True)
-            if userdata.station == 3:
+            self.core.pick_place_fun(userdata.pose, userdata.station, place=True)
+            if userdata.station == 3:  # if placed in discard pile
                 userdata.station = 0
                 #cal_counter += 1  #TODO refresh color mask every 10 cycles
                     #if cal_counter > 9:
                         #self.core.color_mask = None
                         #return 'failed'
                 return 'discard'
+            elif userdata.station == 1:  # if placed on scale 
+                return 'regrasp'
             else:
                 return 'pickup'
         except:
@@ -175,7 +177,7 @@ def process_sherds():
         smach.StateMachine.add('Translate', Translate(core), transitions = {'not_ready': 'NotReady', 'search': 'Examine', 'put_down': 'Discard'})
         smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'none_found': 'Zero', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core), transitions = {'not_ready': 'NotReady', 'failed': 'Zero', 'acquired': 'Translate', 'regrasp': 'Acquire'})
-        smach.StateMachine.add('Discard', Discard(core), transitions = {'failed': 'Zero', 'pickup': 'Examine', 'discard': 'Translate'})
+        smach.StateMachine.add('Discard', Discard(core), transitions = {'failed': 'Zero', 'pickup': 'Examine', 'regrasp': 'Acquire', 'discard': 'Translate'})
     # TODO add behavior for arm to move out of way of camera when taking picture / should be taken care of in core.pick_place_fun (final line).  Need to add sleep?
     # ** Execute the SMACH plan **
     sm.execute()
