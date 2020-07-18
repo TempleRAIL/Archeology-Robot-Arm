@@ -69,12 +69,13 @@ class AutoCore():
         # Initialize pickup area
         pickup_positions = []
         pickup_area = rospy.get_param('~pickup_area')
+        self.pickup_area_z = pickup_area['z']
         for i in range(0, pickup_area['rects_x']):
             x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / pickup_area['rects_x']
             y_vals = range(-pickup_area['rects_y']/2, pickup_area['rects_y']/2)
             for j in y_vals if i % 2 == 0 else reversed(y_vals):
                 y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / pickup_area['rects_y']
-                pickup_positions.append([x, y, self.working_z])
+                pickup_positions.append([x, y, self.pickup_area_z])
         self.pickup_positions = np.array(pickup_positions)
         rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
@@ -225,7 +226,7 @@ class AutoCore():
 
 
     # Function to retrieve an object
-    def pick_place_fun(self, pose, pick=False, place=False):
+    def pick_place_fun(self, pose, station, pick=False, place=False):
         rospy.logdebug('AutoCore: pickFun triggered.')
         if pick and place:
             rospy.logerr('Only one of pick or place can be selected')
@@ -235,29 +236,38 @@ class AutoCore():
         if pick:
             self.gripper.open() # ensure gripper open if picking up a sherd
         # Move gripper
-        try:
-            pose['position'][2] += 0.05
-            self.move_fun(pose) # move above sherd and orient
-            pose['position'][2] -= 0.05
-            self.move_fun(pose) # move down to table
-        except:
-            raise
-        time.sleep(1)
-        #Finish gripper motion
-        if pick:
-            self.gripper.close()
-            gripper_state = self.gripper.get_gripper_state()
-            if not gripper_state == 2:  # commented out for now because LoCoBot never publishes '2' to /gripper/state topic
-                raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
-        elif place:
+            if station == 0:  # if picking up a sherd from pickup area
+                try:
+                    pose['position'][2] += 0.05
+                    self.move_fun(pose) # move above sherd and orient
+                    pose['position'][2] -= 0.05
+                    self.move_fun(pose) # move down to table
+                except:
+                    raise
+                time.sleep(1)
+                #Finish gripper motion
+                self.gripper.close()
+                gripper_state = self.gripper.get_gripper_state()
+                if not gripper_state == 2:  # commented out for now because LoCoBot never publishes '2' to /gripper/state topic
+                    raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
+                # Move gripper back up
+                pose['position'][2] = self.working_z
+                rospy.logwarn('Moving back up to {}'.format(self.pose))
+            elif station == 1:  # if sherd is on scale
+                try:
+                    pose['position'][2] -= 0.01
+                    self.move_fun(pose) # move down to grasp sherd on scale
+                except:
+                    raise
+                time.sleep(1)
+                #Finish gripper motion
+                self.gripper.close()
+                gripper_state = self.gripper.get_gripper_state()
+                if not gripper_state == 2:  # commented out for now because LoCoBot never publishes '2' to /gripper/state topic
+                    raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))                
+        else:  # if place
             self.gripper.open()
-        # Move gripper back up
-        pose['position'][2] = self.working_z
-        rospy.logwarn('Moving back up to {}'.format(self.pose))
-        try:
-            self.move_fun(pose) # move down to table
-        except:
-            raise
+
 
     
     # Randomly draw dropoff location
