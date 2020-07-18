@@ -14,12 +14,12 @@
        to 0.352.
       -->
 
-    <!-- <link name="mat_link"/>
+    <link name="mat_link"/>
     <joint name="fixed" type="fixed">
         <origin rpy="0 0 0" xyz="0 0 0.0025"/>
         <parent link="mat_link"/>
         <child link="base_footprint"/>
-    </joint> -->
+    </joint>
     <!--
        World link is created so that base link can be fixed to it.
        Comment out the chunk above to make the base mobile again.
