@@ -1,7 +1,7 @@
 gripper_len: 0.0975
 clearance: .0025  # gap between end of fingers and table/mat [m]=
 working_pose:
-  z: 0.16
+  z: 0.17
   roll: 0
   pitch: 1.5708
 
@@ -13,12 +13,12 @@ calibrate_location:
 
 pickup_area:
   z: 0.3
-  rects_x: 3 #2
-  rects_y: 4 #8
+  rects_x: 3
+  rects_y: 4
   offset_x: 0.22
   offset_y: 0
   length_x: 0.25
-  length_y: 0.5 #1.0
+  length_y: 0.5
 
 scale_location:
   x: 0.15
