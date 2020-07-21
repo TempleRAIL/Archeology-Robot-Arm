@@ -81,11 +81,13 @@ class AutoCore():
         
         # Initialize scale location
         scale_location = rospy.get_param('~scale_location')
-        self.scale_position = np.array([scale_location['x'], scale_location['y'], scale_location['z']])
+        self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
+        self.scale_z = scale_location['z']
         
         # Initialize camera location
         cam_location = rospy.get_param('~cam_location')
-        self.camera_position = np.array([cam_location['x'], cam_location['y'], cam_location['z']])
+        self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
+        self.cam_z = cam_location['z']
         
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
@@ -253,21 +255,35 @@ class AutoCore():
                 # Move gripper back up
                 pose['position'][2] = self.working_z
                 rospy.logwarn('Moving back up to {}'.format(self.pose))
-            elif station == 1:  # if sherd is on scale
-                try:
-                    pose['position'][2] -= 0.01
-                    self.move_fun(pose) # move down to grasp sherd on scale
-                except:
-                    raise
+                self.move_fun(pose)
+            elif station == 1 or 2:  # if sherd is on scale
                 time.sleep(1)
                 #Finish gripper motion
                 self.gripper.close()
                 gripper_state = self.gripper.get_gripper_state()
-                if not gripper_state == 2:  # commented out for now because LoCoBot never publishes '2' to /gripper/state topic
-                    raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))                
+                if not gripper_state == 2:
+                    raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
+                pose['position'][2] = self.working_z
+                try:
+                    self.move_fun(pose)  # move back up
+                except:
+                    raise                
         else:  # if place
+            if station == 1:
+                pose['position'][2] = self.scale_z
+                rospy.logwarn('Moving down to scale.  Pose: {}'.format(pose))
+            elif station == 2:
+                pose['position'][2] = self.cam_z
+                rospy.logwarn('Moving down to camera surface.  Pose: {}'.format(pose))
+            elif station == 3:
+                pose['position'][2] = self.discard_z
+                rospy.logwarn('Moving down to discard pile.  Pose: {}'.format(pose))
+            try:
+                self.move_fun(pose) # move down
+            except:
+                raise
+            time.sleep(1)
             self.gripper.open()
-
 
     
     # Randomly draw dropoff location
@@ -276,6 +292,6 @@ class AutoCore():
         # Generate random location in dropoff area
         discard_x = self.discard_offset_x + random.random() * self.discard_length_x
         discard_y = self.discard_offset_y + random.random() * self.discard_length_y
-        dropoff_pos = np.array([discard_x, discard_y, self.discard_z])
+        dropoff_pos = np.array([discard_x, discard_y, self.working_z])
         rospy.logwarn('Dropff position: {}'.format(dropoff_pos))
         return dropoff_pos
