@@ -148,11 +148,12 @@ class Discard(smach.State):
                         #self.core.color_mask = None
                         #return 'failed'
                 return 'discard'
-            elif userdata.station == 1:  # if placed on scale 
+            if userdata.station == 1 or 2:  # if placed on scale 
                 return 'regrasp'
             else:
                 return 'pickup'
-        except:
+        except Exception as e:
+	    rospy.logwarn('Could not execute placement because of Exception: {}'.format(e))
             return 'failed'
 
 def process_sherds():
