@@ -23,11 +23,11 @@ pickup_area:
 scale_location:
   x: 0.15
   y: 0.23
-  z: 0.12
+  z: 0.115
   
 cam_location:
-  x: 0.559163
-  y: 0.27465
+  x: 0.37
+  y: 0.21
   z: 0.1
 
 discard_area:
