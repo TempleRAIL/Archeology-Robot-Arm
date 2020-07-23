@@ -28,10 +28,14 @@ scale_location:
 cam_location:
   x: 0.37
   y: 0.21
-  z: 0.1
+  z: 0.105
+
+standby_location:
+  x: 0.26
+  y: 0.0
 
 discard_area:
-  z: 0.1
+  z: 0.105
   offset_x: 0.09
   offset_y: -0.35
   length_x: 0.08
