@@ -14,10 +14,10 @@
        to 0.352.
       -->
 
-    <link name="mat_link"/>
+    <link name="world_link"/>
     <joint name="fixed" type="fixed">
         <origin rpy="0 0 0" xyz="0 0 0.0025"/>
-        <parent link="mat_link"/>
+        <parent link="world_link"/>
         <child link="base_footprint"/>
     </joint>
     <!--
@@ -938,7 +938,7 @@
             <grip_count_threshold>30</grip_count_threshold>
             <max_grip_count>60</max_grip_count>
             <release_tolerance>0.005</release_tolerance>
-            <disable_collisions_on_attach>false</disable_collisions_on_attach>
+            <disable_collisions_on_attach>true</disable_collisions_on_attach>
             <contact_topic>__default_topic__</contact_topic>
         </plugin>
     </gazebo>
