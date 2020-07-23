@@ -258,12 +258,12 @@ class AutoCore():
                     raise
                 time.sleep(1)
                 self.gripper.close()
-                #self.grip_check(pose)                
+                self.grip_check(pose)                
             elif station == 1:  # if sherd is on scale
                 time.sleep(1)  # regrip immediately
                 #Finish gripper motion
                 self.gripper.close()
-                #self.grip_check(pose)
+                self.grip_check(pose)
             elif station == 2:  # if sherd is at camera
                 try:
                     pose['position'][2] += 0.05
@@ -274,7 +274,7 @@ class AutoCore():
                     raise
                 time.sleep(1)
                 self.gripper.close()
-                #self.grip_check(pose)
+                self.grip_check(pose)
             # Raise gripper back up to working height
             pose['position'][2] = self.working_z
             rospy.logwarn('Moving back up to {}'.format(self.pose))
