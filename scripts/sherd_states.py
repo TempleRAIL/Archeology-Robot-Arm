@@ -135,7 +135,7 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class Discard(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'regrasp', 'pickup', 'discard'], input_keys = ['station', 'pose'], output_keys = ['station'])
+        smach.State.__init__(self, outcomes = ['failed', 'regrasp', 'pickup', 'discard'], input_keys = ['station', 'pose', 'cal_counter'], output_keys = ['station', 'cal_counter'])
         self.core = core
         
     def execute(self, userdata):
@@ -143,10 +143,10 @@ class Discard(smach.State):
             self.core.pick_place_fun(userdata.pose, userdata.station, place=True)
             if userdata.station == 3:  # if placed in discard pile
                 userdata.station = 0
-                #cal_counter += 1  #TODO refresh color mask every 10 cycles
-                    #if cal_counter > 9:
-                        #self.core.color_mask = None
-                        #return 'failed'
+                userdata.cal_counter += 1  # refresh color mask every 10 cycles
+                if userdata.cal_counter > 9:
+                    self.core.color_mask = None
+                    return 'failed'
                 return 'discard'
             if userdata.station == 1 or 2:  # if placed on scale 
                 return 'regrasp'
@@ -169,6 +169,7 @@ def process_sherds():
     sm = smach.StateMachine(outcomes = ['NotReady'])
     sm.userdata.station = 0
     sm.userdata.attempts = 0
+    sm.userdata.cal_counter = 0
     sm.userdata.pose = None
     # ** Opens state machine container **
     with sm:
