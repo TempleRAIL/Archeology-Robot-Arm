@@ -96,19 +96,21 @@ class Translate(smach.State):
 # ** Fourth state of the State Machine: Examines the area below the camera for sherds **
 class Examine(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready','none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'replan', 'none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
         self.core = core
         
     def execute(self, userdata):
         # TODO set up to return to same pickup location for next sherd to avoid researching empty areas
         try:
-            (found, sherd_pose) = self.core.shard_fun(userdata.attempts)
+            (found, sherd_poses) = self.core.shard_fun(userdata.attempts)
+        except PlanningFailure:
+            return 'replan'
         except:
             return 'not_ready'
         else:
             if found:
                 userdata.attempts = 0
-                userdata.goal = sherd_pose
+                userdata.goal = sherd_poses[0]
                 return 'sherd_found'
             else:
                 userdata.attempts += 1
@@ -131,14 +133,15 @@ class Acquire(smach.State):
         # Get pose from sensor
         else:
             try:
-                (found, sherd_pose) = self.core.shard_fun(userdata.attempts)
+                (found, sherd_poses) = self.core.detect_fun()
             except:
                 return 'failed'
-            if found:
-                pose = sherd_pose
             else:
-                rospy.logwarn('No sherd seen, trying last known sherd pose')
-                pose = userdata.goal
+                if found:
+                    pose = sherd_poses[0]
+                else:
+                    rospy.logwarn('No sherd seen, trying last known sherd pose')
+                    pose = userdata.goal
         # Get goal pose
         if userdata.station == stations['pickup']:
             pose['position'][2] = self.core.table_z
@@ -238,7 +241,7 @@ def process_sherds():
         smach.StateMachine.add('Home', Home(core), transitions = {'no_mask': 'Calibrate', 'ready': 'Examine'})
         smach.StateMachine.add('Calibrate', Calibrate(core), transitions = {'not_ready': 'NotReady', 'ready': 'Examine'})
         smach.StateMachine.add('Translate', Translate(core), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'PlaceSherd'})
-        smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
+        smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
         smach.StateMachine.add('PlaceSherd', PlaceSherd(core), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'next_sherd': 'Examine', 'regrasp': 'Acquire', 'success': 'Translate'})
     # TODO add behavior for arm to move out of way of camera when taking picture / should be taken care of in core.pick_place_fun (final line).  Need to add sleep?

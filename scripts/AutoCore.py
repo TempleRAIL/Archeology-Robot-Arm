@@ -140,17 +140,17 @@ class AutoCore():
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
         gripper_state = self.gripper.get_gripper_state()
-        if not gripper_state == 2:  
+        if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))   
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
         found = False
-        sherds = None # initialize empty list of lists: [sherd_x, sherd_y, sherd_z, sherd_angle]
+        sherd_poses = [] # initialize empty
         # confirm that color mask exists
         if self.color_mask is None:
             rospy.logwarn('AutoCore: No color mask received.')
-            return found, sherds
+            return found, sherd_poses
       
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
@@ -166,26 +166,26 @@ class AutoCore():
         
         if detections:
             found = True
-            sherds = []
+            # TODO return (first or random or smallest etc.) sherd from list
             for item in detections:
-                #rospy.logwarn('item = {}'.format(item))
                 point_cam = PointStamped()  # build ROS message for conversion
                 point_cam.header = item.header
                 point_cam.point.x, point_cam.point.y, point_cam.point.z = item.bbox.center.position.x, item.bbox.center.position.y, item.bbox.center.position.z
-                #rospy.logwarn('point_cam = {}'.format(point_cam))
                 try:
                     point_base = self.tfBuffer.transform(point_cam, 'base_link')
                 except tf2_ros.buffer_interface.TypeException as e:
                     rospy.logerr('AutoCore: tf failure: {}'.format(e))
                     raise
-                #rospy.logwarn('point_base = {}'.format(point_base))
                 rospy.logdebug('Obtained transform between camera_link and base_link.')                
                 rospy.logdebug('Sherd center point (x,y,z) [m] in base_link frame: {}'.format(point_base))
-                sherd_angle = item.bbox.center.roll  # get sherd rotation angle
-                sherds.append( [point_base.point.x, point_base.point.y, point_base.point.z, sherd_angle] )
-            sherds = np.array(sherds)
-            rospy.logdebug('sherds list = {}'.format(sherds))
-        return found, sherds
+                sherd_poses.append({
+                    'position': np.array([point_base.point.x, point_base.point.y, point_base.point.z + self.gripper_len + self.clearance]), 
+                    'roll': item.bbox.center.roll, 
+                    'pitch': self.working_p, 
+                    'numerical': self.use_numerical_ik
+                })
+            rospy.logdebug('sherds list = {}'.format(sherd_poses))
+        return found, sherd_poses
         
     
     ########## Motion primitives ##########
@@ -221,22 +221,15 @@ class AutoCore():
         rospy.loginfo('position: {}'.format(self.pickup_positions[index]))
         # Move to search location
         search_pose = {'position': self.pickup_positions[index], 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
-        self.move_fun(search_pose)
-        # Check for sherd detections and get list of locations / rotations
         try:
-            found, sherds = self.detect_fun()
+            self.move_fun(search_pose)
         except:
             raise
-        sherd_pose = None
-        if found:
-            sherd_x, sherd_y = sherds[0,0], sherds[0,1]
-            targ_z = sherds[0,2] + self.gripper_len + self.clearance
-            sherd_roll = sherds[0,3]
-            #sherd_pose = {'position': np.array(sherds[0, 0:3]), 'roll': sherds[0, 3], 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
-            sherd_pose = {'position': np.array([sherd_x, sherd_y, targ_z]), 'roll': sherd_roll, 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
-            #rospy.logwarn('pose = {}'.format(self.pose))
-            #rospy.logwarn('sherd_pose = {}'.format(sherd_pose))
-        return found, sherd_pose
+        # Check for sherd detections and get list of locations / rotations
+        try:
+            return self.detect_fun()
+        except:
+            raise
 
 
     # Function to retrieve an object
@@ -261,7 +254,7 @@ class AutoCore():
         # Toggle gripper state
         if pick:
             self.gripper.close()
-            self.grip_check_fun(pose)
+            self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
         else:
             self.gripper.open()
         # Move back up
