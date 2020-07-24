@@ -13,22 +13,21 @@ calibrate_location:
 
 pickup_area:
   z: 0.3
-  rects_x: 3
-  rects_y: 4
+  step_size: 0.05
   offset_x: 0.22
-  offset_y: 0
+  offset_y: -0.25
   length_x: 0.25
   length_y: 0.5
 
 scale_location:
   x: 0.15
   y: 0.23
-  z: 0.085
+  z: 0.035
   
 cam_location:
   x: 0.37
   y: 0.21
-  z: 0.075
+  z: 0.0
 
 standby_location:
   x: 0.26

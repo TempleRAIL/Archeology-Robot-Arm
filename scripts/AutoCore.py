@@ -70,14 +70,16 @@ class AutoCore():
         pickup_positions = []
         pickup_area = rospy.get_param('~pickup_area')
         self.pickup_area_z = pickup_area['z']
-        for i in range(0, pickup_area['rects_x']):
-            x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / pickup_area['rects_x']
-            y_vals = range(-pickup_area['rects_y']/2, pickup_area['rects_y']/2)
-            for j in y_vals if i % 2 == 0 else reversed(y_vals):
-                y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / pickup_area['rects_y']
+        num_steps_x = np.ceil(pickup_area['length_x'] / pickup_area['step_size'])
+        num_steps_y = np.ceil(pickup_area['length_y'] / pickup_area['step_size'])
+        for i in range(0, int(num_steps_x)):
+            x = pickup_area['offset_x'] + (i+0.5) * pickup_area['length_x'] / num_steps_x
+            y_vals = range(0, int(num_steps_y))
+            for j in (y_vals if i % 2 == 0 else reversed(y_vals)):
+                y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / num_steps_y
                 pickup_positions.append([x, y, self.pickup_area_z])
         self.pickup_positions = np.array(pickup_positions)
-        rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
+        #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
         # Initialize scale location
         scale_location = rospy.get_param('~scale_location')
@@ -87,7 +89,7 @@ class AutoCore():
         # Initialize camera location
         cam_location = rospy.get_param('~cam_location')
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
-        self.cam_z = cam_location['z']
+        self.camera_z = cam_location['z']
 
         # Initialize standby location (out of archival camera frame)
         standby_location = rospy.get_param('~standby_location')
@@ -104,6 +106,7 @@ class AutoCore():
         self.color_mask = None # color mask for sherd detection
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
+        self.table_z = 0. # height of table
         
         # ROS service clients
         rospy.wait_for_service('color_mask')
@@ -121,8 +124,7 @@ class AutoCore():
 
     # Function to call IK to plot and execute trajectory
     def move_fun(self, pose):
-        #rospy.logdebug('AutoCore: move_fun triggered.')
-        rospy.loginfo('AutoCore: move_fun triggered.')
+        rospy.logdebug('AutoCore: move_fun triggered')
         try:
             success = self.bot.arm.set_ee_pose_pitch_roll(**pose)
         except Exception:
@@ -232,13 +234,13 @@ class AutoCore():
             sherd_roll = sherds[0,3]
             #sherd_pose = {'position': np.array(sherds[0, 0:3]), 'roll': sherds[0, 3], 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
             sherd_pose = {'position': np.array([sherd_x, sherd_y, targ_z]), 'roll': sherd_roll, 'pitch': self.working_p, 'numerical': self.use_numerical_ik}
-            rospy.logwarn('pose = {}'.format(self.pose))
-            rospy.logwarn('sherd_pose = {}'.format(sherd_pose))
+            #rospy.logwarn('pose = {}'.format(self.pose))
+            #rospy.logwarn('sherd_pose = {}'.format(sherd_pose))
         return found, sherd_pose
 
 
     # Function to retrieve an object
-    def pick_place_fun(self, pose, station, pick=False, place=False):
+    def pick_place_fun(self, pose, pick=False, place=False):
         rospy.logdebug('AutoCore: pickFun triggered.')
         if pick and place:
             rospy.logerr('Only one of pick or place can be selected')
@@ -248,63 +250,26 @@ class AutoCore():
         if pick:
             self.gripper.open() # ensure gripper open if picking up a sherd
         # Move gripper to station
-            if station == 0:  # if picking up a sherd from pickup area
-                try:
-                    pose['position'][2] += 0.05
-                    self.move_fun(pose) # move above sherd and orient
-                    pose['position'][2] -= 0.05
-                    self.move_fun(pose) # move down to table
-                except:
-                    raise
-                time.sleep(1)
-                self.gripper.close()
-                self.grip_check_fun(pose)                
-            elif station == 1:  # if sherd is on scale
-                time.sleep(1)  # regrip immediately
-                #Finish gripper motion
-                self.gripper.close()
-                self.grip_check_fun(pose)
-            elif station == 2:  # if sherd is at camera
-                try:
-                    pose['position'][2] += 0.05
-                    self.move_fun(pose) # move from standby position to above sherd and orient
-                    pose['position'][2] -= 0.05
-                    self.move_fun(pose) # move down to scale
-                except:
-                    raise
-                time.sleep(1)
-                self.gripper.close()
-                self.grip_check_fun(pose)
-            # Raise gripper back up to working height
-            pose['position'][2] = self.working_z
-            rospy.logwarn('Moving back up to {}'.format(self.pose))
-            try:
-                self.move_fun(pose)
-            except:
-                raise
-        # PLACE MODE
+        pose['position'][2] += self.gripper_len # add gripper offset
+        try:
+            pose['position'][2] += 0.05
+            self.move_fun(pose) # move above sherd and orient
+            pose['position'][2] -= 0.05 + self.clearance
+            self.move_fun(pose) # move down to table
+        except:
+            raise
+        # Toggle gripper state
+        if pick:
+            self.gripper.close()
+            self.grip_check_fun(pose)
         else:
-            #  Arm is already at station (or at standby location). Edit z value of target pose.
-            if station == 1:
-                pose['position'][2] = self.scale_z
-                rospy.logwarn('Moving down to scale.  Pose: {}'.format(pose))
-            elif station == 2:
-                pose['position'][2] = self.cam_z
-                rospy.logwarn('Moving down to camera surface.  Pose: {}'.format(pose))
-            elif station == 3:
-                pose['position'][2] = self.discard_z
-                rospy.logwarn('Moving down to discard pile.  Pose: {}'.format(pose))
-            try:
-                self.move_fun(pose)  # move gripper down to release height
-            except:
-                raise
-            time.sleep(1)
-            self.gripper.open()  # release sherd
-            if station == 2:  # move arm out of way for archival photo
-                try:
-                    self.move_fun(self.standby_pose)
-                except:
-                    raise
+            self.gripper.open()
+        # Move back up
+        try:
+            pose['position'][2] = self.working_z
+            self.move_fun(pose) # move back up to working height
+        except:
+            raise
 
     
     # Randomly draw dropoff location
@@ -314,5 +279,5 @@ class AutoCore():
         discard_x = self.discard_offset_x + random.random() * self.discard_length_x
         discard_y = self.discard_offset_y + random.random() * self.discard_length_y
         dropoff_pos = np.array([discard_x, discard_y, self.working_z])
-        rospy.logwarn('Dropff position: {}'.format(dropoff_pos))
+        rospy.logdebug('Dropff position: {}'.format(dropoff_pos))
         return dropoff_pos

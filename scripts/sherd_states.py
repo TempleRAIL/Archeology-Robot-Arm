@@ -64,7 +64,7 @@ class Calibrate(smach.State):
 # ** Third state of the State Machine: Moves the arm to a desired configuration **
 class Translate(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['replan', 'search', 'put_down'], input_keys = ['station', 'attempts', 'pose'], output_keys = ['station', 'attempts', 'pose'])
+        smach.State.__init__(self, outcomes = ['replan', 'search', 'put_down'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
         self.core = core
         
     def execute(self, userdata):
@@ -86,20 +86,21 @@ class Translate(smach.State):
         except PlanningFailure:
             return 'replan'
         else:
-            userdata.pose = pose
             if userdata.station == stations['pickup']:
                 return 'search'
             else:
+                userdata.goal = pose
                 return 'put_down'
 
 
 # ** Fourth state of the State Machine: Examines the area below the camera for sherds **
 class Examine(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready','none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'pose'])
+        smach.State.__init__(self, outcomes = ['not_ready','none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
         self.core = core
         
     def execute(self, userdata):
+        # TODO set up to return to same pickup location for next sherd to avoid researching empty areas
         try:
             (found, sherd_pose) = self.core.shard_fun(userdata.attempts)
         except:
@@ -107,7 +108,7 @@ class Examine(smach.State):
         else:
             if found:
                 userdata.attempts = 0
-                userdata.pose = sherd_pose
+                userdata.goal = sherd_pose
                 return 'sherd_found'
             else:
                 userdata.attempts += 1
@@ -120,12 +121,36 @@ class Examine(smach.State):
 # ** Fifth state of the State Machine: Lowers the gripper to acquire the sherd and returns to working height **
 class Acquire(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts', 'pose'], output_keys = ['station', 'attempts', 'pose'])
+        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts'])
         self.core = core
     
     def execute(self, userdata):
+        # Try to go to goal pose first time around
+        if userdata.attempts == 0:
+            pose = userdata.goal
+        # Get pose from sensor
+        else:
+            try:
+                (found, sherd_pose) = self.core.shard_fun(userdata.attempts)
+            except:
+                return 'failed'
+            if found:
+                pose = sherd_pose
+            else:
+                rospy.logwarn('No sherd seen, trying last known sherd pose')
+                pose = userdata.goal
+        # Get goal pose
+        if userdata.station == stations['pickup']:
+            pose['position'][2] = self.core.table_z
+        elif userdata.station == stations['scale']:
+            pose['position'][2] = self.core.scale_z
+        elif userdata.station == stations['camera']:
+            pose['position'][2] = self.core.camera_z
+        elif userdata.station == stations['dropoff']:
+            pose['position'][2] = self.core.table_z
+        # Try to acquire sherd
         try:
-            self.core.pick_place_fun(userdata.pose, userdata.station, pick=True)
+            self.core.pick_place_fun(pose, pick=True)
         except GraspFailure:
             if userdata.attempts > 2:
                 userdata.attempts = 0
@@ -141,14 +166,27 @@ class Acquire(smach.State):
             return 'acquired'
 
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
-class Discard(smach.State):
+class PlaceSherd(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'regrasp', 'pickup', 'discard'], input_keys = ['station', 'pose', 'cal_counter'], output_keys = ['station', 'cal_counter'])
+        smach.State.__init__(self, outcomes = ['failed', 'replan', 'regrasp', 'next_sherd', 'success'], input_keys = ['station', 'goal', 'cal_counter'], output_keys = ['station', 'cal_counter', 'goal'])
         self.core = core
         
     def execute(self, userdata):
+        # Get goal pose
+        pose = userdata.goal
+        if userdata.station == stations['pickup']:
+            pose['position'][2] = self.core.table_z
+        elif userdata.station == stations['scale']:
+            pose['position'][2] = self.core.scale_z
+        elif userdata.station == stations['camera']:
+            pose['position'][2] = self.core.camera_z
+        elif userdata.station == stations['dropoff']:
+            pose['position'][2] = self.core.table_z
+        # Try to place sherd
         try:
-            self.core.pick_place_fun(userdata.pose, userdata.station, place=True)
+            self.core.pick_place_fun(pose, place=True)
+        except PlanningFailure:
+            return 'replan'
         except Exception as e:
             rospy.logwarn('Could not execute placement because of Exception: {}'.format(e))
             return 'failed'
@@ -159,11 +197,26 @@ class Discard(smach.State):
                 if userdata.cal_counter > 9:
                     self.core.color_mask = None
                     return 'failed'
-                return 'discard'
-            if userdata.station == stations['scale'] or userdata.station == stations['camera']:  # if placed on scale 
+                return 'success'
+            elif userdata.station == stations['scale']:
+                # TODO get mass and store in database
+                return 'regrasp'
+            elif userdata.station == stations['camera']:  # if placed on scale
+                # Move to standby position to get out of the way of the camera
+                success = False
+                while not success:
+                    try:
+                        self.core.move_fun(self.core.standby_pose)
+                    except PlanningFailure:
+                        continue
+                    except:
+                        return 'failed'
+                    else:
+                        success = True
+                # TODO capture image and store in database
                 return 'regrasp'
             else:
-                return 'pickup'
+                return 'next_sherd'
 
 def process_sherds():
     rospy.init_node('sherd_states')
@@ -178,16 +231,16 @@ def process_sherds():
     sm.userdata.station = stations['pickup']
     sm.userdata.attempts = 0
     sm.userdata.cal_counter = 0
-    sm.userdata.pose = None
+    sm.userdata.goal = None
     # ** Opens state machine container **
     with sm:
         # ** Adds the states to the container **
         smach.StateMachine.add('Home', Home(core), transitions = {'no_mask': 'Calibrate', 'ready': 'Examine'})
         smach.StateMachine.add('Calibrate', Calibrate(core), transitions = {'not_ready': 'NotReady', 'ready': 'Examine'})
-        smach.StateMachine.add('Translate', Translate(core), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'Discard'})
+        smach.StateMachine.add('Translate', Translate(core), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'PlaceSherd'})
         smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
-        smach.StateMachine.add('Discard', Discard(core), transitions = {'failed': 'Home', 'pickup': 'Examine', 'regrasp': 'Acquire', 'discard': 'Translate'})
+        smach.StateMachine.add('PlaceSherd', PlaceSherd(core), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'next_sherd': 'Examine', 'regrasp': 'Acquire', 'success': 'Translate'})
     # TODO add behavior for arm to move out of way of camera when taking picture / should be taken care of in core.pick_place_fun (final line).  Need to add sleep?
     # ** Execute the SMACH plan **
     sm.execute()
