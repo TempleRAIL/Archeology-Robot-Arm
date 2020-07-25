@@ -133,6 +133,8 @@ class Acquire(smach.State):
         # Get pose from sensor
         else:
             try:
+                pose['position'][2] = self.pickup_area_z
+                self.core.move_fun(pose)
                 (found, sherd_poses) = self.core.detect_fun()
             except:
                 return 'failed'
@@ -144,13 +146,13 @@ class Acquire(smach.State):
                     pose = userdata.goal
         # Get goal pose
         if userdata.station == stations['pickup']:
-            pose['position'][2] = self.core.table_z
+            pose['position'][2] = self.core.table_z  # overwrites z-value of top face of sherd (assigned in self.core.detect_fun)
         elif userdata.station == stations['scale']:
             pose['position'][2] = self.core.scale_z
         elif userdata.station == stations['camera']:
             pose['position'][2] = self.core.camera_z
         elif userdata.station == stations['dropoff']:
-            pose['position'][2] = self.core.table_z
+            pose['position'][2] = self.core.discard_z
         # Try to acquire sherd
         try:
             self.core.pick_place_fun(pose, pick=True)
