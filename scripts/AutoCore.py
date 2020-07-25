@@ -179,7 +179,7 @@ class AutoCore():
                 rospy.logdebug('Obtained transform between camera_link and base_link.')                
                 rospy.logdebug('Sherd center point (x,y,z) [m] in base_link frame: {}'.format(point_base))
                 sherd_poses.append({
-                    'position': np.array([point_base.point.x, point_base.point.y, point_base.point.z + self.gripper_len + self.clearance]), 
+                    'position': np.array([point_base.point.x, point_base.point.y, point_base.point.z]), 
                     'roll': item.bbox.center.roll, 
                     'pitch': self.working_p, 
                     'numerical': self.use_numerical_ik
@@ -255,7 +255,8 @@ class AutoCore():
         if pick:
             self.gripper.close()
             self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
-        else:
+	# PLACE MODE        
+	else:
             self.gripper.open()
         # Move back up
         try:
