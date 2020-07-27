@@ -57,7 +57,7 @@
     </link>
 
     <link name="horizontal">
-      <pose>0.0 0.14 0.605 0.0 1.5707 1.5707</pose>
+      <pose>0.0 0.115 0.605 0.0 1.5707 1.5707</pose>
         <inertial>
         <mass>5</mass>
         <inertia>
@@ -73,7 +73,7 @@
       <collision name="collision">
         <geometry>
           <box>
-            <size>0.02 0.02 0.3</size>
+            <size>0.02 0.02 0.25</size>
           </box>
         </geometry>
         <surface>
@@ -100,7 +100,7 @@
       <visual name="visual">
         <geometry>
           <box>
-            <size>0.02 0.02 0.3</size>
+            <size>0.02 0.02 0.25</size>
           </box>
         </geometry>
         <material>
@@ -113,7 +113,7 @@
     <include>
       <uri>model://gazebo_camera</uri>
       <link name="gazebo_camera"/>
-      <pose>0 0.24 0.54 0 1.5707 1.5707</pose>
+      <pose>0 0.19 0.54 0 1.5707 1.5707</pose>
     </include>
 
   </model>

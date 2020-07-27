@@ -1,32 +1,32 @@
 gripper_len: 0.0775
 clearance: .0025  # gap between end of fingers and table/mat [m]
 working_pose:
-  z: 0.17
+  z: 0.15
   roll: 0
   pitch: 1.5708
 
 use_numerical_ik: False
 
 calibrate_location:
-  x: 0.14
-  y: -0.24
+  x: 0.3
+  y: 0.15
 
 pickup_area:
-  z: 0.3
+  z: 0.25
   step_size: 0.05
-  offset_x: 0.22
-  offset_y: -0.25
-  length_x: 0.25
-  length_y: 0.5
+  offset_x: -0.03
+  offset_y: 0.20
+  length_x: 0.35
+  length_y: 0.15
 
 scale_location:
-  x: 0.15
-  y: 0.23
+  x: 0.3
+  y: 0.0
   z: 0.015
   
 cam_location:
-  x: 0.37
-  y: 0.21
+  x: 0.32
+  y: -0.3
   z: 0.0
 
 standby_location:
@@ -35,8 +35,8 @@ standby_location:
 
 discard_area:
   z: 0.05
-  offset_x: 0.09
+  offset_x: -0.03
   offset_y: -0.35
-  length_x: 0.08
-  length_y: 0.13
+  length_x: 0.20
+  length_y: 0.15
 

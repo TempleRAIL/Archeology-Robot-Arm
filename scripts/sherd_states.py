@@ -133,7 +133,7 @@ class Acquire(smach.State):
         # Get pose from sensor
         else:
             try:
-                pose['position'][2] = self.pickup_area_z
+                pose['position'][2] = self.core.pickup_area_z
                 self.core.move_fun(pose)
                 (found, sherd_poses) = self.core.detect_fun()
             except:

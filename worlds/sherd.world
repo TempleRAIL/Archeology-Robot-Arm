@@ -39,42 +39,47 @@
     <include>
       <uri>model://sherdmat</uri>
       <name>sherdmat</name>
-      <pose frame=''>0.42 0 0.02 0 0 0</pose>
+      <pose frame=''>0.18 0 0.02 0 0 0</pose>
     </include>
     <include>
       <uri>model://scale</uri>
       <name>scale</name>
-      <pose frame=''>0.15 0.23 0.025 0 0 0</pose>
+      <pose frame=''>0.3 0 0.025 0 0 0</pose>
     </include>
     <include>
       <uri>model://overhead_camera</uri>
       <name>overhead_camera</name>
-      <pose frame=''>0.45 0.44 0 0 0 2.894019</pose>
+      <pose frame=''>0.52 -0.3 0 0 0 1.5708</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone0</name>
-      <pose frame=''>0.26 -0.0625 0.025 0 0 -0.47644</pose>
+      <pose frame=''>-0.007 0.308 0.025 0 0 -0.47644</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone1</name>
-      <pose frame=''>0.345 0.1875 0.025 0 0 -0.201811</pose>
+      <pose frame=''>0.107 0.212 0.025 0 0 -0.201811</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone2</name>
-      <pose frame=''>0.259561 0.06174 0.025 0 0 1.12592</pose>
+      <pose frame=''>0.017 0.278 0.025 0 0 1.12592</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone3</name>
-      <pose frame=''>0.26 -0.1875 0.025 0 0 0.218198</pose>
+      <pose frame=''>0.157 0.265 0.025 0 0 0.218198</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone4</name>
-      <pose frame=''>0.428 0.032499 0.025 0 0 1.5302</pose>
+      <pose frame=''>0.254 0.237 0.025 0 0 1.5302</pose>
+    </include>
+    <include>
+      <uri>model://stone</uri>
+      <name>stone5</name>
+      <pose frame=''>0.059 0.325 0.025 0 0 0.233</pose>
     </include>
     <gui fullscreen='0'>
       <camera name='user_camera'>

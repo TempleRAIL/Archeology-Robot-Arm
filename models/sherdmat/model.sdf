@@ -19,7 +19,7 @@
       <collision name='collision'>
         <geometry>
           <box>
-            <size>1.25 1.25 0.005</size>
+            <size>0.76 1.83 0.005</size>
           </box>
           <!-- <mesh>
             <uri>model://sherdmat/meshes/SherdMat.dae</uri>
@@ -53,7 +53,7 @@
         </material>
         <geometry>
           <box>
-            <size>1.25 1.25 0.005</size>
+            <size>0.76 1.83 0.005</size>
           </box>
           <!--<mesh>
             <uri>model://sherdmat/meshes/SherdMat.dae</uri>
