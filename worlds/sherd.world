@@ -54,22 +54,22 @@
     <include>
       <uri>model://stone</uri>
       <name>stone0</name>
-      <pose frame=''>-0.007 0.308 0.025 0 0 -0.47644</pose>
+      <pose frame=''>0.002 0.323 0.025 0 0 1.7796</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone1</name>
-      <pose frame=''>0.107 0.212 0.025 0 0 -0.201811</pose>
+      <pose frame=''>0.145 0.208 0.025 0 0 -0.201811</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone2</name>
-      <pose frame=''>0.017 0.278 0.025 0 0 1.12592</pose>
+      <pose frame=''>0.057 0.255 0.025 0 0 1.12592</pose>
     </include>
     <include>
       <uri>model://stone</uri>
       <name>stone3</name>
-      <pose frame=''>0.157 0.265 0.025 0 0 0.218198</pose>
+      <pose frame=''>0.178 0.306 0.025 0 0 0.218198</pose>
     </include>
     <include>
       <uri>model://stone</uri>
@@ -79,7 +79,7 @@
     <include>
       <uri>model://stone</uri>
       <name>stone5</name>
-      <pose frame=''>0.059 0.325 0.025 0 0 0.233</pose>
+      <pose frame=''>0.092 0.37 0.025 0 0 0.233</pose>
     </include>
     <gui fullscreen='0'>
       <camera name='user_camera'>
