@@ -69,6 +69,7 @@
       </collision>
     </link>
 
+<!-- create joint for force_torque (ft) sensor attachment -->
     <joint name="scale_joint" type="fixed">
       <parent>scale_base_link</parent>
       <child>scale_cover_link</child>
@@ -78,9 +79,10 @@
       </sensor>
     </joint>
 
+<!-- plugin to echo gazebo topic messages on ROS topic -->
     <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
         <updateRate>4</updateRate>
-        <topicName>ft_sensor_topic</topicName>
+        <topicName>ft_sensor_topic</topicName> <!-- name of ROS topic -->
         <jointName>scale_joint</jointName>
     </plugin>
 
