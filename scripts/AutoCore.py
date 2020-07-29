@@ -15,7 +15,7 @@ import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest
+from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest, Weight, WeightRequest
 
 
 class PlanningFailure(Exception):
@@ -104,6 +104,7 @@ class AutoCore():
         
         # Initialize other class members
         self.color_mask = None # color mask for sherd detection
+        self.mass = None # mass of sherd on scale
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
         self.table_z = 0. # height of table
@@ -113,6 +114,8 @@ class AutoCore():
         self.color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
         rospy.wait_for_service('detect_sherds')
         self.detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
+        rospy.wait_for_service('weigh_sherd')
+        self.weigh_srv = rospy.ServiceProxy('weigh_sherd', Weight)
         self.tfBuffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tfBuffer)
     
@@ -141,7 +144,22 @@ class AutoCore():
     def grip_check_fun(self, pose):
         gripper_state = self.gripper.get_gripper_state()
         if not gripper_state == 2:
-            raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))   
+            raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
+
+    # Function to record mass of object on scale
+    def get_mass_fun(self):
+        # run weigh_sherd.py
+        req = WeightRequest()
+        try:
+            res = self.weigh_srv(req)
+        except rospy.ServiceException as e:
+            rospy.logerr('AutoCore: Weigh_sherd service call failed: {}'.format(e))
+            raise
+        else:
+            self.mass = -(res.weight/9.8) # [kg]
+            rospy.loginfo('AutoCore: Got sherd mass [kg]')
+            return self.mass
+        
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
@@ -259,11 +277,11 @@ class AutoCore():
 	else:
             self.gripper.open()
         # Move back up
-        try:
-            pose['position'][2] = self.working_z
-            self.move_fun(pose) # move back up to working height
-        except:
-            raise
+        #try:
+            #pose['position'][2] = self.working_z
+            #self.move_fun(pose) # move back up to working height
+        #except:
+            #raise
 
     
     # Randomly draw dropoff location
