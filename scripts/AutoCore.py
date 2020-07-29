@@ -157,7 +157,7 @@ class AutoCore():
             raise
         else:
             self.mass = -(res.weight/9.8) # [kg]
-            rospy.loginfo('AutoCore: Got sherd mass: {}'.format(self.mass)' kg.')
+            rospy.loginfo('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
         
 
