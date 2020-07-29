@@ -204,13 +204,20 @@ class PlaceSherd(smach.State):
                     return 'failed'
                 return 'success'
             elif userdata.station == stations['scale']:
-                # TODO get mass and store in database
+                time.sleep(1)
+                try:
+                    mass = self.core.get_mass_fun()
+                except:
+                    rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                # TODO store mass in database
                 return 'regrasp'
             elif userdata.station == stations['camera']:  # if placed on scale
                 # Move to standby position to get out of the way of the camera
                 success = False
                 while not success:
                     try:
+                        pose['position'][2] = self.core.working_z
+                        self.core.move_fun(pose) # move straight up to working height
                         self.core.move_fun(self.core.standby_pose)
                     except PlanningFailure:
                         continue
