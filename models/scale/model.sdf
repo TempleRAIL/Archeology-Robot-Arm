@@ -78,21 +78,11 @@
       </sensor>
     </joint>
 
-    <!--<joint name="scale_joint" type="revolute">
-      <parent>scale_base_link</parent>
-      <child>scale_cover_link</child>
-      <pose frame="scale_base_frame">0 0 0.015 0 0 0</pose>
-      <axis>
-        <xyz>0 0 1</xyz>
-      </axis>
-      <limit>
-        <lower>0</lower>
-        <upper>0</upper>
-      </limit>
-      <sensor name="scale_sensor" type="force_torque">
-        <update_rate>4</update_rate>
-      </sensor>
-    </joint> -->
+    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>4</updateRate>
+        <topicName>ft_sensor_topic</topicName>
+        <jointName>scale_joint</jointName>
+    </plugin>
 
   </model>
 </sdf>
