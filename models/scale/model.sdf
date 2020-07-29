@@ -5,16 +5,16 @@
     <pose frame=''>0 0 0 0 0 0</pose>
     <link name="scale_base_link">
       <pose frame="scale_base_frame">0 0 0.005 0 0 0</pose>
-      <inertial>
+      <inertial> <!-- solid cuboid -->
+        <mass>1.0</mass>
         <inertia>
-          <ixx>8.333e-4</ixx>
+          <ixx>1.88333e-3</ixx> 
           <ixy>0.0</ixy>
           <ixz>0.0</ixz>
-          <iyy>8.333e-4</iyy>
+          <iyy>1.88333e-3</iyy>
           <iyz>0.0</iyz>
-          <izz>1.6667e-3</izz>
+          <izz>3.75e-3</izz>
         </inertia>
-        <mass>1.0</mass>
       </inertial>
       <visual name="visual_scale_base">
        <material>
@@ -42,15 +42,15 @@
     <link name="scale_cover_link">
       <pose frame=''>0 0 0.0125 0 0 0</pose>
       <inertial>
+        <mass>0.1</mass>
         <inertia>
-          <ixx>8.333e-5</ixx>
+          <ixx>1.88333e-4</ixx> 
           <ixy>0.0</ixy>
           <ixz>0.0</ixz>
-          <iyy>8.333e-5</iyy>
+          <iyy>1.88333e-4</iyy>
           <iyz>0.0</iyz>
-          <izz>1.6667e-4</izz>
+          <izz>3.75e-4</izz>
         </inertia>
-        <mass>0.1</mass>
       </inertial>
       <visual name="visual_scale_cover">
         <geometry>

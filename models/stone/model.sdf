@@ -8,12 +8,12 @@
       <inertial>
         <mass>0.115</mass>
         <inertia>
-          <ixx>6e-06</ixx>
+          <ixx>6.948e-06</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>4.7e-05</iyy>
+          <iyy>4.792e-05</iyy>
           <iyz>0</iyz>
-          <izz>5.3e-05</izz>
+          <izz>5.295e-05</izz>
         </inertia>
       </inertial>
       <collision name='collision'>
