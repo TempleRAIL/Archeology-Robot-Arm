@@ -81,10 +81,11 @@ class AutoCore():
         self.pickup_positions = np.array(pickup_positions)
         #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
-        # Initialize scale location
+        # Initialize scale location and tare
         scale_location = rospy.get_param('~scale_location')
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
+	self.scale_tare = rospy.get_param('~scale_tare')
         
         # Initialize camera location
         cam_location = rospy.get_param('~cam_location')
@@ -156,7 +157,7 @@ class AutoCore():
             rospy.logerr('AutoCore: Weigh_sherd service call failed: {}'.format(e))
             raise
         else:
-            self.mass = -(res.weight/9.8) # [kg]
+            self.mass = -(res.weight/9.8)-self.scale_tare # [kg]
             rospy.loginfo('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
         
