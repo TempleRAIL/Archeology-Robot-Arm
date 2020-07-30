@@ -6,7 +6,7 @@
     <node name="detect_sherds" pkg="robot_arm" type="detect_sherds.py" 
           output="screen" respawn="true"/>
 
-    <node name="weigh_sherd" pkg="robot_arm" type="weigh_sherd.py"
+    <node name="read_scale" pkg="robot_arm" type="read_scale.py"
 	  output="screen" respawn="true"/>
 
 </launch>

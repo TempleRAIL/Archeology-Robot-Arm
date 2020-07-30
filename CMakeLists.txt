@@ -73,7 +73,7 @@ add_service_files(
   FILES
   ColorMask.srv
   SherdDetections.srv
-  Weight.srv
+  ScaleReading.srv
 )
 
 ## Generate actions in the 'action' folder

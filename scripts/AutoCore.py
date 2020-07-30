@@ -15,7 +15,7 @@ import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest, Weight, WeightRequest
+from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest, ScaleReading, ScaleReadingRequest
 
 
 class PlanningFailure(Exception):
@@ -81,7 +81,7 @@ class AutoCore():
         self.pickup_positions = np.array(pickup_positions)
         #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
-        # Initialize scale location and tare
+        # Initialize scale location
         scale_location = rospy.get_param('~scale_location')
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
@@ -115,8 +115,8 @@ class AutoCore():
         self.color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
         rospy.wait_for_service('detect_sherds')
         self.detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
-        rospy.wait_for_service('weigh_sherd')
-        self.weigh_srv = rospy.ServiceProxy('weigh_sherd', Weight)
+        rospy.wait_for_service('read_scale')
+        self.scale_srv = rospy.ServiceProxy('read_scale', ScaleReading)
         self.tfBuffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tfBuffer)
     
@@ -149,15 +149,15 @@ class AutoCore():
 
     # Function to record mass of object on scale
     def get_mass_fun(self):
-        # run weigh_sherd.py
-        req = WeightRequest()
+        # run read_scale.py
+        req = ScaleReadingRequest()
         try:
-            res = self.weigh_srv(req)
+            res = self.scale_srv(req)
         except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: Weigh_sherd service call failed: {}'.format(e))
+            rospy.logerr('AutoCore: read_scale service call failed: {}'.format(e))
             raise
         else:
-            self.mass = -(res.weight/9.8)-self.scale_tare # [kg]
+            self.mass = res.mass
             rospy.loginfo('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
         

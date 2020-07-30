@@ -6,33 +6,35 @@ from geometry_msgs.msg import WrenchStamped
 from robot_arm.srv import *
 
 ##############################################################
-# weight_callback(req)
-# This function is the callback for the weight service
-# inputs: robot_arm/WeightRequest
-# returns: robot_arm/WeightResponse 
+# read_scale_callback(req)
+# This function is the callback for the read_scale service
+# inputs: robot_arm/ScaleReadingtRequest
+# returns: robot_arm/ScaleReadingResponse 
 
-def weight_callback(req):
+def read_scale_callback(req):
     # Subscribe to force_torque sensor ROS topic (echoed from gazebo topic)
+    tare = rospy.get_param('~scale_tare')
     msg = rospy.wait_for_message("/ft_sensor_topic", WrenchStamped)
     print("Got message from /ft_sensor_topic.")
+    weight = msg.wrench.force.z # [N]
+    mass = -(weight/9.8)-tare # [kg]
 
-    res = WeightResponse()
-    res.weight = msg.wrench.force.z # [N]
-
+    res = ScaleReadingResponse()
+    res.mass = mass
     return res
     
 ##############################################################
-# weigh_sherd()
-# This function initiates ROS node that subscribes to the ft_sensor_topic and returns the weight of the sherd
+# read_scale()
+# This function initiates ROS node that subscribes to the ft_sensor_topic and returns the mass of the object on the scale.
 # inputs: none
  
-def weigh_sherd():
-    rospy.init_node('weigh_sherd')
-    weigh_sherd_server = rospy.Service('weigh_sherd', Weight, weight_callback)
+def read_scale():
+    rospy.init_node('read_scale')
+    read_scale_server = rospy.Service('read_scale', ScaleReading, read_scale_callback)
     rospy.spin() # simply keeps python from exiting until this node is stopped
 
 ##############################################################
 # main function
     
 if __name__ == '__main__':
-    weigh_sherd()
+    read_scale()
