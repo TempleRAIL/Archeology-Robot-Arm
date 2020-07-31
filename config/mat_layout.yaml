@@ -24,7 +24,7 @@ pickup_area:
 scale_location:
   x: 0.3
   y: 0.0
-  z: 0.015
+  z: 0.016
   
 cam_location:
   x: 0.32
