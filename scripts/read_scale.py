@@ -13,7 +13,7 @@ from robot_arm.srv import *
 
 def read_scale_callback(req):
     # Subscribe to force_torque sensor ROS topic (echoed from gazebo topic)
-    tare = rospy.get_param('~scale_tare')
+    tare = rospy.get_param('sherd_states/scale_tare')
     msg = rospy.wait_for_message("/ft_sensor_topic", WrenchStamped)
     print("Got message from /ft_sensor_topic.")
     weight = msg.wrench.force.z # [N]
