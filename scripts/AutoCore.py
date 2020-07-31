@@ -81,11 +81,11 @@ class AutoCore():
         self.pickup_positions = np.array(pickup_positions)
         #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
-        # Initialize scale location
+        # Initialize scale location and tare
+        self.tare = rospy.get_param('~scale_tare')
         scale_location = rospy.get_param('~scale_location')
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
-	self.scale_tare = rospy.get_param('~scale_tare')
         
         # Initialize camera location
         cam_location = rospy.get_param('~cam_location')
@@ -158,10 +158,10 @@ class AutoCore():
             raise
         else:
             self.mass = res.mass
-            rospy.loginfo('AutoCore: Got sherd mass: {} kg'.format(self.mass))
+            rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
-        
 
+       
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
         found = False
@@ -258,7 +258,6 @@ class AutoCore():
             rospy.logerr('Only one of pick or place can be selected')
         elif not (pick or place):
             rospy.logerr('Pick or place must be selected')
-        # PICK MODE
         if pick:
             self.gripper.open() # ensure gripper open if picking up a sherd
         # Move gripper to station
@@ -270,19 +269,19 @@ class AutoCore():
             self.move_fun(pose) # move down to table
         except:
             raise
-        # Toggle gripper state
+        # PICK MODE
         if pick:
             self.gripper.close()
             self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
+        try:
+            pose['position'][2] = self.working_z # move back up to working height
+            self.move_fun(pose) 
+        except:
+            raise
 	# PLACE MODE        
-	else:
+	    else:
             self.gripper.open()
-        # Move back up
-        #try:
-            #pose['position'][2] = self.working_z
-            #self.move_fun(pose) # move back up to working height
-        #except:
-            #raise
+       
 
     
     # Randomly draw dropoff location
