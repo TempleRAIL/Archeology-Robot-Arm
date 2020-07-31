@@ -4,4 +4,6 @@
     <rosparam command="load" file="$(find robot_arm)/config/mat_layout.yaml"/>
   </node>
 
+    <node name="read_scale" pkg="robot_arm" type="read_scale.py" output="screen" respawn="true"/>
+
 </launch> 
