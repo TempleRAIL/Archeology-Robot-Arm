@@ -207,7 +207,7 @@ class PlaceSherd(smach.State):
                 time.sleep(1)
                 try:
                     mass = self.core.get_mass_fun()
-                except:
+                except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
                 # TODO store mass in database
                 return 'regrasp'
