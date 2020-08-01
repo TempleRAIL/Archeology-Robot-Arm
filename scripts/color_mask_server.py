@@ -183,12 +183,12 @@ def color_mask_callback(req):
 
 
 ##############################################################
-# color_mask()
-# This function initiates ROS node that subscribes to the camera topic and invokes callback_make_mask on the Image message.  Video feed should be the empty mat.
+# color_mask_server()
+# This function initiates a ROS service node that subscribes to the camera topic and invokes callback_make_mask on the Image message.  Video feed should be the empty mat.
 # inputs: none
  
-def color_mask():
-    rospy.init_node('color_mask')
+def color_mask_server():
+    rospy.init_node('color_mask_server')
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
@@ -202,7 +202,7 @@ def color_mask():
     sync.registerCallback( camera_data_callback )
     
     #color_img_sub = rospy.Subscriber("/camera/color/image_raw", Image, image_callback)
-    color_mask_server = rospy.Service('color_mask', ColorMask, color_mask_callback)
+    color_mask_server = rospy.Service('color_mask_server', ColorMask, color_mask_callback)
  
     rospy.spin() # simply keeps python from exiting until this node is stopped
 
@@ -210,4 +210,4 @@ def color_mask():
 # main function
     
 if __name__ == '__main__':
-    color_mask()
+    color_mask_server()

@@ -24,17 +24,17 @@ def read_scale_callback(req):
     return res
     
 ##############################################################
-# read_scale()
-# This function initiates ROS node that subscribes to the ft_sensor_topic and returns the mass of the object on the scale.
+# read_scale_server()
+# This function initiates ROS service node that subscribes to the ft_sensor_topic and returns the mass of the object on the scale.
 # inputs: none
  
-def read_scale():
-    rospy.init_node('read_scale')
-    read_scale_server = rospy.Service('read_scale', ScaleReading, read_scale_callback)
+def read_scale_server():
+    rospy.init_node('read_scale_server')
+    read_scale_server = rospy.Service('read_scale_server', ScaleReading, read_scale_callback)
     rospy.spin() # simply keeps python from exiting until this node is stopped
 
 ##############################################################
 # main function
     
 if __name__ == '__main__':
-    read_scale()
+    read_scale_server()

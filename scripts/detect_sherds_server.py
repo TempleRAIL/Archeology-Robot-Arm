@@ -224,12 +224,12 @@ def detect_sherds_callback(req):
     return res
 
 ##############################################################
-# detect_sherds()
+# detect_sherds_server()
 # This function initiates the detect_sherds ROS node. It subscribes to the /Color_Mask topic.  It also sends the arm to the surveillance position.  Finally, it subscribes to the /Color_Image (camera), /Color-Aligned_PointCloud (camera), and the /Survey_Stamped topics in sync.
 # inputs: none
   
-def detect_sherds():
-    rospy.init_node('detect_sherds')  # initiate 'detect sherds' node
+def detect_sherds_server():
+    rospy.init_node('detect_sherds_server')  # initiate 'detect sherds' node
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
@@ -242,11 +242,11 @@ def detect_sherds():
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     
-    detect_sherds_server = rospy.Service('detect_sherds', SherdDetections, detect_sherds_callback)
+    detect_sherds_server = rospy.Service('detect_sherds_server', SherdDetections, detect_sherds_callback)
  
     rospy.spin() # keeps Python from exiting until this node is stopped
     
 ##############################################################
 # main function
 if __name__ == '__main__':
-    detect_sherds()
+    detect_sherds_server()
