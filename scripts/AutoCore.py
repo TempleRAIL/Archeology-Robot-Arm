@@ -15,7 +15,7 @@ import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
 from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest, ScaleReading, ScaleReadingRequest
+from robot_arm.srv import *
 
 
 class PlanningFailure(Exception):
@@ -81,8 +81,7 @@ class AutoCore():
         self.pickup_positions = np.array(pickup_positions)
         #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
-        # Initialize scale location and tare
-        self.tare = rospy.get_param('~scale_tare')
+        # Initialize scale location
         scale_location = rospy.get_param('~scale_location')
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
@@ -106,17 +105,20 @@ class AutoCore():
         # Initialize other class members
         self.color_mask = None # color mask for sherd detection
         self.mass = None # mass of sherd on scale
+        self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
         self.table_z = 0. # height of table
         
         # ROS service clients
-        rospy.wait_for_service('color_mask')
-        self.color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
-        rospy.wait_for_service('detect_sherds')
-        self.detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
-        rospy.wait_for_service('read_scale')
-        self.scale_srv = rospy.ServiceProxy('read_scale', ScaleReading)
+        rospy.wait_for_service('color_mask_server')
+        self.color_mask_srv = rospy.ServiceProxy('color_mask_server', ColorMask)
+        rospy.wait_for_service('detect_sherds_server')
+        self.detection_srv = rospy.ServiceProxy('detect_sherds_server', SherdDetections)
+        rospy.wait_for_service('read_scale_server')
+        self.scale_srv = rospy.ServiceProxy('read_scale_server', ScaleReading)
+        rospy.wait_for_service('take_photo_server')
+        self.photo_srv = rospy.ServiceProxy('take_photo_server', Photo)
         self.tfBuffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tfBuffer)
     
@@ -149,7 +151,7 @@ class AutoCore():
 
     # Function to record mass of object on scale
     def get_mass_fun(self):
-        # run read_scale.py
+        # run read_scale_server.py
         req = ScaleReadingRequest()
         try:
             res = self.scale_srv(req)
@@ -161,6 +163,20 @@ class AutoCore():
             rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
 
+    # Function to take archival photo
+    def take_photo_fun(self):
+        rospy.logwarn('AutoCore: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
+        # run take_photo_server.py
+        req = PhotoRequest()
+        try:
+            res = self.photo_srv(req)
+        except rospy.ServiceException as e:
+            rospy.logerr('AutoCore: take_photo service call failed: {}'.format(e))
+            raise
+        else:
+            self.photo = res.image
+            rospy.logwarn('AutoCore: Got archival photo of sherd.')
+            return self.photo
        
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
@@ -273,13 +289,8 @@ class AutoCore():
         if pick:
             self.gripper.close()
             self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
-        try:
-            pose['position'][2] = self.working_z # move back up to working height
-            self.move_fun(pose) 
-        except:
-            raise
-	# PLACE MODE        
-	    else:
+ 	    # PLACE MODE        
+        else:
             self.gripper.open()
        
 
