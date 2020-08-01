@@ -18,7 +18,6 @@ import smach_ros
 # Import autocore
 from AutoCore import AutoCore, PlanningFailure, GraspFailure
 
-
 # Stations
 stations = {
     'pickup': 0,
@@ -133,7 +132,7 @@ class Acquire(smach.State):
         # Get pose from sensor
         else:
             try:
-                pose['position'][2] = self.core.pickup_area_z
+                pose['position'][2] = self.core.pickup_area_z  # move up to survey height
                 self.core.move_fun(pose)
                 (found, sherd_poses) = self.core.detect_fun()
             except:
@@ -146,7 +145,7 @@ class Acquire(smach.State):
                     pose = userdata.goal
         # Get goal pose
         if userdata.station == stations['pickup']:
-            pose['position'][2] = self.core.table_z  # overwrites z-value of top face of sherd (assigned in self.core.detect_fun)
+            pose['position'][2] = self.core.table_z # overwrites z-value of top face of sherd (assigned in self.core.detect_fun)
         elif userdata.station == stations['scale']:
             pose['position'][2] = self.core.scale_z
         elif userdata.station == stations['camera']:
@@ -155,7 +154,12 @@ class Acquire(smach.State):
             pose['position'][2] = self.core.discard_z
         # Try to acquire sherd
         try:
-            self.core.pick_place_fun(pose, pick=True)
+            if userdata.station == stations['scale']:
+                self.core.gripper.close()  # skip AutoCore's pick_place_fun and close in place around sherd on scale
+            else:
+                self.core.pick_place_fun(pose, pick=True)
+            pose['position'][2] = self.core.working_z # move back up to working height after grasping
+            self.core.move_fun(pose)
         except GraspFailure:
             if userdata.attempts > 2:
                 userdata.attempts = 0
@@ -225,7 +229,11 @@ class PlaceSherd(smach.State):
                         return 'failed'
                     else:
                         success = True
-                # TODO capture image and store in database
+                try:
+                    archival_photo = self.core.take_photo_fun()
+                    # TODO store image in database
+                except Exception as e:
+                    rospy.logwarn('Could not take photo of sherd because of Exception: {}'.format(e))
                 return 'regrasp'
             else:
                 return 'next_sherd'
@@ -253,7 +261,7 @@ def process_sherds():
         smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
         smach.StateMachine.add('PlaceSherd', PlaceSherd(core), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'next_sherd': 'Examine', 'regrasp': 'Acquire', 'success': 'Translate'})
-    # TODO add behavior for arm to move out of way of camera when taking picture / should be taken care of in core.pick_place_fun (final line).  Need to add sleep?
+
     # ** Execute the SMACH plan **
     sm.execute()
   
