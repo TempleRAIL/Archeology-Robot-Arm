@@ -14,7 +14,6 @@ from pyrobot.locobot import camera
 import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
-from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
 from robot_arm.srv import *
 
 
@@ -128,6 +127,7 @@ class AutoCore():
     def go_home(self):
         self.bot.arm.go_home(plan=True)
 
+
     # Function to call IK to plot and execute trajectory
     def move_fun(self, pose):
         rospy.logdebug('AutoCore: move_fun triggered')
@@ -149,6 +149,7 @@ class AutoCore():
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
 
+
     # Function to record mass of object on scale
     def get_mass_fun(self):
         # run read_scale_server.py
@@ -162,6 +163,7 @@ class AutoCore():
             self.mass = res.mass
             rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(self.mass))
             return self.mass
+
 
     # Function to take archival photo
     def take_photo_fun(self):
@@ -177,7 +179,8 @@ class AutoCore():
             self.photo = res.image
             rospy.logwarn('AutoCore: Got archival photo of sherd.')
             return self.photo
-       
+
+
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
         found = False
@@ -250,6 +253,7 @@ class AutoCore():
             rospy.loginfo('AutoCore: Got color mask.')
             rospy.logwarn('Average z value of mat (top face): {}'.format(self.mat_z))
   
+
     # Function to look for object in box
     def shard_fun(self, index):
         rospy.loginfo('Examining surface for sherds')
@@ -292,7 +296,6 @@ class AutoCore():
  	    # PLACE MODE        
         else:
             self.gripper.open()
-       
 
     
     # Randomly draw dropoff location

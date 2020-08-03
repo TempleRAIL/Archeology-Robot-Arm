@@ -3,7 +3,7 @@
 # Import ROS libraries and message types
 import rospy
 from geometry_msgs.msg import WrenchStamped
-from robot_arm.srv import *
+from robot_arm.srv import ScaleReading, ScaleReadingResponse
 
 ##############################################################
 # read_scale_callback(req)

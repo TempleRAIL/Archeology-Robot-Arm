@@ -174,6 +174,7 @@ class Acquire(smach.State):
             userdata.attempts = 0
             return 'acquired'
 
+
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class PlaceSherd(smach.State):
     def __init__(self, core):
@@ -237,6 +238,7 @@ class PlaceSherd(smach.State):
                 return 'regrasp'
             else:
                 return 'next_sherd'
+
 
 def process_sherds():
     rospy.init_node('sherd_states')

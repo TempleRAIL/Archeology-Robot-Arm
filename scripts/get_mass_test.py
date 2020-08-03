@@ -4,7 +4,7 @@
 
 # Import ROS libraries and message types
 import rospy
-from robot_arm.srv import ColorMask, ColorMaskRequest, SherdDetections, SherdDetectionsRequest, ScaleReading, ScaleReadingRequest
+from robot_arm.srv import ScaleReading, ScaleReadingRequest
 
 # ROS service clients
 rospy.wait_for_service('read_scale_erver')

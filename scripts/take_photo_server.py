@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import rospy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
 from sensor_msgs.msg import Image
-from robot_arm.srv import *
+from robot_arm.srv import Photo, PhotoResponse
 
 bridge = CvBridge()  # OpenCV converter
 
@@ -23,7 +23,7 @@ def take_photo_callback(req):
     msg = rospy.wait_for_message('/archival_camera/image_raw', Image)
     #print("Got message from /archival_camera/image_raw topic.")
 
-    display = rospy.get_param('sherd_states/show_cam_photo')
+    display = rospy.get_param('sherd_states/show_cam_photo', False)
     if display:
         cv_photo = bridge.imgmsg_to_cv2(msg, "bgr8")  # BGR OpenCV image
         cv_photo = cv_photo[:, :, ::-1]  # flip to RGB for display
