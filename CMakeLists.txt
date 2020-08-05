@@ -66,6 +66,7 @@ find_package(catkin REQUIRED COMPONENTS
    Detection3DRPY.msg
    Detection3DRPYArray.msg
    PoseRPY.msg
+   SherdData.msg
  )
 
 ## Generate services in the 'srv' folder
