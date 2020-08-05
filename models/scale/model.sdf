@@ -66,6 +66,22 @@
             <size>0.15 0.15 0.005</size>
           </box>
         </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <bounce/>
+          <friction>
+            <torsional>
+              <coefficient>1</coefficient> <!--added to try to prevent stone model from sliding.  May not be necessary -->
+            </torsional>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>1 0 0</fdir1> <!-- important to keep stone model from sliding -->
+            </ode>
+          </friction>
+        </surface>
       </collision>
     </link>
 
