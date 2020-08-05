@@ -47,13 +47,15 @@ class Home(smach.State):
 # ** Second state of State Machine: Sends the arm to capture image of empty background mat **
 class Calibrate(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['not_ready', 'ready'], input_keys = [], output_keys = ['station'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'ready', 'replan'], input_keys = [], output_keys = ['station'])
         self.core = core
         
     def execute(self, userdata):
         userdata.station = stations['pickup']
         try:
             self.core.calibrate_fun()
+        except PlanningFailure:
+            return 'replan'
         except:
             return 'not_ready'
         else:
@@ -104,7 +106,8 @@ class Examine(smach.State):
             (found, sherd_poses) = self.core.shard_fun(userdata.attempts)
         except PlanningFailure:
             return 'replan'
-        except:
+        except Exception as e:
+            rospy.logwarn('Exception raised: {}'.format(e))
             return 'not_ready'
         else:
             if found:
@@ -154,15 +157,21 @@ class Acquire(smach.State):
             pose['position'][2] = self.core.discard_z
         # Try to acquire sherd
         try:
-            if userdata.station == stations['scale']:
-                self.core.gripper.close()  # skip AutoCore's pick_place_fun and close in place around sherd on scale
-            else:
+            if userdata.station == stations['scale']: # skip AutoCore's pick_place_fun
+                pose['position'][2] += 0.01 # move up a cm, then back down
+                self.core.move_fun(pose)
+                pose['position'][2]-= 0.01
+                self.core.move_fun(pose)
+                self.core.gripper.close()
+                self.core.grip_check_fun(pose)
+            else: # execute AutoCore's pick_place_fun
                 self.core.pick_place_fun(pose, pick=True)
             pose['position'][2] = self.core.working_z # move back up to working height after grasping
             self.core.move_fun(pose)
         except GraspFailure:
             if userdata.attempts > 2:
                 userdata.attempts = 0
+		userdata.station = stations['pickup']
                 return 'failed'
             else:
                 userdata.attempts += 1
@@ -258,7 +267,7 @@ def process_sherds():
     with sm:
         # ** Adds the states to the container **
         smach.StateMachine.add('Home', Home(core), transitions = {'no_mask': 'Calibrate', 'ready': 'Examine'})
-        smach.StateMachine.add('Calibrate', Calibrate(core), transitions = {'not_ready': 'NotReady', 'ready': 'Examine'})
+        smach.StateMachine.add('Calibrate', Calibrate(core), transitions = {'replan': 'Calibrate', 'not_ready': 'NotReady', 'ready': 'Examine'})
         smach.StateMachine.add('Translate', Translate(core), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'PlaceSherd'})
         smach.StateMachine.add('Examine', Examine(core), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
