@@ -935,8 +935,10 @@
             </arm>
             <forces_angle_tolerance>100</forces_angle_tolerance>
             <update_rate>50</update_rate>
-            <grip_count_threshold>10</grip_count_threshold>
-            <max_grip_count>25</max_grip_count>
+            <!-- how many 'grip' detections before attachment kicks in.  Lower to grip more quickly -->
+            <grip_count_threshold>2</grip_count_threshold>
+            <!-- the higher this is above the grip_count_threshold, the 'stickier' the object wil be-->
+            <max_grip_count>6</max_grip_count>
             <release_tolerance>0.01</release_tolerance>
             <disable_collisions_on_attach>false</disable_collisions_on_attach>
             <contact_topic>__default_topic__</contact_topic>
