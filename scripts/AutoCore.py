@@ -293,7 +293,7 @@ class AutoCore():
         if pick:
             self.gripper.close()
             self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
- 	    # PLACE MODE        
+    	# PLACE MODE        
         else:
             self.gripper.open()
 
