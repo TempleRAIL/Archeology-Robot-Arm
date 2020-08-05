@@ -36,14 +36,11 @@
           <friction>
             <torsional>
               <coefficient>1</coefficient>
-              <use_patch_radius>0</use_patch_radius>
-              <surface_radius>0.01</surface_radius>
-              <ode/>
             </torsional>
             <ode>
               <mu>1.0</mu>
               <mu2>1.0</mu2>
-              <fdir1>0 0 1</fdir1>
+              <fdir1>1 0 0</fdir1> <!-- specify in x dir to prevent slipping on mat AND in gripper. Gazebo automatically picks fdir2 as vector normal to applied force on surface -->
             </ode>
           </friction>
           <bounce/>
