@@ -61,14 +61,16 @@ def segment_sherds(color_mask, img):
     # Apply final mask to show sherds and black out background
     rgb = img[:, :, ::-1]  # flip to RGB for display
     sherds_image = cv2.bitwise_and(rgb, rgb, mask=fg_mask)
-    """
+    
     # Display original image and segmented objects
+    """
     plt.subplot(121),plt.imshow(rgb)
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
     plt.subplot(122),plt.imshow(sherds_image)
     plt.title('Sherds'), plt.xticks([]), plt.yticks([])
     plt.show()
     """
+    
     return sherds_image
 
 ##############################################################
@@ -79,6 +81,9 @@ def segment_sherds(color_mask, img):
 
 def locate_sherds(sherds_image, points, header):
     point_map = points 
+
+    img_height, img_width, _ = sherds_image.shape
+    print img_height, img_width
 
     # Find contours in gray 'sherds_image' image.
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY)
@@ -96,7 +101,22 @@ def locate_sherds(sherds_image, points, header):
 
     # For each detected contour, find bounding box
     for cnt in contours:
-        rect = cv2.minAreaRect(cnt)
+        rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
+
+        box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
+        box = np.int0(box)
+        print box
+
+        # check that contour does not meet edges of image frame
+        in_frame = True
+        for corner in box:
+            if (corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
+                in_frame = False
+            if not in_frame:
+                break
+
+        rospy.logwarn('Box in frame: {}'.format(in_frame))
+
         # col (x), row (y) of bounding box centers [pixel coordinates]
         col_center_pos = int(rect[0][0])
         row_center_pos = int(rect[0][1])
@@ -113,8 +133,10 @@ def locate_sherds(sherds_image, points, header):
         # gripper positioned to only need to open along the smallest side of the bounding box
         if angle > 90:
             grip_angle = angle-180
+        elif angle < -90:
+            grip_angle = angle+ 80
         else:
-            grip_angle = -angle
+            grip_angle = angle
         # get real-world dimensions of boxes using point map
         # x,y coordinates of bounding box center in meters
         x_center = points[row_center_pos][col_center_pos][0]
@@ -154,7 +176,8 @@ def locate_sherds(sherds_image, points, header):
         # bounding box width and height in meters
         width_meter = math.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
         height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
-        if not use_min_area or (use_min_area and width_meter*height_meter >= min_area):
+        
+        if not (not in_frame) or use_min_area or (use_min_area and width_meter*height_meter >= min_area):
             # print("This sherd's bounding box: " + str(rect))
             # Construct a Detection3DRPY() msg to add this bounding box to detections
             detection = Detection3DRPY()
@@ -171,13 +194,12 @@ def locate_sherds(sherds_image, points, header):
             # Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
             """
-            box = cv2.boxPoints(rect)
-            box = np.int0(box)
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
             plt.figure("Figure 2")
             plt.imshow(sherd_contours)
             plt.title("Bounding Box around Sherd")
             plt.show()
+            
             # Debugging
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
