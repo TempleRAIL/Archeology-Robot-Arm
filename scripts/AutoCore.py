@@ -14,6 +14,7 @@ from pyrobot.locobot import camera
 import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
+from robot_arm.msg import SherdData
 from robot_arm.srv import *
 
 
@@ -151,7 +152,8 @@ class AutoCore():
 
 
     # Function to record mass of object on scale
-    def get_mass_fun(self):
+    def get_mass_fun(self, msg):
+        sherd_msg = msg
         # run read_scale_server.py
         req = ScaleReadingRequest()
         try:
@@ -160,13 +162,14 @@ class AutoCore():
             rospy.logerr('AutoCore: read_scale service call failed: {}'.format(e))
             raise
         else:
-            self.mass = res.mass
-            rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(self.mass))
-            return self.mass
+            sherd_msg.mass = res.mass
+            rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(sherd_msg.mass))
+            return sherd_msg
 
 
     # Function to take archival photo
-    def take_photo_fun(self):
+    def take_photo_fun(self, msg):
+        sherd_msg = msg
         rospy.logwarn('AutoCore: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
         # run take_photo_server.py
         req = PhotoRequest()
@@ -176,10 +179,9 @@ class AutoCore():
             rospy.logerr('AutoCore: take_photo service call failed: {}'.format(e))
             raise
         else:
-            self.photo = res.image
+            sherd_msg.archival_photo = res.image
             rospy.logwarn('AutoCore: Got archival photo of sherd.')
-            return self.photo
-
+            return sherd_msg
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self):
@@ -250,8 +252,8 @@ class AutoCore():
         else:
             self.color_mask = res.color_mask
             self.mat_z = res.mat_z
-            rospy.loginfo('AutoCore: Got color mask.')
-            rospy.logwarn('Average z value of mat (top face): {}'.format(self.mat_z))
+            rospy.logwarn('AutoCore: Got color mask.')
+            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
   
 
     # Function to look for object in box
@@ -286,7 +288,7 @@ class AutoCore():
             pose['position'][2] += 0.05
             self.move_fun(pose) # move above sherd and orient
             pose['position'][2] -= 0.05 + self.clearance
-            self.move_fun(pose) # move down to table
+            self.move_fun(pose) # move down to surface
         except:
             raise
         # PICK MODE
