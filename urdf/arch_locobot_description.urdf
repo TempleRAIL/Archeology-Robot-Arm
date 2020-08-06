@@ -926,6 +926,12 @@
             <rpyOffsets>0 0 0</rpyOffsets>
             <!--<interface:position name="p3d_base_position"/>-->
         </plugin>
+
+	<!-- Jennifer Buehler's gazebo_grasp_plugin from the gazebo-pkgs repository.
+	GitHub Wiki for gazebo_pkgs repo: https://github.com/JenniferBuehler/gazebo-pkgs/wiki
+	Under 'Pages' left sidebar, see 'Installation' https://github.com/JenniferBuehler/gazebo-pkgs/wiki/Installation 
+	and gazebo_grasp_plugin https://github.com/JenniferBuehler/gazebo-pkgs/wiki/The-Gazebo-grasp-fix-plugin -->
+
         <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
             <arm>
                 <arm_name>locobot_arm</arm_name>
