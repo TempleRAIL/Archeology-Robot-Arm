@@ -14,6 +14,7 @@ from pyrobot.locobot.gripper import LoCoBotGripper
 import rospy
 import smach
 import smach_ros
+from robot_arm.msg import SherdData
 
 # Import autocore
 from AutoCore import AutoCore, PlanningFailure, GraspFailure
@@ -26,6 +27,8 @@ stations = {
     'dropoff': 3
 }
 
+# Publishers
+sherd_data_pub = rospy.Publisher('Sherd_Data', SherdData, queue_size=1)
 
 # ** First state of State Machine: Sends the arm to the home configuration **
 class Home(smach.State):
@@ -125,7 +128,7 @@ class Examine(smach.State):
 # ** Fifth state of the State Machine: Lowers the gripper to acquire the sherd and returns to working height **
 class Acquire(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts'])
+        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts', 'sherd_msg'])
         self.core = core
     
     def execute(self, userdata):
@@ -157,21 +160,19 @@ class Acquire(smach.State):
             pose['position'][2] = self.core.discard_z
         # Try to acquire sherd
         try:
-            if userdata.station == stations['scale']: # skip AutoCore's pick_place_fun
-                pose['position'][2] += 0.01 # move up a cm, then back down
-                self.core.move_fun(pose)
-                pose['position'][2]-= 0.01
-                self.core.move_fun(pose)
+            if userdata.station == stations['scale']: # skip AutoCore pick_place_fun
                 self.core.gripper.close()
                 self.core.grip_check_fun(pose)
+                pose['position'][2] = self.core.working_z # move back up to working height after grasping
+                self.core.move_fun(pose)
             else: # execute AutoCore's pick_place_fun
                 self.core.pick_place_fun(pose, pick=True)
-            pose['position'][2] = self.core.working_z # move back up to working height after grasping
-            self.core.move_fun(pose)
+                pose['position'][2] = self.core.working_z # move back up to working height after grasping
+                self.core.move_fun(pose)
         except GraspFailure:
             if userdata.attempts > 2:
                 userdata.attempts = 0
-		userdata.station = stations['pickup']
+                userdata.station = stations['pickup']
                 return 'failed'
             else:
                 userdata.attempts += 1
@@ -181,16 +182,18 @@ class Acquire(smach.State):
         else:
             userdata.station += 1
             userdata.attempts = 0
+	    userdata.sherd_msg = SherdData()
             return 'acquired'
 
 
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class PlaceSherd(smach.State):
     def __init__(self, core):
-        smach.State.__init__(self, outcomes = ['failed', 'replan', 'regrasp', 'next_sherd', 'success'], input_keys = ['station', 'goal', 'cal_counter'], output_keys = ['station', 'cal_counter', 'goal'])
+        smach.State.__init__(self, outcomes = ['failed', 'replan', 'regrasp', 'next_sherd', 'success'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg'])
         self.core = core
         
     def execute(self, userdata):
+	sherd_msg = userdata.sherd_msg
         # Get goal pose
         pose = userdata.goal
         if userdata.station == stations['pickup']:
@@ -218,14 +221,18 @@ class PlaceSherd(smach.State):
                     return 'failed'
                 return 'success'
             elif userdata.station == stations['scale']:
-                time.sleep(1)
                 try:
-                    mass = self.core.get_mass_fun()
+                    pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
+                    self.core.move_fun(pose)
+                    sherd_msg = self.core.get_mass_fun(sherd_msg)
+                    #mass = self.core.get_mass_fun()
+                    # TODO store mass in database
+                    pose['position'][2] -= 0.01 # move gripper back down around sherd
+                    self.core.move_fun(pose)
                 except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
-                # TODO store mass in database
                 return 'regrasp'
-            elif userdata.station == stations['camera']:  # if placed on scale
+            elif userdata.station == stations['camera']:
                 # Move to standby position to get out of the way of the camera
                 success = False
                 while not success:
@@ -240,10 +247,17 @@ class PlaceSherd(smach.State):
                     else:
                         success = True
                 try:
-                    archival_photo = self.core.take_photo_fun()
+                    sherd_msg = self.core.take_photo_fun(sherd_msg)
+                    #archival_photo = self.core.take_photo_fun()
                     # TODO store image in database
+                    if not (sherd_msg.mass or sherd_msg.archival_photo): # if either of these values is None
+                        sherd_msg.incomplete = True
+                        rospy.logwarn('/Sherd_Data msg seq# {} has missing fields.'.format(sherd_msg.header.seq))
+                    else:
+                        sherd_msg.incomplete = False
+                    sherd_data_pub.publish(sherd_msg) # publish SherdData message to /Sherd_Data
                 except Exception as e:
-                    rospy.logwarn('Could not take photo of sherd because of Exception: {}'.format(e))
+                    rospy.logwarn('Exception raised: {}'.format(e))
                 return 'regrasp'
             else:
                 return 'next_sherd'
@@ -263,6 +277,7 @@ def process_sherds():
     sm.userdata.attempts = 0
     sm.userdata.cal_counter = 0
     sm.userdata.goal = None
+    sm.userdata.sherd_msg = None
     # ** Opens state machine container **
     with sm:
         # ** Adds the states to the container **
