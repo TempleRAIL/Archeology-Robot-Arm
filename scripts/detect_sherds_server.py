@@ -105,7 +105,6 @@ def locate_sherds(sherds_image, points, header):
 
         box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
         box = np.int0(box)
-        print box
 
         # check that contour does not meet edges of image frame
         in_frame = True
@@ -115,7 +114,11 @@ def locate_sherds(sherds_image, points, header):
             if not in_frame:
                 break
 
+        # Debugging
+        """
+        print box
         rospy.logwarn('Box in frame: {}'.format(in_frame))
+        """
 
         # col (x), row (y) of bounding box centers [pixel coordinates]
         col_center_pos = int(rect[0][0])
