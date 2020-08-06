@@ -7,7 +7,7 @@ import rospy
 from robot_arm.srv import ScaleReading, ScaleReadingRequest
 
 # ROS service clients
-rospy.wait_for_service('read_scale_erver')
+rospy.wait_for_service('read_scale_server')
 scale_srv = rospy.ServiceProxy('read_scale_server', ScaleReading)
 
 def get_mass_fun():
