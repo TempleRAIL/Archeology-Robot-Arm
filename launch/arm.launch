@@ -10,7 +10,7 @@
 
   <node name="take_photo_server" pkg="robot_arm" type="take_photo_server.py" output="screen" respawn="true"/>
 
-  <node pkg="rosbag" type="record" name="record_sherd_data" args="-O /home/deb/catkin_ws/src/robot_arm/bagfiles/sherd_data /Sherd_Data" output="screen"
+  <node pkg="rosbag" type="record" name="record_sherd_data" args="-o /home/deb/catkin_ws/src/robot_arm/bagfiles/sherd_data /Sherd_Data" output="screen"
     if="$(arg record_sherd_data)" />
 
 </launch> 
