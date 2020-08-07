@@ -2,7 +2,7 @@
 <sdf version="1.5">
   <model name='stone'>
     <pose frame=''>0 0 0 0 0 0</pose>
-    <static>false</static>
+    <static>false</static>  <!-- mass is ignored for static models -->
     <link name='stone_link'>
       <pose frame=''>0 0 0.005 0 0 0</pose>
       <inertial>

@@ -52,7 +52,7 @@
       <pose frame=''>0.52 -0.3 0 0 0 1.5708</pose>
     </include>
     <include>
-      <uri>model://stone</uri>
+      <uri>model://sherd_a</uri>
       <name>stone0</name>
       <pose frame=''>0.002 0.323 0.025 0 0 1.7796</pose>
     </include>
