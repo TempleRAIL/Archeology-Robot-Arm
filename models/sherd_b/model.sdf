@@ -16,13 +16,14 @@
           <izz>5.295e-05</izz>
         </inertia>
       </inertial>
-      <collision name='collision'>
+      <collision name='collision'> <!-- .dae mesh for collision falls through the blue mat; .stl avoids this -->
         <geometry>
           <!-- <box>
             <size>0.07 0.025 0.01</size>
           </box> -->
           <mesh>
-            <uri>model://sherd_b/meshes/sherd_b.dae</uri>
+            <!-- <uri>model://sherd_b/meshes/sherd_b.dae</uri> -->
+            <uri>model://sherd_b/meshes/sherd_b.stl</uri>
             <scale>1 1 1</scale>
           </mesh>
         </geometry>
@@ -54,7 +55,8 @@
       <visual name='visual'>
         <geometry>
           <mesh>
-            <uri>model://sherd_b/meshes/sherd_b.dae</uri>
+            <!-- <uri>model://sherd_b/meshes/sherd_b.dae</uri> -->
+            <uri>model://sherd_b/meshes/sherd_b.stl</uri>
             <scale>1 1 1</scale>
           </mesh>
           <!--<box>

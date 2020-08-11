@@ -16,7 +16,7 @@
           <izz>5</izz>
         </inertia>
       </inertial>
-      <collision name='collision'>
+      <collision name='collision'> 
         <geometry>
           <box>
             <size>0.76 1.83 0.005</size>
@@ -34,12 +34,12 @@
           <bounce/>
           <friction>
             <torsional>
-              <coefficient>1</coefficient> <!-- added to try to prevent stone model from sliding. Maybe not be necessary -->
+              <coefficient>1</coefficient> <!-- added to try to prevent objects from sliding on mat. May not be necessary -->
             </torsional>
             <ode>
               <mu>1.0</mu>
               <mu2>1.0</mu2>
-              <fdir1>1 0 0</fdir1> <!-- important to keep stone model from sliding -->
+              <fdir1>1 0 0</fdir1> <!-- so objects do not slide all over mat -->
             </ode>
           </friction>
         </surface>
