@@ -57,12 +57,12 @@
       <pose frame=''>0.002 0.323 0.025 0 0 1.7796</pose>
     </include>
     <include>
-      <uri>model://stone</uri>
+      <uri>model://sherd_b</uri>
       <name>stone1</name>
       <pose frame=''>-0.062 0.283 0.025 0 0 -1.0707</pose>
     </include>
     <include>
-      <uri>model://stone</uri>
+      <uri>model://sherd_c</uri>
       <name>stone2</name>
       <pose frame=''>0.057 0.255 0.025 0 0 1.12592</pose>
     </include>
