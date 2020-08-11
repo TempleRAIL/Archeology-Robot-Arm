@@ -62,7 +62,7 @@
         </geometry>
       </visual>
       <self_collide>0</self_collide>
-      <gravity>0</gravity>
+      <gravity>1</gravity>
     </link>
   </model>
 </sdf>
