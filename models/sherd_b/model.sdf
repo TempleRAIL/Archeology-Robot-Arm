@@ -18,13 +18,13 @@
       </inertial>
       <collision name='collision'>
         <geometry>
-          <box>
+          <!-- <box>
             <size>0.07 0.025 0.01</size>
-          </box>
-          <!--<mesh>
+          </box> -->
+          <mesh>
             <uri>model://sherd_b/meshes/sherd_b.dae</uri>
             <scale>1 1 1</scale>
-          </mesh>-->
+          </mesh>
         </geometry>
         <surface>
           <contact>
