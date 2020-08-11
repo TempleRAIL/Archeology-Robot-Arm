@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="scale">
+    <static>false</static>
+    <pose frame=''>0 0 0 0 0 0</pose>
+    <link name="scale_base_link">
+      <pose frame="scale_base_frame">0 0 0.005 0 0 0</pose>
+      <inertial> <!-- solid cuboid -->
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>1.88333e-3</ixx> 
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>1.88333e-3</iyy>
+          <iyz>0.0</iyz>
+          <izz>3.75e-3</izz>
+        </inertia>
+      </inertial>
+      <visual name="visual_scale_base">
+       <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+        <geometry>
+          <box>
+            <size>0.15 0.15 0.01</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="collision_scale_base">
+        <max_contacts>250</max_contacts>
+        <geometry>
+          <box>
+            <size>0.15 0.15 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="scale_cover_link">
+      <pose frame=''>0 0 0.0125 0 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia>
+          <ixx>1.88333e-4</ixx> 
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>1.88333e-4</iyy>
+          <iyz>0.0</iyz>
+          <izz>3.75e-4</izz>
+        </inertia>
+      </inertial>
+      <visual name="visual_scale_cover">
+        <geometry>
+          <box>
+            <size>0.15 0.15 0.005</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="collision_scale_cover">
+        <max_contacts>250</max_contacts>
+        <geometry>
+          <box>
+            <size>0.15 0.15 0.005</size>
+          </box>
+        </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <bounce/>
+          <friction>
+            <torsional>
+              <coefficient>1</coefficient> <!--added to try to prevent stone model from sliding.  May not be necessary -->
+            </torsional>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>1 0 0</fdir1> <!-- important to keep stone model from sliding -->
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+    </link>
+
+<!-- create joint for force_torque (ft) sensor attachment -->
+    <joint name="scale_joint" type="fixed">
+      <parent>scale_base_link</parent>
+      <child>scale_cover_link</child>
+      <pose frame="scale_base_frame">0 0 0.015 0 0 0</pose>
+      <sensor name="scale_sensor" type="force_torque">
+        <update_rate>4</update_rate>
+      </sensor>
+    </joint>
+
+<!-- plugin to echo gazebo topic messages on ROS topic -->
+    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>4</updateRate>
+        <topicName>ft_sensor_topic</topicName> <!-- name of ROS topic -->
+        <jointName>scale_joint</jointName>
+    </plugin>
+
+  </model>
+</sdf>

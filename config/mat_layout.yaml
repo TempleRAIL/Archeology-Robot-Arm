@@ -1,0 +1,45 @@
+gripper_len: 0.0775
+clearance: .0025  # gap between end of fingers and table/mat [m]
+scale_tare: 0.1 # mass [kg] of scale cover link in simulation
+show_cam_photo: False # toggle to show figure for every archival photo acquired
+
+working_pose:
+  z: 0.15
+  roll: 0
+  pitch: 1.5708
+
+use_numerical_ik: False
+
+calibrate_location:
+  x: 0.3
+  y: 0.15
+
+pickup_area:
+  z: 0.25
+  step_size: 0.05
+  offset_x: -0.03
+  offset_y: 0.20
+  length_x: 0.35
+  length_y: 0.15
+
+scale_location:
+  x: 0.3
+  y: 0.0
+  z: 0.016
+  
+cam_location:
+  x: 0.32
+  y: -0.3
+  z: 0.0
+
+standby_location:
+  x: 0.26
+  y: 0.0
+
+discard_area:
+  z: 0.05
+  offset_x: -0.03
+  offset_y: -0.35
+  length_x: 0.20
+  length_y: 0.15
+

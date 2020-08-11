@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name='sherdmat'>
+    <pose frame=''>0 0 0 0 0 0</pose>
+    <static>true</static>
+    <link name='mat_link'>
+      <pose frame=''>0 0 0.0025 0 0 0</pose>
+      <inertial>
+        <mass>5</mass>
+        <inertia>
+          <ixx>5</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>5</iyy>
+          <iyz>0</iyz>
+          <izz>5</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>0.76 1.83 0.005</size>
+          </box>
+          <!-- <mesh>
+            <uri>model://sherdmat/meshes/SherdMat.dae</uri>
+            <scale>1 1 1</scale>
+          </mesh> -->
+        </geometry>
+        <max_contacts>10</max_contacts>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <bounce/>
+          <friction>
+            <torsional>
+              <coefficient>1</coefficient> <!-- added to try to prevent stone model from sliding. Maybe not be necessary -->
+            </torsional>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>1 0 0</fdir1> <!-- important to keep stone model from sliding -->
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <visual name='visual'>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Blue</name>
+          </script>
+        </material>
+        <geometry>
+          <box>
+            <size>0.76 1.83 0.005</size>
+          </box>
+          <!--<mesh>
+            <uri>model://sherdmat/meshes/SherdMat.dae</uri>
+            <scale>1 1 1</scale>
+          </mesh> -->
+        </geometry>
+      </visual>
+      <self_collide>0</self_collide>
+      <gravity>1</gravity>
+    </link>
+  </model>
+</sdf>

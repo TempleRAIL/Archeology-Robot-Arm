@@ -1,0 +1,3 @@
+std_msgs/Int16MultiArray color_mask
+---
+robot_arm/Detection3DRPYArray detections
