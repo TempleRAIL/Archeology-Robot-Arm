@@ -54,32 +54,32 @@
     <include>
       <uri>model://sherd_a</uri>
       <name>stone0</name>
-      <pose frame=''>0.002 0.323 0.025 0 0 1.7796</pose>
+      <pose frame=''>-0.086 0.295 0.04 1.406 0.31 1.199</pose>
+    </include>
+    <include>
+      <uri>model://sherd_a</uri>
+      <name>stone1</name>
+      <pose frame=''>-0.055 0.387 0.04 1.39 0.295 2.597</pose>
     </include>
     <include>
       <uri>model://sherd_b</uri>
-      <name>stone1</name>
-      <pose frame=''>-0.062 0.283 0.025 0 0 -1.0707</pose>
+      <name>stone2</name>
+      <pose frame=''>0.037 0.266 0.04 -0.28 -0.004 -2.61</pose>
+    </include>
+    <include>
+      <uri>model://sherd_b</uri>
+      <name>stone3</name>
+      <pose frame=''>0.1019 0.35 0.04 -0.28 -0.004 1.631</pose>
     </include>
     <include>
       <uri>model://sherd_c</uri>
-      <name>stone2</name>
-      <pose frame=''>0.057 0.255 0.025 0 0 1.12592</pose>
-    </include>
-    <include>
-      <uri>model://stone</uri>
-      <name>stone3</name>
-      <pose frame=''>0.137 0.326 0.025 0 0 0.218198</pose>
-    </include>
-    <include>
-      <uri>model://stone</uri>
       <name>stone4</name>
-      <pose frame=''>-0.065 0.378 0.025 0 0 0.9473</pose>
+      <pose frame=''>0.002 0.322 0.035 1.886 0.543 1.666</pose>
     </include>
     <include>
-      <uri>model://stone</uri>
+      <uri>model://sherd_c</uri>
       <name>stone5</name>
-      <pose frame=''>0.092 0.37 0.025 0 0 0.233</pose>
+      <pose frame=''>0.157 0.274 0.035 1.928 0.551 1.722</pose>
     </include>
     <gui fullscreen='0'>
       <camera name='user_camera'>
