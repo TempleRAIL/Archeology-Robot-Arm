@@ -34,8 +34,8 @@ cam_location:
   z: 0.0
 
 cam_survey_location:
-  x: 0.253
-  y: -0.168
+  x: 0.265
+  y: -0.203
 
 
 standby_location:
