@@ -83,7 +83,6 @@ def locate_sherds(sherds_image, points, header):
     point_map = points 
 
     img_height, img_width, _ = sherds_image.shape
-    print img_height, img_width
 
     # Find contours in gray 'sherds_image' image.
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY)
