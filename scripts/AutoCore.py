@@ -57,6 +57,7 @@ class AutoCore():
         self.use_numerical_ik = rospy.get_param('~use_numerical_ik', False)  # default boolean for using numerical method when solving IK
         self.gripper_len = rospy.get_param('~gripper_len')
         self.clearance = rospy.get_param('~clearance')
+        self.sherd_allowance = rospy.get_param('~sherd_allowance')
         
         # Initialize standard operation parameters (when not picking/placing)
         working_pose = rospy.get_param('~working_pose')
@@ -69,7 +70,7 @@ class AutoCore():
         # Initialize pickup area
         pickup_positions = []
         pickup_area = rospy.get_param('~pickup_area')
-        self.pickup_area_z = pickup_area['z']
+        self.survey_z = rospy.get_param('~survey_z')
         num_steps_x = np.ceil(pickup_area['length_x'] / pickup_area['step_size'])
         num_steps_y = np.ceil(pickup_area['length_y'] / pickup_area['step_size'])
         for i in range(0, int(num_steps_x)):
@@ -77,7 +78,7 @@ class AutoCore():
             y_vals = range(0, int(num_steps_y))
             for j in (y_vals if i % 2 == 0 else reversed(y_vals)):
                 y = pickup_area['offset_y'] + (j+0.5) * pickup_area['length_y'] / num_steps_y
-                pickup_positions.append([x, y, self.pickup_area_z])
+                pickup_positions.append([x, y, self.survey_z])
         self.pickup_positions = np.array(pickup_positions)
         #rospy.loginfo('Pickup locations:\n{}'.format(self.pickup_positions))
         
@@ -86,7 +87,7 @@ class AutoCore():
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
         
-        # Initialize camera location
+        # Initialize camera location (for placing sherd for archival photo)
         cam_location = rospy.get_param('~cam_location')
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
         self.camera_z = cam_location['z']
@@ -95,6 +96,10 @@ class AutoCore():
         standby_location = rospy.get_param('~standby_location')
         self.standby_position = np.array([standby_location['x'], standby_location['y'], self.working_z])
         self.standby_pose = {"position": self.standby_position, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
+
+        # Initialize camera survey location (for reacquiring sherd after archival photo)
+        cam_survey_location = rospy.get_param('~cam_survey_location')
+        self.camera_survey_position = np.array([cam_survey_location['x'], cam_survey_location['y'], self.survey_z])
         
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
@@ -256,7 +261,7 @@ class AutoCore():
             rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
   
 
-    # Function to look for object in box
+    # Function to increment through survey positions in sherd pick-up area
     def shard_fun(self, index):
         rospy.loginfo('Examining surface for sherds')
         rospy.loginfo('position: {}'.format(self.pickup_positions[index]))
@@ -295,6 +300,8 @@ class AutoCore():
         if pick:
             self.gripper.close()
             self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
+            pose['position'][2] = self.working_z # move back up to working height after grasping
+            self.move_fun(pose)
     	# PLACE MODE        
         else:
             self.gripper.open()
