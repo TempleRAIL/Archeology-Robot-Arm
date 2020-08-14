@@ -141,6 +141,7 @@ class Acquire(smach.State):
         pose = userdata.goal
         if userdata.attempts != 0:  # If cannot go to goal pose first time around, get pose from sensor
             try:
+                self.core.gripper.open()
                 pose['position'][2] = self.core.survey_z  # move up to survey height
                 self.core.move_fun(pose)
                 (found, sherd_poses) = self.core.detect_fun()
@@ -222,13 +223,20 @@ class PlaceSherd(smach.State):
             return 'failed'
         else: 
             if userdata.station == stations['scale']:
-                try:
-                    pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
-                    self.core.move_fun(pose)
-                    sherd_msg = self.core.get_mass_fun(sherd_msg)
-                    # TODO store mass in database
-                except Exception as e:
-                    rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                success = False
+                while not success:
+                    try:
+                        pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
+                        self.core.move_fun(pose)
+                        sherd_msg = self.core.get_mass_fun(sherd_msg)
+                        # TODO store mass in database
+                        pose['position'][2] -= (0.01 + self.core.sherd_allowance)
+                    except PlanningFailure:
+                        continue
+                    except Exception as e:
+                        rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                    else:
+                        success = True
                 return 'regrasp_scale'
             elif userdata.station == stations['camera_place']:
                 # Move to standby position to get out of the way of the camera
@@ -265,6 +273,15 @@ class PlaceSherd(smach.State):
                         userdata.station += 1
                 return 'regrasp_camera'
             else:  # if placed in discard pile
+                success = False
+                while not success:
+                    try:
+                        pose['position'][2] = self.core.working_z
+                        self.core.move_fun(pose)
+                    except PlanningFailure:
+                        continue
+                    else:
+                        success = True
                 userdata.station = stations['pickup']
                 userdata.cal_counter += 1  # refresh color mask every 10 cycles
                 if userdata.cal_counter > 9:
@@ -272,7 +289,6 @@ class PlaceSherd(smach.State):
                     return 'failed'
                 else:
                     return 'next_sherd'
-
 
 def process_sherds():
     rospy.init_node('sherd_states')
