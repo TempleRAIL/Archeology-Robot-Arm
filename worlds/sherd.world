@@ -52,6 +52,21 @@
       <pose frame=''>0.52 -0.3 0 0 0 1.5708</pose>
     </include>
     <include>
+      <uri>model://color_board</uri>
+      <name>color_board</name>
+      <pose frame=''>0.4 -0.2 0.05 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://scale_bar</uri>
+      <name>scale_bar</name>
+      <pose frame=''>0.4 -0.3 0.05 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://discard_box</uri>
+      <name>discard_box</name>
+      <pose frame=''>0.0 -0.3 0.05 0 0 0</pose>
+    </include>
+    <include>
       <uri>model://sherd_a</uri>
       <name>stone0</name>
       <pose frame=''>-0.086 0.295 0.04 1.406 0.31 1.199</pose>
