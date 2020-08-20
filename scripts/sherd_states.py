@@ -70,7 +70,7 @@ class Translate(smach.State):
     def execute(self, userdata):
         # Print current station
         self.mat.print_station(userdata.station)
-        pose = self.mat.get_goal_pose(userdata.station)
+        pose = self.mat.get_goal_pose(userdata.station) # get goal pose
         rospy.loginfo('Moving to: {}'.format(pose))
         try:
             self.core.move_fun(pose)
@@ -127,8 +127,10 @@ class Acquire(smach.State):
         self.mat = mat
     
     def execute(self, userdata):
-        pose = userdata.goal
-        if userdata.attempts != 0:  # If cannot go to goal pose first time around, get pose from sensor
+        pose = userdata.goal # get goal pose
+        pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
+        # If failed to go to goal pose first time around (i.e. made more than one attempt already), get pose from sensor
+        if userdata.attempts != 0 and userdata.station != self.mat.stations['scale']:
             try:
                 self.core.gripper.open()
                 pose['position'][2] = self.mat.survey_z  # move up to survey height
@@ -146,17 +148,16 @@ class Acquire(smach.State):
                 else:
                     rospy.logwarn('No sherd seen, trying last known sherd pose')
                     pose = userdata.goal
-        # Get goal pose
-        pose = self.mat.select_goal_z(pose, userdata.station)
         # Try to acquire sherd
         try:
             if userdata.station == self.mat.stations['scale']: # skip AutoCore pick_place_fun
-                pose['position'][2] += (self.core.gripper_len + self.core.clearance) # move gripper back down around sherd
-                self.core.move_fun(pose)
+                self.core.gripper.open()
+                pose['position'][2] += self.core.gripper_len + self.core.clearance
+                self.core.move_fun_retry(pose)
                 self.core.gripper.close()
                 self.core.grip_check_fun(pose)
                 pose['position'][2] = self.mat.working_z # move back up to working height after grasping
-                self.core.move_fun(pose)
+                self.core.move_fun_retry(pose)
             else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
         except GraspFailure:
@@ -184,9 +185,9 @@ class PlaceSherd(smach.State):
         self.mat = mat
         
     def execute(self, userdata):
-	sherd_msg = userdata.sherd_msg
-        # Get goal pose
-        pose = self.mat.select_goal_z(userdata.goal, userdata.station)
+        sherd_msg = userdata.sherd_msg
+        pose = userdata.goal # get goal pose
+        pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # Try to place sherd
         try:
             self.core.pick_place_fun(pose, self.mat.working_z, place=True)
@@ -198,12 +199,11 @@ class PlaceSherd(smach.State):
             return 'failed'
         else:
             if userdata.station == self.mat.stations['scale']:
-                pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
+                #pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
                 try:
                     self.core.move_fun_retry(pose)
                     sherd_msg = self.core.get_mass_fun(sherd_msg)
                     # TODO store mass in database
-                    pose['position'][2] -= (0.01 + self.core.sherd_allowance)
                 except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
                 else:
