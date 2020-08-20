@@ -1,9 +1,9 @@
 gripper_len: 0.0775
-clearance: .002  # gap between end of fingers and table/mat [m]
+clearance: .0025  # gap between end of fingers and table/mat [m]
 scale_tare: 0.1 # mass [kg] of scale cover link in simulation
 show_cam_photo: False # toggle to show figure for every archival photo acquired
 survey_z: 0.25
-sherd_allowance: 0.03 # in case sherd curves past the tips of the the gripper fingers
+sherd_allowance: 0.02 # in case sherd curves past the tips of the the gripper fingers
 table_z: 0.0
 
 working_pose:
@@ -27,7 +27,7 @@ pickup_area:
 scale_location:
   x: 0.3
   y: 0.0
-  z: 0.016
+  z: 0.015
   
 cam_location:
   x: 0.32
@@ -43,7 +43,7 @@ standby_location:
   y: 0.0
 
 discard_area:
-  z: 0.05
+  z: 0.0
   offset_x: -0.03
   offset_y: -0.35
   length_x: 0.20
