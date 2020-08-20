@@ -241,23 +241,26 @@ class AutoCore():
             rospy.logerr('Only one of pick or place can be selected')
         elif not (pick or place):
             rospy.logerr('Pick or place must be selected')
-        if pick:
-            self.gripper.open() # ensure gripper open if picking up a sherd
-        # Move gripper to station
-        pose['position'][2] += self.gripper_len # add gripper offset
-        try:
-            pose['position'][2] += 0.05
-            self.move_fun(pose) # move above sherd and orient
-            pose['position'][2] -= 0.05 + self.clearance
-            self.move_fun(pose) # move down to surface
-        except:
-            raise
         # PICK MODE
         if pick:
-            self.gripper.close()
-            self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
-            pose['position'][2] = working_z # move back up to working height after grasping
-            self.move_fun(pose)
+            self.gripper.open() # ensure gripper open if picking up a sherd
+            try:
+                pose['position'][2] += self.gripper_len # add gripper offset
+                pose['position'][2] += 0.05
+                self.move_fun(pose) # move above sherd and orient
+                pose['position'][2] -= 0.05 + self.clearance
+                self.move_fun(pose) # move down to surface
+                self.gripper.close()
+                self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
+                pose['position'][2] = working_z # move back up to working height after grasping
+                self.move_fun(pose)
+            except:
+                raise
     	# PLACE MODE
         else:
-            self.gripper.open()
+            try:
+                pose['position'][2] += self.gripper_len + self.clearance + self.sherd_allowance
+                self.move_fun(pose) # move down to surface
+                self.gripper.open()
+            except:
+                raise
