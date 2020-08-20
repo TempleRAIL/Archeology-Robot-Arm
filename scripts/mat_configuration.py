@@ -11,6 +11,7 @@ import rospy
 class MatConfiguration():
     
     def __init__(self):
+       
         # Pyrobot parameters
         self.use_numerical_ik = rospy.get_param('~use_numerical_ik', False)  # default boolean for using numerical method when solving IK
         
@@ -47,7 +48,7 @@ class MatConfiguration():
         # Initialize camera location (for placing sherd for archival photo)
         cam_location = rospy.get_param('~cam_location')
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
-        self.camera_z = cam_location['z']
+        self.camera_z = self.table_z #cam_location['z']
 
         # Initialize standby location (out of archival camera frame)
         standby_location = rospy.get_param('~standby_location')
@@ -60,7 +61,7 @@ class MatConfiguration():
         
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
-        self.discard_z = discard_area['z']
+        self.discard_z = self.table_z #discard_area['z']
         self.discard_offset_x, self.discard_offset_y = discard_area['offset_x'], discard_area['offset_y']
         self.discard_length_x, self.discard_length_y = discard_area['length_x'], discard_area['length_y'] # dimensions of rectangular pickup area
 
@@ -98,11 +99,11 @@ class MatConfiguration():
     # Get z height for a goal position depending on the station
     def select_goal_z(self, pose, station):
         if station == self.stations['pickup']:
-            pose['position'][2] = self.table_z # overwrites z-value of top face of sherd (assigned in self.core.detect_fun)
+            pose['position'][2] = self.table_z 
         elif station == self.stations['scale']:
-            pose['position'][2] = self.scale_z #+ self.sherd_allowance
-        elif station == self.stations['camera_pick']:
-            pose['position'][2] = self.camera_z #+ self.sherd_allowance
+            pose['position'][2] = self.scale_z
+        elif station == self.stations['camera_pick'] or station == self.stations['camera_place']:
+            pose['position'][2] = self.camera_z
         elif station == self.stations['dropoff']:
             pose['position'][2] = self.table_z
         return pose
