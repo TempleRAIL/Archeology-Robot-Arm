@@ -58,7 +58,7 @@ class AutoCore():
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
 
         # Initialize other class members
-        self.color_mask = None # color mask for sherd detection
+        self.color_masks = {'mat': None, 'scale': None} # color masks for sherd detection
         self.mass = None # mass of sherd on scale
         self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
@@ -150,17 +150,16 @@ class AutoCore():
             return sherd_msg
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
-    def detect_fun(self):
+    def detect_fun(self, color_mask, num_colors=1):
         found = False
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
-        if self.color_mask is None:
-            rospy.logwarn('AutoCore: No color mask received.')
+        if color_mask is None:
+            rospy.logwarn('AutoCore: This color mask is missing.')
             return found, sherd_poses
-
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
-        req.color_mask = self.color_mask
+        req.color_mask = color_mask
         try:
             res = self.detection_srv(req)
         except rospy.ServiceException as e:
@@ -195,7 +194,8 @@ class AutoCore():
     ########## Motion primitives ##########
     # Function to trigger generation of color mask
     # Captures image of empty background mat
-    def calibrate_fun(self, calibrate_pose):
+    def calibrate_fun(self, calibrate_pose, location):
+        #TODO logic check that only one station (mat, scale, etc.) is True
         rospy.logdebug('AutoCore: calibrate_fun triggered.')
         # Move arm to calibration location
         try:
@@ -213,9 +213,9 @@ class AutoCore():
             rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
             raise
         else:
-            self.color_mask = res.color_mask
+            self.color_masks[location] = res.color_mask
             self.mat_z = res.mat_z
-            rospy.logwarn('AutoCore: Got color mask.')
+            rospy.logwarn('AutoCore: Got color masks.')
             rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
 
 
@@ -229,7 +229,7 @@ class AutoCore():
             raise
         # Check for sherd detections and get list of locations / rotations
         try:
-            return self.detect_fun()
+            return self.detect_fun(self.color_masks['mat'])
         except:
             raise
 
