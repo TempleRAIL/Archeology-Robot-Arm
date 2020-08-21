@@ -21,9 +21,13 @@ class MatConfiguration():
         self.table_z = rospy.get_param('~table_z')
 
         # Initialize calibration information
-        calibrate_location = rospy.get_param('~calibrate_location')
-        calibrate_position = np.array([calibrate_location['x'], calibrate_location['y'], self.working_z])
-        self.calibrate_pose = {'position': calibrate_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+        mat_color_location = rospy.get_param('~mat_color_location')
+        mat_color_position = np.array([mat_color_location['x'], mat_color_location['y'], self.working_z])
+        self.mat_color_pose = {'position': mat_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+	scale_color_location = rospy.get_param('~scale_color_location')
+        scale_color_position = np.array([scale_color_location['x'], scale_color_location['y'], self.working_z])
+        self.scale_color_pose = {'position': scale_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+
         
         # Initialize pickup area
         pickup_positions = []
@@ -44,7 +48,7 @@ class MatConfiguration():
         scale_location = rospy.get_param('~scale_location')
         self.scale_position = np.array([scale_location['x'], scale_location['y'], self.working_z])
         self.scale_z = scale_location['z']
-        
+       
         # Initialize camera location (for placing sherd for archival photo)
         cam_location = rospy.get_param('~cam_location')
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
@@ -68,10 +72,11 @@ class MatConfiguration():
         # Stations
         self.stations = {
             'pickup': 0,
-            'scale': 1,
-            'camera_place': 2,
-            'camera_pick': 3,
-            'dropoff': 4
+            'scale_place': 1,
+            'scale_pick': 2,
+            'camera_place': 3,
+            'camera_pick': 4,
+            'dropoff': 5
         }
 
 
@@ -85,7 +90,7 @@ class MatConfiguration():
     def get_goal_pose(self, station):
         if station == self.stations['pickup']:
             pos = self.pickup_positions[0]
-        elif station == self.stations['scale']:
+        elif station == self.stations['scale_place'] or station == self.stations['scale_pick']:
             pos = self.scale_position
         elif station == self.stations['camera_place']:
             pos = self.camera_position
@@ -100,9 +105,9 @@ class MatConfiguration():
     def select_goal_z(self, pose, station):
         if station == self.stations['pickup']:
             pose['position'][2] = self.table_z 
-        elif station == self.stations['scale']:
+        elif station == self.stations['scale_place'] or station == self.stations['scale_pick']:
             pose['position'][2] = self.scale_z
-        elif station == self.stations['camera_pick'] or station == self.stations['camera_place']:
+        elif station == self.stations['camera_place'] or station == self.stations['camera_pick']:
             pose['position'][2] = self.camera_z
         elif station == self.stations['dropoff']:
             pose['position'][2] = self.table_z
