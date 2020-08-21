@@ -13,9 +13,13 @@ working_pose:
 
 use_numerical_ik: False
 
-calibrate_location:
+mat_color_location:
   x: 0.3
   y: 0.15
+
+scale_color_location:
+  x: 0.215
+  y: 0
 
 pickup_area:
   step_size: 0.05
