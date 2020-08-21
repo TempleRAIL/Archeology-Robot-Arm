@@ -35,10 +35,11 @@ class Home(smach.State):
         self.core.gripper.open()
         rospy.loginfo("Arm sent home.")
         # SMACH Logic
-        if self.core.color_mask is None:
-            return 'no_mask'
-        else:
-            return 'ready'
+        for k,v in self.core.color_masks.items():
+            if self.core.color_masks[k] is None:
+                return 'no_mask'
+            else:
+                return 'ready'
 
 
 # ** Second state of State Machine: Sends the arm to capture image of empty background mat **
@@ -51,7 +52,8 @@ class Calibrate(smach.State):
     def execute(self, userdata):
         userdata.station = self.mat.stations['pickup']
         try:
-            self.core.calibrate_fun(self.mat.calibrate_pose)
+            self.core.calibrate_fun(self.mat.mat_color_pose, location='mat')
+            self.core.calibrate_fun(self.mat.scale_color_pose, location='scale')
         except PlanningFailure:
             return 'replan'
         except:
@@ -77,7 +79,7 @@ class Translate(smach.State):
         except PlanningFailure:
             return 'replan'
         else:
-            if userdata.station == self.mat.stations['pickup'] or userdata.station == self.mat.stations['camera_pick']:
+            if userdata.station == self.mat.stations['pickup'] or userdata.station == self.mat.stations['scale_pick'] or userdata.station == self.mat.stations['camera_pick']:
                 return 'search'
             else:
                 userdata.goal = pose
@@ -96,8 +98,10 @@ class Examine(smach.State):
         try:
             if userdata.station == self.mat.stations['pickup']:
                 (found, sherd_poses) = self.core.shard_fun(self.mat.pickup_pose(userdata.attempts))
+            #elif userdata.station == self.mat.stations['scale_pick']:
+             #   (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'])
             elif userdata.station == self.mat.stations['camera_pick']:
-                (found, sherd_poses) = self.core.detect_fun()
+                (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['mat'])
         except PlanningFailure:
             return 'replan'
         except Exception as e:
@@ -130,17 +134,22 @@ class Acquire(smach.State):
         pose = userdata.goal # get goal pose
         pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # If failed to go to goal pose first time around (i.e. made more than one attempt already), get pose from sensor
-        if userdata.attempts != 0 and userdata.station != self.mat.stations['scale']:
+        if userdata.attempts != 0:
             try:
                 self.core.gripper.open()
                 pose['position'][2] = self.mat.survey_z  # move up to survey height
-                self.core.move_fun(pose)
-                (found, sherd_poses) = self.core.detect_fun()
+                self.core.move_fun_retry(pose)
+                if userdata.station == self.mat.stations['scale_pick']:
+                    pose['position'][0] -= 0.075
+                    self.core.move_fun_retry(pose)
+                    (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'])
+                else:
+                    (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['mat'])                    
             except PlanningFailure:
                 return 'replan'
             except Exception as e:
                 rospy.logwarn('Could not pick up sherd because of Exception: {}'.format(e))
-                userdata.station = stations['pickup']
+                userdata.station = self.mat.stations['pickup']
                 return 'failed'
             else:
                 if found:
@@ -150,7 +159,8 @@ class Acquire(smach.State):
                     pose = userdata.goal
         # Try to acquire sherd
         try:
-            if userdata.station == self.mat.stations['scale']: # skip AutoCore pick_place_fun
+            #self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
+            if userdata.station == self.mat.stations['scale_pick']: # skip AutoCore pick_place_fun
                 self.core.gripper.open()
                 pose['position'][2] += self.core.gripper_len + self.core.clearance
                 self.core.move_fun_retry(pose)
@@ -180,7 +190,7 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class PlaceSherd(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['failed', 'replan', 'regrasp_scale', 'regrasp_camera', 'next_sherd', 'recalibrate'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg'])
+        smach.State.__init__(self, outcomes = ['failed', 'replan', 'retrieve_scale', 'retrieve_camera', 'next_sherd', 'recalibrate'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg'])
         self.core = core
         self.mat = mat
         
@@ -198,7 +208,7 @@ class PlaceSherd(smach.State):
             userdata.station = self.mat.stations['pickup']
             return 'failed'
         else:
-            if userdata.station == self.mat.stations['scale']:
+            if userdata.station == self.mat.stations['scale_place']:
                 #pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
                 try:
                     self.core.move_fun_retry(pose)
@@ -207,7 +217,8 @@ class PlaceSherd(smach.State):
                 except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
                 else:
-                    return 'regrasp_scale'
+                    userdata.station += 1
+                    return 'retrieve_scale'
             elif userdata.station == self.mat.stations['camera_place']:
                 # Move to standby position to get out of the way of the camera
                 try:
@@ -232,7 +243,7 @@ class PlaceSherd(smach.State):
                     rospy.logwarn('Exception raised: {}'.format(e))
                 else:
                     userdata.station += 1
-                    return 'regrasp_camera'
+                    return 'retrieve_camera'
             else:  # if placed in discard pile
                 try:
                     pose['position'][2] = self.core.working_z
@@ -271,7 +282,7 @@ def process_sherds():
         smach.StateMachine.add('Translate', Translate(core, mat), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'PlaceSherd'})
         smach.StateMachine.add('Examine', Examine(core, mat), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
-        smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'next_sherd': 'Translate', 'regrasp_scale': 'Acquire', 'regrasp_camera': 'Translate', 'recalibrate': 'Calibrate'})
+        smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate'})
 
     # ** Execute the SMACH plan **
     sm.execute()
