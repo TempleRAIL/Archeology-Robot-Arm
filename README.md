@@ -12,4 +12,5 @@ Put into your ROS workspace using the instructions [here](https://github.com/Jen
 
 ### 2) Launch the Simulation
 1. In the terminal: `roslaunch robot_arm archaeology.launch`
-2. In another terminal window: `roslaunch robot_arm arm.launch`
+2. In another terminal window: `load_pyrobot_env`
+`roslaunch robot_arm arm.launch`
