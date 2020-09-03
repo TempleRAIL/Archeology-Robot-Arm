@@ -2,6 +2,7 @@
 
 #Import Python libraries
 import cv2
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
@@ -40,41 +41,56 @@ def camera_data_callback(im_msg, pc_msg):
         camera_data_lock.release()
 
 ##############################################################
-# segment_sherds(color_mask, img)
+# segment_sherds(color_mask, non_sherds_img, img)
 # This function segments sherds from the color image.
 # inputs: robot_arm/SherdDetectionsRequest
 # outputs: cv2 RGB image
 
-def segment_sherds(color_mask, img):
+def segment_sherds(color_mask, non_sherds_img, img):
     # Unpack HSV mask
     # TODO get working for more than 1 color
     floor = [color_mask.data[0], color_mask.data[1], color_mask.data[2]]    
     ceiling = [color_mask.data[3], color_mask.data[4], color_mask.data[5]]
-    
+
+    # Apply color mask to img from robot camera, blacking out background color 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  # convert to HSV for color masking
-   
-    bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) )
-    fg_mask = cv2.bitwise_not(bg_mask)
+    bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) )  # pixels outside of color mask range blacked out
+    fg_mask = cv2.bitwise_not(bg_mask)  # invert so that pixels inside color mask range are blacked out
 
-    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8)) 
+    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8)) 
 
-    # Apply final mask to show sherds and black out background
     rgb = img[:, :, ::-1]  # flip to RGB for display
-    sherds_image = cv2.bitwise_and(rgb, rgb, mask=fg_mask)
-    
-    # Display original image and segmented objects
+    sherds_image = cv2.bitwise_and(rgb, rgb, mask=fg_mask) # apply foreground mask
+
+    # Create non-sherd mask using non_sherds_img
+    if non_sherds_img is not None:
+        hsv = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)  # convert to HSV for color masking
+        bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) ) # pixels outside of color mask range blacked out
+        fg_mask = cv2.bitwise_not(bg_mask)  # invert so that non-sherds are allowed through
+        fg_mask = cv2.dilate(fg_mask, kernel=np.ones((3,3),np.uint8), iterations=15) # dilate non-sherd areas
+        non_sherd_mask = cv2.bitwise_not(fg_mask) # invert again to black out non-sherd areas
+        """
+        # Debugging        
+        plt.imshow(non_sherd_mask)
+        plt.title("Final Non-sherd Mask")
+        plt.show()
+        """
+        sherds_image = cv2.bitwise_and(sherds_image, sherds_image, mask=non_sherd_mask) # apply mask to remove non-sherds
+    else:
+        pass
+ 
+    # Debugging: Display original image and segmented sherds
     """
     plt.subplot(121),plt.imshow(rgb)
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
     plt.subplot(122),plt.imshow(sherds_image)
-    plt.title('Sherds'), plt.xticks([]), plt.yticks([])
+    plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
     plt.show()
-    """
-    
+    """ 
     return sherds_image
 
 ##############################################################
-# locate_sherds(sherds_image, points )
+# locate_sherds(sherds_image, bgnd_image, points, header)
 # This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
 # publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
@@ -84,9 +100,9 @@ def locate_sherds(sherds_image, points, header):
 
     img_height, img_width, _ = sherds_image.shape
 
-    # Find contours in gray 'sherds_image' image.
-    gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY)
-    _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
+    # Convert sherds_image to grayscale and find contours
+    gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY) # convert to grayscale
+    _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
     #print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
     # exclude boxes smaller than a minimum area
@@ -101,7 +117,6 @@ def locate_sherds(sherds_image, points, header):
     # For each detected contour, find bounding box
     for cnt in contours:
         rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
-
         box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
         box = np.int0(box)
 
@@ -195,14 +210,16 @@ def locate_sherds(sherds_image, points, header):
             # Debugging: draw bounding boxes around sherds
             # Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
-            """
+
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
+
+            #Debugging
+            """
             plt.figure("Figure 2")
             plt.imshow(sherd_contours)
             plt.title("Bounding Box around Sherd")
             plt.show()
-            
-            # Debugging
+
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
             print("Width endpoints in pixels: (%f, %f) and (%f, %f)." % (col_width_end1, row_width_end1, col_width_end2, row_width_end2) )
@@ -236,8 +253,13 @@ def detect_sherds_callback(req):
         header = image_msg.header
     finally:
         camera_data_lock.release()
-    # Segment sherds using HSV color mask
-    sherds_image = segment_sherds(req.color_mask, img)
+    rospy.logwarn("req.subtract_background value is: {}".format(req.subtract_background))
+    if req.subtract_background:
+        non_sherds_img = bridge.imgmsg_to_cv2(req.background_image, "bgr8")
+    else:
+        non_sherds_img = None
+    # Segment sherds using HSV color mask and non-sherds mask
+    sherds_image = segment_sherds(req.color_mask, non_sherds_img, img)
     # Locate sherds in image
     points = np.zeros( (point_cloud.shape[0], point_cloud.shape[1], 3) )
     points[:,:,0] = point_cloud['x']
