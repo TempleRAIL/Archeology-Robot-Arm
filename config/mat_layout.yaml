@@ -9,7 +9,7 @@ table_z: 0.0
 working_pose:
   z: 0.15
   roll: 0
-  pitch: 1.5
+  pitch: 1.55
 
 use_numerical_ik: False
 
@@ -32,6 +32,10 @@ scale_location:
   x: 0.3
   y: 0.0
   z: 0.015
+
+scale_survey_location:
+  x: 0.23
+  y: 0.0
   
 cam_location:
   x: 0.32
