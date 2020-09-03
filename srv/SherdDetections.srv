@@ -1,3 +1,5 @@
 std_msgs/Int16MultiArray color_mask
+bool subtract_background
+sensor_msgs/Image background_image
 ---
 robot_arm/Detection3DRPYArray detections
