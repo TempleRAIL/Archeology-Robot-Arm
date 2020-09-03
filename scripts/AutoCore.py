@@ -59,6 +59,7 @@ class AutoCore():
 
         # Initialize other class members
         self.color_masks = {'mat': None, 'scale': None} # color masks for sherd detection
+        self.bgnds = {'camera': None} # background images to subtract after color masking for sherd detections
         self.mass = None # mass of sherd on scale
         self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
@@ -117,7 +118,7 @@ class AutoCore():
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
 
 
-    # Function to record mass of object on scale
+    # Function to record mass of object on scale and save in ROS sherd_msg
     def get_mass_fun(self, msg):
         sherd_msg = msg
         # run read_scale_server.py
@@ -133,12 +134,13 @@ class AutoCore():
             return sherd_msg
 
 
-    # Function to take archival photo
-    def take_photo_fun(self, msg):
+    # Function to take archival photo and save in ROS sherd_msg
+    def archival_photo_fun(self, msg):
         sherd_msg = msg
         rospy.logwarn('AutoCore: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
         # run take_photo_server.py
         req = PhotoRequest()
+        req.which_camera = 'archival'
         try:
             res = self.photo_srv(req)
         except rospy.ServiceException as e:
@@ -149,8 +151,56 @@ class AutoCore():
             rospy.logwarn('AutoCore: Got archival photo of sherd.')
             return sherd_msg
 
+
+    # Function to generate color mask from image of empty background
+    def get_color_mask_fun(self, calibrate_pose, mask_type, num_colors=1):
+        rospy.logdebug('AutoCore: get_color_mask_fun triggered.')
+        # Move arm to calibration location
+        try:
+            self.move_fun(calibrate_pose)
+        except:
+            raise
+        # Request data from service
+        req = ColorMaskRequest()
+        req.num_colors = num_colors
+        req.show_chart = False
+        # Save results from service
+        try:
+            res = self.color_mask_srv(req)
+        except rospy.ServiceException as e:
+            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
+            raise
+        else:
+            self.color_masks[mask_type] = res.color_mask
+            self.mat_z = res.mat_z
+            rospy.logwarn('AutoCore: Got color masks.')
+            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
+
+
+    #Function to save image of empty background
+    def get_background_fun(self, calibrate_pose, station):
+        rospy.logdebug('AutoCore: get_background_fun triggered.')
+        # Move arm to calibration location
+        try:
+            self.move_fun(calibrate_pose)
+        except:
+            raise
+        # Request data from service
+        req = PhotoRequest()
+        req.which_camera = 'robot'
+        # Save results from service
+        try:
+            res = self.photo_srv(req)
+        except rospy.ServiceException as e:
+            rospy.logerr('AutoCore: take_photo service call failed: {}'.format(e))
+            raise
+        else:
+            self.bgnds[station] = res.image
+            rospy.logwarn('AutoCore: Got background at {}'.format(station))
+
+
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
-    def detect_fun(self, color_mask, num_colors=1):
+    def detect_fun(self, color_mask, bgnd_img=None):
         found = False
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
@@ -160,8 +210,13 @@ class AutoCore():
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
         req.color_mask = color_mask
+        if bgnd_img:
+            req.subtract_background = True
+            req.background_image = bgnd_img
+        else:
+            req.subtract_background = False
         try:
-            res = self.detection_srv(req)
+            res = self.detection_srv(req) #TODO edit this service to handle subtraction of bgnd img
         except rospy.ServiceException as e:
             rospy.logerr('AutoCore: Bounding box service call failed: {}'.format(e))
             raise
@@ -192,33 +247,6 @@ class AutoCore():
 
 
     ########## Motion primitives ##########
-    # Function to trigger generation of color mask
-    # Captures image of empty background mat
-    def calibrate_fun(self, calibrate_pose, location):
-        #TODO logic check that only one station (mat, scale, etc.) is True
-        rospy.logdebug('AutoCore: calibrate_fun triggered.')
-        # Move arm to calibration location
-        try:
-            self.move_fun(calibrate_pose)
-        except:
-            raise
-        # Request data from service
-        req = ColorMaskRequest()
-        req.num_colors = 1
-        req.show_chart = False
-        # Save results from service
-        try:
-            res = self.color_mask_srv(req)
-        except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
-            raise
-        else:
-            self.color_masks[location] = res.color_mask
-            self.mat_z = res.mat_z
-            rospy.logwarn('AutoCore: Got color masks.')
-            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
-
-
     # Function to increment through survey positions in sherd pick-up area
     def shard_fun(self, pose):
         rospy.loginfo('Examining surface for sherds')
