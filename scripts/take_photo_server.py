@@ -20,8 +20,12 @@ bridge = CvBridge()  # OpenCV converter
 
 def take_photo_callback(req):
     # Subscribe to archival camera image ROS topic (echoed from gazebo topic)
-    msg = rospy.wait_for_message('/archival_camera/image_raw', Image)
-    #print("Got message from /archival_camera/image_raw topic.")
+    if req.which_camera == 'archival':
+        msg = rospy.wait_for_message('/archival_camera/image_raw', Image)
+        #print("Got message from /archival_camera/image_raw topic.")
+    else:
+        msg = rospy.wait_for_message('/camera/color/image_raw', Image)
+        print("Got message from /camera/color/image_raw topic.")
 
     display = rospy.get_param('sherd_states/show_cam_photo', False)
     if display:
@@ -29,7 +33,10 @@ def take_photo_callback(req):
         cv_photo = cv_photo[:, :, ::-1]  # flip to RGB for display
         plt.figure()
         plt.imshow(cv_photo)
-        plt.title("Archival Photo")
+        if req.which_camera == 'archival':
+            plt.title("Archival Photo")
+        else:
+            plt.title("Photo from Robot Camera")
         plt.show()
 
     res = PhotoResponse()
