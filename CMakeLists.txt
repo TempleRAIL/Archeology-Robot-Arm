@@ -91,6 +91,7 @@ add_service_files(
    std_msgs
    vision_msgs
    geometry_msgs
+   sensor_msgs
  )
 
 ################################################
