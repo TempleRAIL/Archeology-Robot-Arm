@@ -54,15 +54,20 @@ class MatConfiguration():
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
         self.camera_z = self.table_z #cam_location['z']
 
-        # Initialize standby location (out of archival camera frame)
+        # Initialize standby location and pose (out of archival camera frame)
         standby_location = rospy.get_param('~standby_location')
         standby_position = np.array([standby_location['x'], standby_location['y'], self.working_z])
         self.standby_pose = {"position": standby_position, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
-        
+
+        # Initialize scale survey location and pose (if first regrasp attempt fails)
+        scale_survey_location = rospy.get_param('~scale_survey_location')
+        scale_survey_position = np.array([scale_survey_location['x'], scale_survey_location['y'], self.survey_z])
+        self.scale_survey_pose = {"position": scale_survey_position, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
+
         # Initialize camera survey location (for reacquiring sherd after archival photo)
         cam_survey_location = rospy.get_param('~cam_survey_location')
         self.camera_survey_position = np.array([cam_survey_location['x'], cam_survey_location['y'], self.survey_z])
-        
+      
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
         self.discard_z = self.table_z #discard_area['z']
@@ -91,11 +96,11 @@ class MatConfiguration():
         if station == self.stations['pickup']:
             pos = self.pickup_positions[0]
         elif station == self.stations['scale_place'] or station == self.stations['scale_pick']:
-            pos = self.scale_position
+            pos = self.scale_position  # if first reacquisition fails, moving to survey pose is handled in State Machine logic
         elif station == self.stations['camera_place']:
             pos = self.camera_position
-        elif station == self.stations['camera_pick']:
-            pos = self.camera_survey_position
+        elif station == self.stations['camera_pick']: 
+            pos = self.camera_survey_position # always survey before trying to reacquire from camera area
         elif station == self.stations['dropoff']:
             pos = self.dropoff_position()
         return {"position": pos, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
