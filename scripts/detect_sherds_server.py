@@ -47,22 +47,29 @@ def camera_data_callback(im_msg, pc_msg):
 # outputs: cv2 RGB image
 
 def segment_sherds(color_mask, non_sherds_img, img):
-    # Unpack HSV mask
+    #TODO Unpack HSV mask using stride data
     # TODO get working for more than 1 color
-    floor = [color_mask.data[0], color_mask.data[1], color_mask.data[2]]    
-    ceiling = [color_mask.data[3], color_mask.data[4], color_mask.data[5]]
 
     # Apply color mask to img from robot camera, blacking out background color 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  # convert to HSV for color masking
-    bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) )  # pixels outside of color mask range blacked out
-    fg_mask = cv2.bitwise_not(bg_mask)  # invert so that pixels inside color mask range are blacked out
 
+    # initialize bg_mask outside of loop as all zeros
+
+    # for loop using stride data; extract each floor and ceiling:
+    floor = [color_mask.data[0], color_mask.data[1], color_mask.data[2]]
+    ceiling = [color_mask.data[3], color_mask.data[4], color_mask.data[5]]
+    # apply floors and ceilings in succession to bg_mask --> fg_mask
+    bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) )  # pixels outside of color mask range blacked out
+
+
+    fg_mask = cv2.bitwise_not(bg_mask)  # invert so that pixels inside color mask range are blacked out
     fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8)) 
 
     rgb = img[:, :, ::-1]  # flip to RGB for display
     sherds_image = cv2.bitwise_and(rgb, rgb, mask=fg_mask) # apply foreground mask
 
-    # Create non-sherd mask using non_sherds_img
+    # Create non-sherd mask using non_sherds_img 
+    # TODO also place this inside the for-loop above
     if non_sherds_img is not None:
         hsv = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)  # convert to HSV for color masking
         bg_mask = cv2.inRange( hsv, np.array(floor), np.array(ceiling) ) # pixels outside of color mask range blacked out
