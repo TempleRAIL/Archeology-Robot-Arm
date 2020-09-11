@@ -53,7 +53,7 @@ class Calibrate(smach.State):
         userdata.station = self.mat.stations['pickup']
         try:
             self.core.get_color_mask_fun(self.mat.mat_color_pose, mask_type='mat')
-            self.core.get_color_mask_fun(self.mat.scale_color_pose, mask_type='scale')
+            self.core.get_color_mask_fun(self.mat.scale_color_pose, mask_type='scale', num_colors=2)
             camera_survey_pose = self.mat.get_goal_pose( self.mat.stations['camera_pick'] )
             self.core.get_background_fun(camera_survey_pose, station='camera')
         except PlanningFailure: # may be raised by AutoCore's get_color_mask or get_background functions
@@ -273,7 +273,7 @@ def process_sherds():
         # ** Adds the states to the container **
         smach.StateMachine.add('Home', Home(core, mat), transitions = {'no_mask': 'Calibrate', 'ready': 'Translate'})
         smach.StateMachine.add('Calibrate', Calibrate(core, mat), transitions = {'replan': 'Calibrate', 'not_ready': 'NotReady', 'ready': 'Examine'})
-        smach.StateMachine.add('Translate', Translate(core, mat), transitions = {'replan': 'Translate', 'search': 'Examine', 'put_down': 'PlaceSherd'})
+        smach.StateMachine.add('Translate', Translate(core, mat), transitions = {'replan': 'Translate', 'failed': 'Home', 'search': 'Examine', 'put_down': 'PlaceSherd'})
         smach.StateMachine.add('Examine', Examine(core, mat), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
         smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire'})
         smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'replace': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate'})
