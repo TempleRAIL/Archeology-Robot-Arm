@@ -64,29 +64,49 @@ def get_color_as_string(color):
     return "({}, {}, {})".format(int(color[0]), int(color[1]), int(color[2]))
 
 ##############################################################
-# get_mask_as_ROS_msg(num_colors, cluster_labels, image)
+# get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image)
 # This function generates a ROS-msg friendly list of floors and ceilings defining a color mask for each color extracted by KMeans
-# inputs: number of colors, cluster_labels = output of KMeans fit_predict method, OpenCV HSV image used to generate color mask
-
+# inputs: number of colors, cluster_labels = output of KMeans fit_predict method, 2D_image = OpenCV HSV image used to generate color mask, reshaped as a 2D array
 # returns: flat list of floors and ceilings for each color mask
 
-def get_mask_as_ROS_msg(num_colors, cluster_labels, image):
+def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
     flat_mask = []
     minval = .07
     maxval = 1
+    """
+    cluster_labels and image are arrays with identical number of rows.
+    
+    2D_image has 3 columns for H, S, and V:
+    array([ [ H S V]
+            [ H S V]
+            .
+            .
+            .
+            [ H S V] ], dtype=uint8)
 
+    cluster_labels:
+    array([ 1
+            0
+            .
+            .
+            .
+            2 ], dtype=uint8)
+
+    An HSV color in the 2D_image is linked to its color cluster (cluster 0, cluster 1, etc.) by cross-referencing row numbers
+    across these two arrays.
+    """
     for i in range(num_colors):
-        cluster_indices = np.where(labels == i)  # in array of cluster numbers, find every position that belongs to ith cluster
-        colors_in_cluster = reshaped_hsv[cluster_indices]  # cross-reference: get array of all HSV colors belonging to cluster i
+        cluster_indices = np.where(cluster_labels == i)	# in array of cluster labels, find every position belonging to ith cluster
+        colors_in_cluster = twoD_image[cluster_indices]  # cross-reference: get array of all HSV colors belonging to cluster i
 
         huethresh = np.std(colors_in_cluster[:,0])/2
         satthresh = np.std(colors_in_cluster[:,1])/2
 
-        minhue = center_colors[i][0] - huethresh
-        maxhue = center_colors[i][0] + huethresh
+        minhue = colors_in_cluster[i][0] - huethresh
+        maxhue = colors_in_cluster[i][0] + huethresh
 
-        minsat = center_colors[i][1] - satthresh
-        maxsat = center_colors[i][1] + satthresh
+        minsat = colors_in_cluster[i][1] - satthresh
+        maxsat = colors_in_cluster[i][1] + satthresh
 
         floor = [minhue, minsat, minval]	# lower bound of mask for ith color
         ceiling = [maxhue, maxsat, maxval]	# upper bound of mask ith color
@@ -116,7 +136,7 @@ def image_callback(msg):
 def color_mask_callback(req):
     global image_msg, point_cloud_msg, camera_data_lock
     
-    rospy.loginfo("Extracting {} colors for this station's color mask."format(req.num_colors))
+    rospy.loginfo("Extracting {} colors for this station's color mask".format(req.num_colors))
     
     if image_msg is None:
         rospy.logerr('No image received yet')
@@ -139,8 +159,8 @@ def color_mask_callback(req):
     clf = KMeans(n_clusters = req.num_colors) 
     labels = clf.fit_predict(reshaped_hsv) # numpy array of which cluster each sample belongs to (e.g. [0, 0, 2, 1, 2, 1, 0...])
     counts = Counter(labels)
-    center_colors = clf.cluster_centers_ # HSV coordinates for each cluster center
-    ordered_colors = [center_colors[i] for i in counts.keys()] 
+    colors_in_cluster = clf.cluster_centers_ # HSV coordinates for each cluster center
+    ordered_colors = [colors_in_cluster[i] for i in counts.keys()] 
     #print ("Ordered colors: ", ordered_colors)
     color_strings = [get_color_as_string(ordered_colors[i]) for i in counts.keys()]
 
@@ -157,7 +177,8 @@ def color_mask_callback(req):
     res = ColorMaskResponse()
     #res.mat_z = np.average(point_cloud['z']) # get average z value of top face of mat
     """
-    Structure of color_mask ROS msg:
+    Actual msg data structure is a flat list, i.e., [H,S,V,H,S,V,...,H,S,V]
+    Layout of color_mask ROS msg described by layout.
 
                 Floor       Ceiling
     Color 1     [H,S,V]     [H,S,V]
