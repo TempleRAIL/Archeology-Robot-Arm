@@ -156,8 +156,17 @@ def color_mask_callback(req):
 
     res = ColorMaskResponse()
     #res.mat_z = np.average(point_cloud['z']) # get average z value of top face of mat
+    """
+    Structure of color_mask ROS msg:
 
-    # Construct message for color mask
+                Floor       Ceiling
+    Color 1     [H,S,V]     [H,S,V]
+    Color 2     [H,S,V]     [H,S,V]
+    Color 3     [H,S,V]     [H,S,V]
+    .
+    .
+    .
+    """
     res.color_mask.data = flat_mask
     res.color_mask.layout.dim = [MultiArrayDimension(), MultiArrayDimension(), MultiArrayDimension()]
     
