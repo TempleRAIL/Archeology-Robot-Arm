@@ -137,7 +137,7 @@ class Acquire(smach.State):
         pose = userdata.goal # get goal pose. 
         pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # If failed first attempt to grasp sherd 'blind' from scale, get pose from sensor
-        if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts == 1:
+        if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts > 0:
             try:
                 self.core.gripper.open()
                 pose = self.mat.scale_survey_pose # update last attempted sherd pose (stored in userdata.goal)
@@ -149,6 +149,9 @@ class Acquire(smach.State):
             else:
                 if found:
                     pose = sherd_poses[0]
+                    pose = self.mat.select_goal_z(pose, userdata.station)
+                    pose['pitch'] = self.mat.working_p
+                    pose['numerical'] = self.mat.use_numerical_ik
                 else:
                     rospy.logwarn('No sherd seen, trying last known sherd pose')
                     pose = userdata.goal
