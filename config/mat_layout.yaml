@@ -1,3 +1,4 @@
+sim: True
 gripper_len: 0.0775
 clearance: .0025  # gap between end of fingers and table/mat [m]
 scale_tare: 0.1 # mass [kg] of scale cover link in simulation
