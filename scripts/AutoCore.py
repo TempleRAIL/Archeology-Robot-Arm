@@ -53,6 +53,7 @@ class AutoCore():
         self.gripper = gripper
 
         # Pyrobot parameters
+        self.sim = rospy.get_param('~sim')
         self.gripper_len = rospy.get_param('~gripper_len')
         self.clearance = rospy.get_param('~clearance')
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
@@ -163,6 +164,7 @@ class AutoCore():
         # Request data from service
         req = ColorMaskRequest()
         req.num_colors = num_colors
+        req.sim = self.sim
         req.show_chart = False
         # Save results from service
         try:
@@ -216,7 +218,7 @@ class AutoCore():
         else:
             req.subtract_background = False
         try:
-            res = self.detection_srv(req) #TODO edit this service to handle subtraction of bgnd img
+            res = self.detection_srv(req)
         except rospy.ServiceException as e:
             rospy.logerr('AutoCore: Bounding box service call failed: {}'.format(e))
             raise
