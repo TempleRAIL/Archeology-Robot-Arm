@@ -41,10 +41,10 @@ def camera_data_callback(im_msg, pc_msg):
         camera_data_lock.release()
 
 ##############################################################
-# segment_sherds(color_mask, non_sherds_img, sherds_img)
+# segment_sherds(color_mask, sherds_img, non_sherds_img)
 # This function segments sherds from the color image.
 # inputs: robot_arm/SherdDetectionsRequest
-# outputs: cv2 RGB image
+# outputs: OpenCV RGB image
 
 def segment_sherds(color_mask, sherds_img, non_sherds_img):
     """
@@ -66,28 +66,38 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     stride = color_mask.layout.dim[1].stride
       
     # convert images to HSV for color-masking
-    # background masks block out pixels OUTSIDE color range, defined by floor and ceiling
-    # foreground masks are inversions of background masks
-
     hsv_sherds = cv2.cvtColor(sherds_img, cv2.COLOR_BGR2HSV)
-    # if need to mask out non-sherd items, e.g. color bar, scale bar, digital displays
     if non_sherds_img is not None:
         hsv_nonsherd = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)
 
     # initialize masks outside of loop as all zeros
-    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1],3),np.uint8)
+    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1]),np.uint8) #np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1],3),np.uint8)
     bg_mask_nonsherd = bg_mask_sherds
 
     # build background mask(s) by applying every color range in succession 
     for i in range(0, num_colors):
         floor = [color_mask.data[0+(i*stride)], color_mask.data[1+(i*stride)], color_mask.data[2+(i*stride)]]
         ceiling = [color_mask.data[3+(i*stride)], color_mask.data[4+(i*stride)], color_mask.data[5+(i*stride)]]
-        #TODO: looks like we need to initialize an empty color mask after all, then do a += deal 
-        bg_mask_sherds += cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
+
+        this_mask = cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
+        bg_mask_sherds += this_mask
+
+        # Debugging        
+        plt.imshow(bg_mask_sherds)
+        plt.title("bg_mask_sherds iteration {}".format(i))
+        plt.show()
+
         if non_sherds_img is not None:
-            bg_mask_nonsherd += cv2.inRange( hsv_nonsherd, np.array(floor), np.array(ceiling) )  # non-sherds blocked out
-       
-    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through
+            that_mask = cv2.inRange( hsv_nonsherd, np.array(floor), np.array(ceiling) )  # non-sherds blocked out
+            bg_mask_nonsherd += that_mask
+
+    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through - TODO why does sherd get blocked out at the archival camera, but color and scale bars are allowed through?
+
+    # Debugging        
+    plt.imshow(fg_mask_sherds)
+    plt.title("Foreground Mask")
+    plt.show()
+
     sherds_mask = cv2.morphologyEx(fg_mask_sherds, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8))  # final sherds mask
     rgb = sherds_img[:, :, ::-1]  # flip to RGB for display
     segmented_sherds = cv2.bitwise_and(rgb, rgb, mask=sherds_mask) # apply mask that allows sherds through
@@ -95,6 +105,14 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     # Debugging        
     plt.imshow(sherds_mask)
     plt.title("Final Sherds Mask")
+    plt.show()
+
+    # Debugging: Display original image and segmented sherds
+    
+    plt.subplot(121),plt.imshow(rgb)
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(segmented_sherds)
+    plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
     plt.show()
 
     if non_sherds_img is not None:
@@ -110,12 +128,12 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
         segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
  
     # Debugging: Display original image and segmented sherds
-    
-    plt.subplot(121),plt.imshow(rgb)
-    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(segmented_sherds)
-    plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
-    plt.show()
+    if non_sherds_img is not None:
+        plt.subplot(121),plt.imshow(rgb)
+        plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122),plt.imshow(segmented_sherds)
+        plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
+        plt.show()
      
     return segmented_sherds
 
@@ -285,7 +303,7 @@ def detect_sherds_callback(req):
         camera_data_lock.release()
     rospy.logwarn("req.subtract_background value is: {}".format(req.subtract_background))
     if req.subtract_background:
-        non_sherds_img = bridge.imgmsg_to_cv2(req.background_image, "bgr8")
+        non_sherds_img = bridge.imgmsg_to_cv2(req.background_image, "bgr8")  # BGR OpenCV image
     else:
         non_sherds_img = None
     # Segment sherds using HSV color mask and non-sherds mask
