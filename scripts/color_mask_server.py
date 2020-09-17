@@ -118,8 +118,6 @@ def get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image):
             huethresh = 9  # OpenCV hue format
             satthresh = 71.4 #OpenCV saturation format
 
-        print("Hue standard deviation is {} and sat std dev is {}".format(huethresh, satthresh))
-
         minhue = colors_in_cluster[i][0] - huethresh
         maxhue = colors_in_cluster[i][0] + huethresh
 
