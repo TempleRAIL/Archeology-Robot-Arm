@@ -55,6 +55,17 @@ def HSV2RGB(color):
     return colorsys.hsv_to_rgb(color[0]/180, color[1]/255, color[2]/255)
 
 ##############################################################
+# convert_hsv_to_OpenCV(list)
+# This function converts HSV colors from the standard range into the OpenCV range.
+# inputs: list of HSV channels in integer format: [degree out of 360 for hue], [0-100 saturation], [0-100 value]
+# returns: list of HSV channels in 0-180 (hue) and 0-255 (saturation, value) ranges
+
+def convert_hsv_to_OpenCV(hsv_values):
+    hsv_in_OpenCV = [int(hsv_values[0]*0.01*180), int(float_hsv_values[1]*0.01*255), int(float_hsv_values[2]*0.01*255)]
+    
+    return hsv_in_OpenCV
+
+##############################################################
 # get_color_as_string(color)
 # This function returns string labels for the pie chart.
 # inputs: color value as 1x3 array
@@ -64,15 +75,12 @@ def get_color_as_string(color):
     return "({}, {}, {})".format(int(color[0]), int(color[1]), int(color[2]))
 
 ##############################################################
-# get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image)
+# get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image)
 # This function generates a ROS-msg friendly list of floors and ceilings defining a color mask for each color extracted by KMeans
 # inputs: number of colors, cluster_labels = output of KMeans fit_predict method, 2D_image = OpenCV HSV image used to generate color mask, reshaped as a 2D array
 # returns: flat list of floors and ceilings for each color mask
 
-def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
-    flat_mask = []
-    minval = .07
-    maxval = 1
+def get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image):
     """
     cluster_labels and image are arrays with identical number of rows.
     
@@ -95,12 +103,22 @@ def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
     An HSV color in the 2D_image is linked to its color cluster (cluster 0, cluster 1, etc.) by cross-referencing row numbers
     across these two arrays.
     """
+    flat_mask = []
+    minval = 17.85  # OpenCV value format
+    maxval = 255
+
     for i in range(num_colors):
         cluster_indices = np.where(cluster_labels == i)	# in array of cluster labels, find every position belonging to ith cluster
         colors_in_cluster = twoD_image[cluster_indices]  # cross-reference: get array of all HSV colors belonging to cluster i
 
-        huethresh = np.std(colors_in_cluster[:,0])/2
-        satthresh = np.std(colors_in_cluster[:,1])/2
+        if not sim:
+            huethresh = np.std(colors_in_cluster[:,0])*0.01*180 # OpenCV hue format
+            satthresh = np.std(colors_in_cluster[:,1])*0.01*255 # OpenCV saturation
+        else:
+            huethresh = 9  # OpenCV hue format
+            satthresh = 71.4 #OpenCV saturation format
+
+        print("Hue standard deviation is {} and sat std dev is {}".format(huethresh, satthresh))
 
         minhue = colors_in_cluster[i][0] - huethresh
         maxhue = colors_in_cluster[i][0] + huethresh
@@ -163,6 +181,7 @@ def color_mask_callback(req):
     ordered_colors = [colors_in_cluster[i] for i in counts.keys()] 
     #print ("Ordered colors: ", ordered_colors)
     color_strings = [get_color_as_string(ordered_colors[i]) for i in counts.keys()]
+    
 
     # Show pie chart of extracted colors
     if (req.show_chart):
@@ -172,7 +191,7 @@ def color_mask_callback(req):
         plt.pie(counts.values(), labels = color_strings, colors = pie_chart_colors)
         plt.show()
 
-    flat_mask = get_mask_as_ROS_msg(req.num_colors, labels, reshaped_hsv)
+    flat_mask = get_mask_as_ROS_msg(req.num_colors, req.sim, labels, reshaped_hsv)
 
     res = ColorMaskResponse()
     #res.mat_z = np.average(point_cloud['z']) # get average z value of top face of mat
