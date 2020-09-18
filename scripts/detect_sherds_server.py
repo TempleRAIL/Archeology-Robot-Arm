@@ -71,8 +71,8 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
         hsv_nonsherd = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)
 
     # initialize masks outside of loop as all zeros
-    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1]),np.uint8) #np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1],3),np.uint8)
-    bg_mask_nonsherd = bg_mask_sherds
+    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1]),np.uint8)
+    bg_mask_nonsherd = np.copy(bg_mask_sherds)  # super important - assignment statements in Python do not copy objects, they create bindings between a target and an object.
 
     # build background mask(s) by applying every color range in succession 
     for i in range(0, num_colors):
@@ -81,27 +81,23 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 
         this_mask = cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
         bg_mask_sherds += this_mask
-
+        """
         # Debugging        
         plt.imshow(bg_mask_sherds)
         plt.title("bg_mask_sherds iteration {}".format(i))
         plt.show()
+        """
 
         if non_sherds_img is not None:
             that_mask = cv2.inRange( hsv_nonsherd, np.array(floor), np.array(ceiling) )  # non-sherds blocked out
             bg_mask_nonsherd += that_mask
 
-    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through - TODO why does sherd get blocked out at the archival camera, but color and scale bars are allowed through?
-
-    # Debugging        
-    plt.imshow(fg_mask_sherds)
-    plt.title("Foreground Mask")
-    plt.show()
+    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through
 
     sherds_mask = cv2.morphologyEx(fg_mask_sherds, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8))  # final sherds mask
     rgb = sherds_img[:, :, ::-1]  # flip to RGB for display
     segmented_sherds = cv2.bitwise_and(rgb, rgb, mask=sherds_mask) # apply mask that allows sherds through
-
+    """
     # Debugging        
     plt.imshow(sherds_mask)
     plt.title("Final Sherds Mask")
@@ -114,19 +110,19 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     plt.subplot(122),plt.imshow(segmented_sherds)
     plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
     plt.show()
-
+    """
     if non_sherds_img is not None:
         fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
         fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=15) # dilate non-sherd areas
         nonsherd_mask = cv2.bitwise_not(fg_mask_nonsherd) # re-invert to block out non-sherds: final non-sherds mask
-        
+        """
         # Debugging        
         plt.imshow(nonsherd_mask)
         plt.title("Final Non-sherd Mask")
         plt.show()
-        
+        """
         segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
- 
+     
     # Debugging: Display original image and segmented sherds
     if non_sherds_img is not None:
         plt.subplot(121),plt.imshow(rgb)
