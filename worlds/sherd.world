@@ -68,32 +68,32 @@
     </include>
     <include>
       <uri>model://sherd_a</uri>
-      <name>stone0</name>
+      <name>sherd0</name>
       <pose frame=''>-0.086 0.295 0.04 1.406 0.31 1.199</pose>
     </include>
     <include>
       <uri>model://sherd_a</uri>
-      <name>stone1</name>
+      <name>sherd1</name>
       <pose frame=''>-0.055 0.387 0.04 1.39 0.295 2.597</pose>
     </include>
     <include>
       <uri>model://sherd_b</uri>
-      <name>stone2</name>
+      <name>sherd2</name>
       <pose frame=''>0.037 0.266 0.04 -0.28 -0.004 -2.61</pose>
     </include>
     <include>
       <uri>model://sherd_b</uri>
-      <name>stone3</name>
+      <name>sherd3</name>
       <pose frame=''>0.1019 0.35 0.04 -0.28 -0.004 1.631</pose>
     </include>
     <include>
       <uri>model://sherd_c</uri>
-      <name>stone4</name>
+      <name>sherd4</name>
       <pose frame=''>0.002 0.322 0.035 1.886 0.543 1.666</pose>
     </include>
     <include>
       <uri>model://sherd_c</uri>
-      <name>stone5</name>
+      <name>sherd5</name>
       <pose frame=''>0.157 0.274 0.035 1.928 0.551 1.722</pose>
     </include>
     <gui fullscreen='0'>
