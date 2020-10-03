@@ -2,9 +2,8 @@
 <sdf version="1.5">
   <model name="scale">
     <static>false</static>
-    <pose frame=''>0 0 0 0 0 0</pose>
     <link name="scale_base_link">
-      <pose frame="scale_base_frame">0 0 0.005 0 0 0</pose>
+      <pose>0 0 0.005 0 0 0</pose>
       <inertial> <!-- solid cuboid -->
         <mass>1.0</mass>
         <inertia>
@@ -29,8 +28,8 @@
           </box>
         </geometry>
       </visual>
-      <collision name="collision_scale_base">
-        <max_contacts>250</max_contacts>
+      <collision name="scale_base_collision">
+        <max_contacts>20</max_contacts>
         <geometry>
           <box>
             <size>0.15 0.15 0.01</size>
@@ -40,7 +39,7 @@
     </link>
 
     <link name="scale_cover_link">
-      <pose frame=''>0 0 0.0125 0 0 0</pose>
+      <pose>0 0 0.0125 0 0 0</pose>
       <inertial>
         <mass>0.1</mass>
         <inertia>
@@ -59,8 +58,8 @@
           </box>
         </geometry>
       </visual>
-      <collision name="collision_scale_cover">
-        <max_contacts>250</max_contacts>
+      <collision name="scale_cover_collision">
+        <max_contacts>20</max_contacts>
         <geometry>
           <box>
             <size>0.15 0.15 0.005</size>
@@ -83,24 +82,33 @@
           </friction>
         </surface>
       </collision>
+      <sensor name='scale_bumper' type='contact'>
+        <contact>
+          <collision>scale_cover_collision</collision>
+        </contact>
+        <pose>0 0 0.015 0 0 0</pose>
+        <update_rate>10</update_rate>
+      </sensor>
     </link>
 
-<!-- create joint for force_torque (ft) sensor attachment -->
+<!--Uncomment sensor in fixed joint to use scale as force_torque sensor. Noisy readings if non-simple collision geometry is used. -->
+
+<!-- force_torque (ft) sensor must be attached to joint rather than link -->
     <joint name="scale_joint" type="fixed">
       <parent>scale_base_link</parent>
       <child>scale_cover_link</child>
       <pose frame="scale_base_frame">0 0 0.015 0 0 0</pose>
-      <sensor name="scale_sensor" type="force_torque">
-        <update_rate>4</update_rate>
-      </sensor>
-    </joint>
+      <!-- <sensor name="scale_ft_sensor" type="force_torque">
+        <update_rate>10</update_rate>
+      </sensor> -->
+    </joint> -->
 
-<!-- plugin to echo gazebo topic messages on ROS topic -->
-    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-        <updateRate>4</updateRate>
-        <topicName>ft_sensor_topic</topicName> <!-- name of ROS topic -->
+<!-- plugin to echo gazebo topic messages on ROS topic specified with <topicName> -->
+<!--    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>10</updateRate>
+        <topicName>ft_sensor_topic</topicName>
         <jointName>scale_joint</jointName>
-    </plugin>
+    </plugin> -->
 
   </model>
 </sdf>
