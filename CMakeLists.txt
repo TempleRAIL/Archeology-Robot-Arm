@@ -76,6 +76,7 @@ add_service_files(
   SherdDetections.srv
   ScaleReading.srv
   Photo.srv
+  SherdID.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -92,6 +93,7 @@ add_service_files(
    vision_msgs
    geometry_msgs
    sensor_msgs
+   gazebo_msgs
  )
 
 ################################################
