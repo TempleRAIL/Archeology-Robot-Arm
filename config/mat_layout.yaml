@@ -1,6 +1,7 @@
 sim: True
 gripper_len: 0.0775
 clearance: .0025  # gap between end of fingers and table/mat [m]
+scale_mode: 'contact' # 'contact' or 'ft', depending on which sensor is active in scale's model.sdf file
 scale_tare: 0.1 # mass [kg] of scale cover link in simulation
 show_cam_photo: False # toggle to show figure for every archival photo acquired
 survey_z: 0.25
