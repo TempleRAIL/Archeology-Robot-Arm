@@ -67,6 +67,7 @@
             <size>0.15 0.15 0.005</size>
           </box>
         </geometry>
+        <surface>
           <friction>
             <torsional>
               <coefficient>1</coefficient> <!--added to try to prevent sherd model from sliding.  May not be necessary -->
@@ -108,9 +109,9 @@
 <!-- plugin to echo Gazebo ft sensor topic to ROS topic specified with <topicName> -->
 <!-- ft_sensor plugin is child of <model> tag -->
     <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-        <updateRate>10</updateRate>
-        <topicName>scale_ft_sensor</topicName>
-        <jointName>scale_joint</jointName>
+       <updateRate>10</updateRate>
+       <topicName>scale_ft_sensor</topicName>
+       <jointName>scale_joint</jointName>
     </plugin>
 
   </model>
