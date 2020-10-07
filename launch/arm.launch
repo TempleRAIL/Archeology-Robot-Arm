@@ -6,11 +6,10 @@
     <rosparam command="load" file="$(find robot_arm)/config/mat_layout.yaml"/>
   </node>
 
+  <node name="id_sherd_to_weigh_server" pkg="robot_arm" type="id_sherd_to_weigh_server.py" output="screen" respawn="true"/>
   <node name="read_scale_server" pkg="robot_arm" type="read_scale_server.py" output="screen" respawn="true"/>
 
   <node name="take_photo_server" pkg="robot_arm" type="take_photo_server.py" output="screen" respawn="true"/>
-
-  <node name="id_sherd_to_weigh_server" pkg="robot_arm" type="id_sherd_to_weigh_server.py" output="screen" respawn="true"/>
 
   <node pkg="rosbag" type="record" name="record_sherd_data" args="-o $(find robot_arm)/bagfiles/sherd_data /Sherd_Data" output="screen"
     if="$(arg record_sherd_data)" />
