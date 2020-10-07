@@ -3,6 +3,7 @@
   <model name="scale">
     <static>false</static>
     <link name="scale_base_link">
+      <frame name="scale_base_frame"/>
       <pose>0 0 0.005 0 0 0</pose>
       <inertial> <!-- solid cuboid -->
         <mass>1.0</mass>
@@ -15,7 +16,7 @@
           <izz>3.75e-3</izz>
         </inertia>
       </inertial>
-      <visual name="visual_scale_base">
+      <visual name="scale_base_visual">
        <material>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
@@ -39,6 +40,7 @@
     </link>
 
     <link name="scale_cover_link">
+      <frame name="scale_cover_frame"/>
       <pose>0 0 0.0125 0 0 0</pose>
       <inertial>
         <mass>0.1</mass>
@@ -58,57 +60,58 @@
           </box>
         </geometry>
       </visual>
-      <collision name="scale_cover_collision">
+      <collision name="scale_cover_link_collision">
         <max_contacts>20</max_contacts>
         <geometry>
           <box>
             <size>0.15 0.15 0.005</size>
           </box>
         </geometry>
-        <surface>
-          <contact>
-            <ode/>
-          </contact>
-          <bounce/>
           <friction>
             <torsional>
-              <coefficient>1</coefficient> <!--added to try to prevent stone model from sliding.  May not be necessary -->
+              <coefficient>1</coefficient> <!--added to try to prevent sherd model from sliding.  May not be necessary -->
             </torsional>
             <ode>
               <mu>1.0</mu>
               <mu2>1.0</mu2>
-              <fdir1>1 0 0</fdir1> <!-- important to keep stone model from sliding -->
+              <fdir1>1 0 0</fdir1> <!-- important to keep sherd model from sliding -->
             </ode>
           </friction>
         </surface>
       </collision>
-      <sensor name='scale_bumper' type='contact'>
+      <!-- contact sensor is child of <link> tag -->
+      <sensor name='scale_contact_sensor' type='contact'>
         <contact>
-          <collision>scale_cover_collision</collision>
+          <collision>scale_cover_link_collision</collision>
         </contact>
         <pose>0 0 0.015 0 0 0</pose>
         <update_rate>10</update_rate>
+        <!-- plugin to echo Gazebo contact sensor topic to ROS topic specified with <bumperTopicName> -->
+        <!-- bumper plugin is child of <sensor> tag -->
+        <plugin name="scale_bumper" filename="libgazebo_ros_bumper.so">
+          <bumperTopicName>scale_contact_sensor</bumperTopicName>
+          <frameName>scale_cover_frame</frameName>
+        </plugin>
       </sensor>
     </link>
 
-<!--Uncomment sensor in fixed joint to use scale as force_torque sensor. Noisy readings if non-simple collision geometry is used. -->
-
-<!-- force_torque (ft) sensor must be attached to joint rather than link -->
+<!-- force_torque (ft) sensor is child of <joint> tag -->
     <joint name="scale_joint" type="fixed">
       <parent>scale_base_link</parent>
       <child>scale_cover_link</child>
       <pose frame="scale_base_frame">0 0 0.015 0 0 0</pose>
-      <!-- <sensor name="scale_ft_sensor" type="force_torque">
+      <sensor name="scale_ft_sensor" type="force_torque">
         <update_rate>10</update_rate>
-      </sensor> -->
-    </joint> -->
+      </sensor>
+    </joint>
 
-<!-- plugin to echo gazebo topic messages on ROS topic specified with <topicName> -->
-<!--    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+<!-- plugin to echo Gazebo ft sensor topic to ROS topic specified with <topicName> -->
+<!-- ft_sensor plugin is child of <model> tag -->
+    <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
         <updateRate>10</updateRate>
-        <topicName>ft_sensor_topic</topicName>
+        <topicName>scale_ft_sensor</topicName>
         <jointName>scale_joint</jointName>
-    </plugin> -->
+    </plugin>
 
   </model>
 </sdf>
