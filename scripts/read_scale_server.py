@@ -8,24 +8,23 @@ from robot_arm.srv import ScaleReading, ScaleReadingResponse
 ##############################################################
 # read_scale_callback(req)
 # This function is the callback for the read_scale service
-# inputs: robot_arm/ScaleReadingtRequest
+# inputs: robot_arm/ScaleReadingRequest
 # returns: robot_arm/ScaleReadingResponse 
 
 def read_scale_callback(req):
-    # Subscribe to force_torque sensor ROS topic (echoed from gazebo topic)
     tare = rospy.get_param('sherd_states/scale_tare')
-    msg = rospy.wait_for_message("/ft_sensor_topic", WrenchStamped)
-    print("Got message from /ft_sensor_topic.")
+    # Subscribe to scale_ft_sensor ROS topic (echoed from Gazebo topic)
+    msg = rospy.wait_for_message("/scale_ft_sensor", WrenchStamped)
+    print("Got message from /scale_ft_sensor topic.")
     weight = msg.wrench.force.z # [N]
     mass = -(weight/9.8)-tare # [kg]
-
     res = ScaleReadingResponse()
     res.mass = mass
     return res
     
 ##############################################################
 # read_scale_server()
-# This function initiates ROS service node that subscribes to the ft_sensor_topic and returns the mass of the object on the scale.
+# This function initiates ROS service node that subscribes to the /scale_ft_sensor (force_torque) topic, then returns the mass of the object on the scale.  ROS topic is echoed from Gazebo topic.
 # inputs: none
  
 def read_scale_server():
