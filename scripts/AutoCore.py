@@ -13,6 +13,7 @@ from pyrobot.locobot import camera
 import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
+from gazebo_msgs.srv import GetLinkProperties, GetLinkPropertiesRequest
 from robot_arm.msg import SherdData
 from robot_arm.srv import *
 
@@ -61,6 +62,7 @@ class AutoCore():
         # Initialize other class members
         self.color_masks = {'mat': None, 'scale': None} # color masks for sherd detection
         self.bgnds = {'camera': None} # background images to subtract after color masking for sherd detections
+        self.scale_ft_mode = rospy.get_param('~scale_ft_mode') # Boolean
         self.mass = None # mass of sherd on scale
         self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
@@ -71,10 +73,18 @@ class AutoCore():
         self.color_mask_srv = rospy.ServiceProxy('color_mask_server', ColorMask)
         rospy.wait_for_service('detect_sherds_server')
         self.detection_srv = rospy.ServiceProxy('detect_sherds_server', SherdDetections)
-        rospy.wait_for_service('read_scale_server')
-        self.scale_srv = rospy.ServiceProxy('read_scale_server', ScaleReading)
         rospy.wait_for_service('take_photo_server')
         self.photo_srv = rospy.ServiceProxy('take_photo_server', Photo)
+
+        if self.scale_ft_mode:
+            rospy.wait_for_service('read_scale_server')
+            self.read_scale_srv = rospy.ServiceProxy('read_scale_server', ScaleReading)
+        else:
+            rospy.wait_for_service('id_sherd_to_weigh_server')
+            self.id_sherd_srv = rospy.ServiceProxy('id_sherd_to_weigh_server', SherdID)
+            rospy.wait_for_service('gazebo/get_link_properties')
+            self.link_props_srv = rospy.ServiceProxy('gazebo/get_link_properties', GetLinkProperties)
+        
         self.tfBuffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tfBuffer)
     
@@ -122,18 +132,37 @@ class AutoCore():
     # Function to record mass of object on scale and save in ROS sherd_msg
     def get_mass_fun(self, msg):
         sherd_msg = msg
-        # run read_scale_server.py
-        req = ScaleReadingRequest()
-        try:
-            res = self.scale_srv(req)
-        except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: read_scale service call failed: {}'.format(e))
-            raise
+        # FORCE_TORQUE SCALE MODE
+        if self.scale_ft_mode:
+            # run read_scale_srv
+            req = ScaleReadingRequest()
+            try:
+                res = read_scale_srv(req)
+            except rospy.ServiceException as e:
+                rospy.logerr('read_scale service call failed: {}'.format(e))
+                raise
+        # CONTACT SCALE MODE
         else:
-            sherd_msg.mass = res.mass
-            rospy.logwarn('AutoCore: Got sherd mass: {} kg'.format(sherd_msg.mass))
-            return sherd_msg
-
+            # run id_sherd_srv to get link name of sherd on scale
+            req = SherdIDRequest()
+            try:
+                res = self.id_sherd_srv(req)
+            except rospy.ServiceException as e:
+                rospy.logerr('AutoCore: id_sherd service call failed: {}'.format(e))
+                raise
+            link_name = res.link_name
+            rospy.logwarn('AutoCore: got link name of sherd on scale: {}'.format(link_name))
+            # call link_props_srv to get mass of sherd
+            req = GetLinkPropertiesRequest()
+            req.link_name = link_name
+            try:
+                res = self.link_props_srv(req)
+            except rospy.ServiceException as e:
+                rospy.logerr('AutoCore: id_sherd service call failed: {}'.format(e))
+                raise
+        sherd_msg.mass = res.mass
+        rospy.logwarn('AutoCore: got mass of sherd on scale: {}'.format(sherd_msg.mass))
+        return sherd_msg
 
     # Function to take archival photo and save in ROS sherd_msg
     def archival_photo_fun(self, msg):
