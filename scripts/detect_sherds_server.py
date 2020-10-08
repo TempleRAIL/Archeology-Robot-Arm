@@ -81,8 +81,9 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 
         this_mask = cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
         bg_mask_sherds += this_mask
-        """
-        # Debugging        
+
+        # Debugging
+        """   
         plt.imshow(bg_mask_sherds)
         plt.title("bg_mask_sherds iteration {}".format(i))
         plt.show()
@@ -97,40 +98,45 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     sherds_mask = cv2.morphologyEx(fg_mask_sherds, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8))  # final sherds mask
     rgb = sherds_img[:, :, ::-1]  # flip to RGB for display
     segmented_sherds = cv2.bitwise_and(rgb, rgb, mask=sherds_mask) # apply mask that allows sherds through
-    """
+
     # Debugging        
+    """
     plt.imshow(sherds_mask)
     plt.title("Final Sherds Mask")
     plt.show()
+    """
 
     # Debugging: Display original image and segmented sherds
-    
+    """
     plt.subplot(121),plt.imshow(rgb)
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
     plt.subplot(122),plt.imshow(segmented_sherds)
     plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
     plt.show()
     """
+
     if non_sherds_img is not None:
         fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
         fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=15) # dilate non-sherd areas
         nonsherd_mask = cv2.bitwise_not(fg_mask_nonsherd) # re-invert to block out non-sherds: final non-sherds mask
-        """
+
         # Debugging        
+        """
         plt.imshow(nonsherd_mask)
         plt.title("Final Non-sherd Mask")
         plt.show()
         """
         segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
-     
+ 
     # Debugging: Display original image and segmented sherds
+    """
     if non_sherds_img is not None:
         plt.subplot(121),plt.imshow(rgb)
         plt.title('Original Image'), plt.xticks([]), plt.yticks([])
         plt.subplot(122),plt.imshow(segmented_sherds)
         plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
         plt.show()
-     
+    """
     return segmented_sherds
 
 ##############################################################
@@ -251,14 +257,12 @@ def locate_sherds(sherds_image, points, header):
             detection.bbox.size.y = height_meter
             detections.detections.append(detection)
 
-            # Debugging: draw bounding boxes around sherds
-            # Convert original RGB image to np.array to draw contours as boxes
+            # Debugging: draw, display, and print details of bounding boxes around sherds
+            """
+            #Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
-
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
 
-            #Debugging
-            """
             plt.figure("Figure 2")
             plt.imshow(sherd_contours)
             plt.title("Bounding Box around Sherd")
