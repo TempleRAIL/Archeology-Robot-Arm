@@ -211,6 +211,10 @@ class PlaceSherd(smach.State):
                     self.core.move_fun_retry(pose)
                     sherd_msg = self.core.get_mass_fun(sherd_msg)
                     # TODO store mass in database
+                except smach.InvalidTransitionError: # thrown when no sherd on scale in contact mode (set in YAML parameter file)
+                    rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                    userdata.station = self.mat.stations['pickup']
+                    return 'failed'
                 except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
                 else:
