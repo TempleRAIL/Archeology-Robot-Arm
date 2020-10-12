@@ -30,7 +30,7 @@ See Computing Inertial Parameters and Rescaling Inertia Values: http://gazebosim
           <mesh>
             <!-- <uri>model://sherd_c/meshes/sherd_c.dae</uri> -->
             <uri>model://sherd_c/meshes/sherd_c.stl</uri>
-            <scale>1 1 1</scale>
+            <scale>1.5 1.5 1.5</scale>
           </mesh>
         </geometry>
         <surface>
@@ -63,7 +63,7 @@ See Computing Inertial Parameters and Rescaling Inertia Values: http://gazebosim
           <mesh>
             <!-- <uri>model://sherd_c/meshes/sherd_c.dae</uri> -->
             <uri>model://sherd_c/meshes/sherd_c.stl</uri>
-            <scale>1 1 1</scale>
+            <scale>1.5 1.5 1.5</scale>
           </mesh>
           <!--<box>
             <size>0.07 0.025 0.01</size>
