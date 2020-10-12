@@ -117,7 +117,7 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 
     if non_sherds_img is not None:
         fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
-        fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=15) # dilate non-sherd areas
+        fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=20) # dilate non-sherd areas
         nonsherd_mask = cv2.bitwise_not(fg_mask_nonsherd) # re-invert to block out non-sherds: final non-sherds mask
 
         # Debugging        
@@ -154,7 +154,8 @@ def locate_sherds(sherds_image, points, header):
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY) # convert to grayscale
     _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
-    #print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
+    #Debugging
+    print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
     # exclude boxes smaller than a minimum area
     use_min_area = False
     min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
