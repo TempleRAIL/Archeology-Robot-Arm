@@ -89,12 +89,12 @@
     <include>
       <uri>model://sherd_c</uri>
       <name>sherd4</name>
-      <pose frame=''>0.002 0.322 0.035 1.886 0.543 1.666</pose>
+      <pose frame=''>0.002 0.322 0.04 1.886 0.543 1.666</pose>
     </include>
     <include>
       <uri>model://sherd_c</uri>
       <name>sherd5</name>
-      <pose frame=''>0.157 0.274 0.035 1.928 0.551 1.722</pose>
+      <pose frame=''>0.157 0.274 0.04 -1.02 -0.5 -3</pose>
     </include>
     <gui fullscreen='0'>
       <camera name='user_camera'>
