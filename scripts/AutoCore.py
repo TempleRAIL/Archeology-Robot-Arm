@@ -92,27 +92,26 @@ class AutoCore():
     ########## pyrobot interface ##########
     # Function to go home
     def go_home(self):
-        self.bot.arm.go_home(plan=True)
+        self.bot.arm.go_home(plan=False) #plan=False means don't use MoveIt
 
 
     # Function to call IK to plot and execute trajectory
-    def move_fun(self, pose):
+    def move_fun(self, pose, use_MoveIt=False):
         rospy.logdebug('AutoCore: move_fun triggered')
         try:
-            success = self.bot.arm.set_ee_pose_pitch_roll(**pose)
+            success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # plan=False means don't use MoveIt; args must be in this order due to the kwarg
         except Exception:
             raise
         else:
             if not success:
                 raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
             self.pose = pose
-            time.sleep(1)
 
-    def move_fun_retry(self, pose):
+    def move_fun_retry(self, pose, use_MoveIt=False):
         success = False
         while not success:
             try:
-                self.move_fun(pose)
+                self.move_fun(pose, use_MoveIt)
             except PlanningFailure:
                 continue
             except:
@@ -123,7 +122,7 @@ class AutoCore():
 
     ########## Sensor interface ##########
     # Function to check for object in gripper
-    def grip_check_fun(self, pose):
+    def grip_check_fun(self, pose): #TODO FIX???
         gripper_state = self.gripper.get_gripper_state()
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
@@ -308,7 +307,7 @@ class AutoCore():
                 pose['position'][2] += 0.05
                 self.move_fun(pose) # move above sherd and orient
                 pose['position'][2] -= 0.05 + self.clearance
-                self.move_fun(pose) # move down to surface
+                self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
                 self.gripper.close()
                 self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
                 pose['position'][2] = working_z # move back up to working height after grasping
