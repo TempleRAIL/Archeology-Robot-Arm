@@ -96,7 +96,7 @@ class MatConfiguration():
     def get_goal_pose(self, station):
         if station == self.stations['pickup']:
             pos = self.pickup_positions[0]
-        elif station == self.stations[('scale_place' or 'scale_pick')]:
+        elif station == self.stations['scale_place' or 'scale_pick'] #or station == self.stations['scale_pick']:
             pos = self.scale_position 
         elif station == self.stations['scale_search']: # if first 'blind' reacquisition at scale fails
             pos = self.scale_survey_position
@@ -113,9 +113,9 @@ class MatConfiguration():
     def select_goal_z(self, pose, station):
         if station == self.stations['pickup']:
             pose['position'][2] = self.table_z 
-        elif station == self.stations[('scale_place' or 'scale_pick' or 'scale_search')]:
+        elif station == self.stations['scale_place'] or station == self.stations['scale_pick'] or station == self.stations['scale_search']:
             pose['position'][2] = self.scale_z
-        elif station == self.stations[('camera_place' or 'camera_pick')]:
+        elif station == self.stations['camera_place'] or station == self.stations['camera_pick']:
             pose['position'][2] = self.camera_z
         elif station == self.stations['dropoff']:
             pose['position'][2] = self.table_z
