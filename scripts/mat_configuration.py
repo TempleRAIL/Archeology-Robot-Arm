@@ -61,8 +61,7 @@ class MatConfiguration():
 
         # Initialize scale survey location and pose (if first regrasp attempt fails)
         scale_survey_location = rospy.get_param('~scale_survey_location')
-        scale_survey_position = np.array([scale_survey_location['x'], scale_survey_location['y'], self.survey_z])
-        self.scale_survey_pose = {"position": scale_survey_position, "pitch": self.working_p, "roll": self.working_r, "numerical": self.use_numerical_ik}
+        self.scale_survey_position = np.array([scale_survey_location['x'], scale_survey_location['y'], self.survey_z])
 
         # Initialize camera survey location (for reacquiring sherd after archival photo)
         cam_survey_location = rospy.get_param('~cam_survey_location')
@@ -96,7 +95,7 @@ class MatConfiguration():
     def get_goal_pose(self, station):
         if station == self.stations['pickup']:
             pos = self.pickup_positions[0]
-        elif station == self.stations['scale_place' or 'scale_pick'] #or station == self.stations['scale_pick']:
+        elif station == self.stations['scale_place'] or station == self.stations['scale_pick']:
             pos = self.scale_position 
         elif station == self.stations['scale_search']: # if first 'blind' reacquisition at scale fails
             pos = self.scale_survey_position
