@@ -304,9 +304,9 @@ class AutoCore():
             self.gripper.open() # ensure gripper open if picking up a sherd
             try:
                 pose['position'][2] += self.gripper_len # add gripper offset
-                pose['position'][2] += 0.05
+                pose['position'][2] += 0.03
                 self.move_fun(pose) # move above sherd and orient
-                pose['position'][2] -= 0.05 + self.clearance
+                pose['position'][2] -= 0.03 + self.clearance
                 self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
                 self.gripper.close()
                 self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
