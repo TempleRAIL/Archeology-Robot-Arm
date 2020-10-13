@@ -172,7 +172,6 @@ class Acquire(smach.State):
                 self.core.gripper.open()
                 pose['position'][2] += self.core.gripper_len + self.core.clearance
                 self.core.move_fun_retry(pose)
-                #time.sleep(2)
                 self.core.gripper.close()
                 self.core.grip_check_fun(pose)
                 pose['position'][2] = self.mat.working_z # move back up to working height after grasping
@@ -190,7 +189,8 @@ class Acquire(smach.State):
         except PlanningFailure: # may be raised by AutoCore's pick_place_fun
             return 'replan'
         else:
-            userdata.station += 1
+            if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
+            else: userdata.station += 1
             userdata.attempts = 0
             userdata.sherd_msg = SherdData()
             return 'acquired'
