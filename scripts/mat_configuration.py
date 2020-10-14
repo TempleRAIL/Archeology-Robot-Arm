@@ -19,16 +19,7 @@ class MatConfiguration():
         working_pose = rospy.get_param('~working_pose')
         self.working_z, self.working_r, self.working_p = working_pose['z'], working_pose['roll'], working_pose['pitch']
         self.table_z = rospy.get_param('~table_z')
-
-        # Initialize calibration information
-        mat_color_location = rospy.get_param('~mat_color_location')
-        mat_color_position = np.array([mat_color_location['x'], mat_color_location['y'], self.working_z])
-        self.mat_color_pose = {'position': mat_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
-	scale_color_location = rospy.get_param('~scale_color_location')
-        scale_color_position = np.array([scale_color_location['x'], scale_color_location['y'], self.working_z])
-        self.scale_color_pose = {'position': scale_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
-
-        
+       
         # Initialize pickup area
         pickup_positions = []
         pickup_area = rospy.get_param('~pickup_area')
@@ -52,7 +43,7 @@ class MatConfiguration():
         # Initialize camera location (for placing sherd for archival photo)
         cam_location = rospy.get_param('~cam_location')
         self.camera_position = np.array([cam_location['x'], cam_location['y'], self.working_z])
-        self.camera_z = self.table_z #cam_location['z']
+        self.camera_z = self.table_z
 
         # Initialize standby location and pose (out of archival camera frame)
         standby_location = rospy.get_param('~standby_location')
@@ -66,6 +57,18 @@ class MatConfiguration():
         # Initialize camera survey location (for reacquiring sherd after archival photo)
         cam_survey_location = rospy.get_param('~cam_survey_location')
         self.camera_survey_position = np.array([cam_survey_location['x'], cam_survey_location['y'], self.survey_z])
+        camera_survey_pose = {'position': self.camera_survey_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+
+        # Initialize calibration information
+        mat_color_location = rospy.get_param('~mat_color_location')
+        mat_color_position = np.array([mat_color_location['x'], mat_color_location['y'], self.working_z])
+        mat_color_pose = {'position': mat_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+
+        scale_color_location = rospy.get_param('~scale_color_location')
+        scale_color_position = np.array([scale_color_location['x'], scale_color_location['y'], self.working_z])
+        scale_color_pose = {'position': scale_color_position, 'pitch': self.working_p, 'roll': self.working_r, 'numerical': self.use_numerical_ik}
+
+        self.calibration_poses = {'mat': mat_color_pose, 'scale': scale_color_pose, 'camera': camera_survey_pose}
       
         # Initialize discard_area
         discard_area = rospy.get_param('~discard_area')
