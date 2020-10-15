@@ -53,10 +53,9 @@ class Calibrate(smach.State):
     def execute(self, userdata):
         userdata.station = self.mat.stations['pickup']
         try:
-            self.core.get_color_mask_fun(self.mat.mat_color_pose, mask_type='mat')
-            self.core.get_color_mask_fun(self.mat.scale_color_pose, mask_type='scale', num_colors=2)
-            camera_survey_pose = self.mat.get_goal_pose( self.mat.stations['camera_pick'] )
-            self.core.get_background_fun(camera_survey_pose, station='camera')
+            self.core.get_color_mask_fun(self.mat.calibration_poses['mat'], mask_type='mat')
+            self.core.get_color_mask_fun(self.mat.calibration_poses['scale'], mask_type='scale', num_colors=2)
+            self.core.get_background_fun(self.mat.calibration_poses['camera'], station='camera')
         except PlanningFailure: # may be raised by AutoCore's get_color_mask or get_background functions
             return 'replan'
         except Exception as e:
@@ -147,7 +146,7 @@ class Acquire(smach.State):
         pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # If failed first attempt to grasp sherd 'blind' from scale, get pose from sensor
         if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts > 0:
-            userdata.station == self.mat.stations['scale_search']
+            userdata.station = self.mat.stations['scale_search']
             return 'check_scale'
             """
             try:
@@ -173,7 +172,7 @@ class Acquire(smach.State):
                 self.core.gripper.open()
                 pose['position'][2] += self.core.gripper_len + self.core.clearance
                 self.core.publish_status("Locomotion")
-                self.core.move_fun_retry(pose)
+                self.core.move_fun_retry(pose, use_MoveIt=True)
                 self.core.publish_status("Grasping")
                 self.core.gripper.close()
                 self.core.grip_check_fun(pose)
@@ -196,7 +195,7 @@ class Acquire(smach.State):
             if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
             else: userdata.station += 1
             userdata.attempts = 0
-            userdata.sherd_msg = SherdData()
+            #userdata.sherd_msg = SherdData()
             return 'acquired'
 
 
@@ -227,12 +226,10 @@ class PlaceSherd(smach.State):
                     self.core.move_fun_retry(pose)
                     sherd_msg = self.core.get_mass_fun(sherd_msg)
                     # TODO store mass in database
-                except IndexError: # thrown when no sherd on scale in contact mode (see YAML parameter file)
-                    rospy.logwarn('No sherd on scale.')
-                    userdata.station = self.mat.stations['pickup']
-                    return 'failed'
                 except Exception as e:
                     rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                    userdata.station = self.mat.stations['pickup']
+                    return 'failed'
                 else:
                     userdata.station += 1
                     return 'retrieve_scale'
@@ -292,7 +289,7 @@ def process_sherds():
     sm.userdata.attempts = 0
     sm.userdata.cal_counter = 0
     sm.userdata.goal = None
-    sm.userdata.sherd_msg = None
+    sm.userdata.sherd_msg = SherdData()
     # ** Opens state machine container **
     with sm:
         # ** Adds the states to the container **
