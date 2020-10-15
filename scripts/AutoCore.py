@@ -107,6 +107,7 @@ class AutoCore():
         rospy.logdebug('AutoCore: move_fun triggered')
         try:
             success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # plan=False means don't use MoveIt; args must be in this order due to the kwarg
+            if not use_MoveIt: rospy.sleep(0.5)
         except Exception:
             raise
         else:
@@ -129,7 +130,7 @@ class AutoCore():
 
     ########## Sensor interface ##########
     # Function to check for object in gripper
-    def grip_check_fun(self, pose): #TODO FIX???
+    def grip_check_fun(self, pose):
         self.publish_status("Grasping")
         gripper_state = self.gripper.get_gripper_state()
         if not gripper_state == 2:
