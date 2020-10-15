@@ -16,6 +16,7 @@ from tf2_geometry_msgs import PointStamped
 from gazebo_msgs.srv import GetLinkProperties, GetLinkPropertiesRequest
 from robot_arm.msg import SherdData
 from robot_arm.srv import *
+from std_msgs.msg import String
 
 
 class PlanningFailure(Exception):
@@ -67,6 +68,7 @@ class AutoCore():
         self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
+        self.pub_status = rospy.Publisher('status', String, queue_size=100) # locobot status publisher
         
         # ROS service clients
         rospy.wait_for_service('color_mask_server')
@@ -90,17 +92,21 @@ class AutoCore():
     
     
     ########## pyrobot interface ##########
+    # Function to publish the locobots current status
+    def publish_status(self, status):
+        self.pub_status.publish(status)
+        rospy.loginfo("#####" + status + "#####")
+    
     # Function to go home
     def go_home(self):
+        self.publish_status("Initialization")
         self.bot.arm.go_home(plan=False) #plan=False means don't use MoveIt
-
 
     # Function to call IK to plot and execute trajectory
     def move_fun(self, pose, use_MoveIt=False):
         rospy.logdebug('AutoCore: move_fun triggered')
         try:
             success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # plan=False means don't use MoveIt; args must be in this order due to the kwarg
-            if not use_MoveIt: rospy.sleep(0.5)
         except Exception:
             raise
         else:
@@ -123,7 +129,8 @@ class AutoCore():
 
     ########## Sensor interface ##########
     # Function to check for object in gripper
-    def grip_check_fun(self, pose):
+    def grip_check_fun(self, pose): #TODO FIX???
+        self.publish_status("Grasping")
         gripper_state = self.gripper.get_gripper_state()
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
@@ -131,6 +138,7 @@ class AutoCore():
 
     # Function to record mass of object on scale and save in ROS sherd_msg
     def get_mass_fun(self, msg):
+        self.publish_status("Data Collection")
         sherd_msg = msg
         # FORCE_TORQUE SCALE MODE
         if self.scale_ft_mode:
@@ -166,6 +174,7 @@ class AutoCore():
 
     # Function to take archival photo and save in ROS sherd_msg
     def archival_photo_fun(self, msg):
+        self.publish_status("Data Collection")
         sherd_msg = msg
         rospy.logwarn('AutoCore: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
         # run take_photo_server.py
@@ -184,6 +193,7 @@ class AutoCore():
 
     # Function to generate color mask from image of empty background
     def get_color_mask_fun(self, calibrate_pose, mask_type, num_colors=1):
+        self.publish_status("Initialization")
         rospy.logdebug('AutoCore: get_color_mask_fun triggered.')
         # Move arm to calibration location
         try:
@@ -210,6 +220,7 @@ class AutoCore():
 
     #Function to save image of empty background
     def get_background_fun(self, calibrate_pose, station):
+        self.publish_status("Initialization")
         rospy.logdebug('AutoCore: get_background_fun triggered.')
         # Move arm to calibration location
         try:
@@ -232,6 +243,7 @@ class AutoCore():
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self, color_mask, bgnd_img=None):
+        self.publish_status("Planning")
         found = False
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
@@ -283,6 +295,7 @@ class AutoCore():
         rospy.loginfo('Examining surface for sherds')
         rospy.loginfo('position: {}'.format(pose['position']))
         try:
+            self.publish_status("Locomotion")
             self.move_fun(pose)
         except:
             raise
@@ -302,16 +315,20 @@ class AutoCore():
             rospy.logerr('Pick or place must be selected')
         # PICK MODE
         if pick:
+            self.publish_status("Grasping")
             self.gripper.open() # ensure gripper open if picking up a sherd
             try:
                 pose['position'][2] += self.gripper_len # add gripper offset
                 pose['position'][2] += 0.03
+                self.publish_status("Locomotion")
                 self.move_fun(pose) # move above sherd and orient
                 pose['position'][2] -= 0.03 + self.clearance
                 self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
+                self.publish_status("Grasping")
                 self.gripper.close()
                 self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
                 pose['position'][2] = working_z # move back up to working height after grasping
+                self.publish_status("Locomotion")
                 self.move_fun(pose)
             except:
                 raise
@@ -319,7 +336,9 @@ class AutoCore():
         else:
             try:
                 pose['position'][2] += self.gripper_len + self.clearance + self.sherd_allowance
+                self.publish_status("Locomotion")
                 self.move_fun(pose) # move down to surface
+                self.publish_status("Grasping")
                 self.gripper.open()
             except:
                 raise

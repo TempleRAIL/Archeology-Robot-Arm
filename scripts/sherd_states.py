@@ -16,6 +16,7 @@ import rospy
 import smach
 import smach_ros
 from robot_arm.msg import SherdData
+from std_msgs.msg import String
 
 # Import autocore
 from AutoCore import AutoCore, PlanningFailure, GraspFailure
@@ -42,7 +43,6 @@ class Home(smach.State):
             else:
                 return 'ready'
 
-
 # ** Second state of State Machine: Sends the arm to capture image of empty background mat **
 class Calibrate(smach.State):
     def __init__(self, core, mat):
@@ -53,15 +53,10 @@ class Calibrate(smach.State):
     def execute(self, userdata):
         userdata.station = self.mat.stations['pickup']
         try:
-            self.core.get_color_mask_fun(self.mat.calibration_poses['mat'], mask_type='mat')
-            self.core.get_color_mask_fun(self.mat.calibration_poses['scale'], mask_type='scale', num_colors=2)
-            self.core.get_background_fun(self.mat.calibration_poses['camera'], station='camera')
-            """
             self.core.get_color_mask_fun(self.mat.mat_color_pose, mask_type='mat')
             self.core.get_color_mask_fun(self.mat.scale_color_pose, mask_type='scale', num_colors=2)
             camera_survey_pose = self.mat.get_goal_pose( self.mat.stations['camera_pick'] )
             self.core.get_background_fun(camera_survey_pose, station='camera')
-            """
         except PlanningFailure: # may be raised by AutoCore's get_color_mask or get_background functions
             return 'replan'
         except Exception as e:
@@ -69,7 +64,6 @@ class Calibrate(smach.State):
             return 'not_ready'
         else:
             return 'ready'
-
 
 # ** Third state of the State Machine: Moves the arm to a desired configuration **
 class Translate(smach.State):
@@ -84,6 +78,7 @@ class Translate(smach.State):
         pose = self.mat.get_goal_pose(userdata.station) # get goal pose
         rospy.loginfo('Moving to: {}'.format(pose))
         try:
+            self.core.publish_status("Locomotion")
             self.core.move_fun_retry(pose)
         except Exception as e:
             rospy.logwarn('Could not move to station because: {}'.format(e))
@@ -152,7 +147,7 @@ class Acquire(smach.State):
         pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # If failed first attempt to grasp sherd 'blind' from scale, get pose from sensor
         if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts > 0:
-            userdata.station = self.mat.stations['scale_search']
+            userdata.station == self.mat.stations['scale_search']
             return 'check_scale'
             """
             try:
@@ -174,12 +169,16 @@ class Acquire(smach.State):
         try:
             # skip AutoCore pick_place_fun on first attempt to grasp from scale
             if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts == 0:
+                self.core.publish_status("Grasping")
                 self.core.gripper.open()
                 pose['position'][2] += self.core.gripper_len + self.core.clearance
-                self.core.move_fun_retry(pose, use_MoveIt=True)
+                self.core.publish_status("Locomotion")
+                self.core.move_fun_retry(pose)
+                self.core.publish_status("Grasping")
                 self.core.gripper.close()
                 self.core.grip_check_fun(pose)
                 pose['position'][2] = self.mat.working_z # move back up to working height after grasping
+                self.core.publish_status("Locomotion")
                 self.core.move_fun_retry(pose)
             else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
@@ -197,7 +196,7 @@ class Acquire(smach.State):
             if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
             else: userdata.station += 1
             userdata.attempts = 0
-            #userdata.sherd_msg = SherdData()
+            userdata.sherd_msg = SherdData()
             return 'acquired'
 
 
@@ -224,13 +223,16 @@ class PlaceSherd(smach.State):
             if userdata.station == self.mat.stations['scale_place']:
                 #pose['position'][2] += 0.01 # move gripper up a cm before recording sherd mass
                 try:
+                    self.core.publish_status("Locomotion")
                     self.core.move_fun_retry(pose)
                     sherd_msg = self.core.get_mass_fun(sherd_msg)
                     # TODO store mass in database
-                except Exception as e:
-                    rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
+                except IndexError: # thrown when no sherd on scale in contact mode (see YAML parameter file)
+                    rospy.logwarn('No sherd on scale.')
                     userdata.station = self.mat.stations['pickup']
                     return 'failed'
+                except Exception as e:
+                    rospy.logwarn('Could not get mass of sherd because of Exception: {}'.format(e))
                 else:
                     userdata.station += 1
                     return 'retrieve_scale'
@@ -238,6 +240,7 @@ class PlaceSherd(smach.State):
                 # Move to standby position to get out of the way of the camera
                 try:
                     pose['position'][2] = self.mat.working_z
+                    self.core.publish_status("Locomotion")
                     self.core.move_fun_retry(pose) # move straight up to working height
                     self.core.move_fun_retry(self.mat.standby_pose)
                 except Exception as e:
@@ -264,6 +267,7 @@ class PlaceSherd(smach.State):
                 userdata.cal_counter += 1  # refresh color mask every 10 cycles
                 try:
                     pose['position'][2] = self.core.working_z
+                    self.core.publish_status("Locomotion")
                     self.core.move_fun_retry(pose)
                 except Exception as e:
                     rospy.logwarn('Could not move to working height because: {}'.format(e))
@@ -288,7 +292,7 @@ def process_sherds():
     sm.userdata.attempts = 0
     sm.userdata.cal_counter = 0
     sm.userdata.goal = None
-    sm.userdata.sherd_msg = SherdData()
+    sm.userdata.sherd_msg = None
     # ** Opens state machine container **
     with sm:
         # ** Adds the states to the container **
