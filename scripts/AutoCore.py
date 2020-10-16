@@ -132,6 +132,7 @@ class AutoCore():
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
         gripper_state = self.gripper.get_gripper_state()
+        rospy.loginfo('Gripper_state = {}'.format(gripper_state))
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
 
