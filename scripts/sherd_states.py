@@ -259,7 +259,7 @@ def process_sherds():
     # Initialize pyrobot objects
     bot = Robot("locobot", use_base=False)
     configs = bot.configs
-    gripper = LoCoBotGripper(configs, wait_time=1)
+    gripper = LoCoBotGripper(configs, wait_time=3)
     # Initialize AutoCore
     core = AutoCore(bot, gripper)
     mat = MatConfiguration()
