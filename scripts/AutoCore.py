@@ -131,7 +131,6 @@ class AutoCore():
     ########## Sensor interface ##########
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
-        self.publish_status("Grasping")
         gripper_state = self.gripper.get_gripper_state()
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
@@ -244,7 +243,6 @@ class AutoCore():
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
     def detect_fun(self, color_mask, bgnd_img=None):
-        self.publish_status("Planning")
         found = False
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
@@ -321,11 +319,9 @@ class AutoCore():
             try:
                 pose['position'][2] += self.gripper_len # add gripper offset
                 pose['position'][2] += 0.03
-                self.publish_status("Locomotion")
                 self.move_fun(pose) # move above sherd and orient
                 pose['position'][2] -= 0.03 + self.clearance
                 self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
-                self.publish_status("Grasping")
                 self.gripper.close()
                 self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
                 pose['position'][2] = working_z # move back up to working height after grasping
@@ -339,7 +335,6 @@ class AutoCore():
                 pose['position'][2] += self.gripper_len + self.clearance + self.sherd_allowance
                 self.publish_status("Locomotion")
                 self.move_fun(pose) # move down to surface
-                self.publish_status("Grasping")
                 self.gripper.open()
             except:
                 raise
