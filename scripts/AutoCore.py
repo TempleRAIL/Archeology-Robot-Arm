@@ -159,9 +159,9 @@ class AutoCore():
             except rospy.ServiceException as e:
                 rospy.logerr('AutoCore: id_sherd service call failed: {}'.format(e))
                 raise
-            rospy.logwarn('AutoCore: got link name of sherd on scale: {}'.format(link_name))
             link_name = res.link_name
             sherd_msg.which_sherd = link_name
+            rospy.logwarn('AutoCore: got link name of sherd on scale: {}'.format(link_name))
             # call link_props_srv to get mass of sherd
             req = GetLinkPropertiesRequest()
             req.link_name = link_name
