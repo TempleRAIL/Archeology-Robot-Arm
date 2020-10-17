@@ -46,6 +46,9 @@ class GraspFailure(Exception):
         self.goal_pose = goal_pose
         self.message = message
 
+class RobotStatus():
+    def __init__(self):
+        self.
 
 class AutoCore():
     
@@ -68,6 +71,8 @@ class AutoCore():
         self.photo = None # archival photo image
         self.mat_z = None # average z value of mat in camera optical frame
         self.pose = None # placeholder for current location dictionary
+
+        # ROS publishers
         self.pub_status = rospy.Publisher('status', String, queue_size=100) # locobot status publisher
         
         # ROS service clients
@@ -296,7 +301,7 @@ class AutoCore():
         rospy.loginfo('Examining surface for sherds')
         rospy.loginfo('position: {}'.format(pose['position']))
         try:
-            self.publish_status("Locomotion")
+            self.publish_status("Grasping")
             self.move_fun(pose)
         except:
             raise
