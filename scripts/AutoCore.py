@@ -46,10 +46,6 @@ class GraspFailure(Exception):
         self.goal_pose = goal_pose
         self.message = message
 
-class RobotStatus():
-    def __init__(self):
-        self.
-
 class AutoCore():
     
     def __init__(self, bot, gripper):
