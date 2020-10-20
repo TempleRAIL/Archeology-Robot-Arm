@@ -12,14 +12,23 @@ See Computing Inertial Parameters and Rescaling Inertia Values: http://gazebosim
     <link name='sherd_c_link'>
       <pose frame=''>0 0 0.005 0 0 0</pose>
       <inertial>
+        <!-- <mass>0.025</mass> -->
         <mass>0.05</mass>
         <inertia>
-          <ixx>1.2862525000000001e-06</ixx>
+          <!-- inertials for lengths scaled 2x in x,y,z -->
+          <ixx>5.1450100000000006e-06</ixx>
+          <ixy>-3.1585640000000004e-06</ixy>
+          <ixz>9.0582e-08</ixz>
+          <iyy>7.944352e-06</iyy>
+          <iyz>-7.702099999999999e-07</iyz>
+          <izz>9.123182e-06</izz>
+          <!-- inertials for original size: -->
+          <!-- <ixx>1.2862525000000001e-06</ixx>
           <ixy>-7.896410000000001e-07</ixy>
           <ixz>2.26455e-08</ixz>
           <iyy>1.986088e-06</iyy>
           <iyz>-1.9255249999999998e-07</iyz>
-          <izz>2.2807955e-06</izz>
+          <izz>2.2807955e-06</izz> -->
         </inertia>
       </inertial>
       <collision name='collision'> <!-- .dae mesh for collision falls through the blue mat; .stl avoids this -->
