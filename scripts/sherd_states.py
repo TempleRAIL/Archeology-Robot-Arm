@@ -94,7 +94,7 @@ class Translate(smach.State):
 # ** Fourth state of the State Machine: Examines area under wrist-mounted camera for sherds **
 class Examine(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['not_ready', 'replan', 'none_found', 'sherd_found', 'next_location'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'replan', 'none_found', 'sherd_found', 'next_location','check_scale'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
         self.core = core
         self.mat = mat
         
@@ -128,6 +128,9 @@ class Examine(smach.State):
                         return 'none_found'
                     else:
                         return 'next_location'
+                if userdata.station == self.mat.stations['camera_pick']:
+                    userdata.station = self.mat.stations['scale_search'] # check if sherd left on scale
+                    return 'check_scale'
                 else:
                     userdata.attempts = 0
                     userdata.station = self.mat.stations['pickup']
@@ -172,6 +175,7 @@ class Acquire(smach.State):
                 userdata.attempts += 1
                 return 'regrasp'
         except PlanningFailure: # may be raised by AutoCore's pick_place_fun
+            rospy.logwarn('AutoCore: failed to descend to sherd due to {}'.format(PlanningFailure.message))
             return 'replan'
         else:
             if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
@@ -184,7 +188,7 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class PlaceSherd(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['failed', 'replan', 'replace', 'retrieve_scale', 'retrieve_camera', 'next_sherd', 'recalibrate'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg'])
+        smach.State.__init__(self, outcomes = ['failed', 'replan', 'replace', 'retrieve_scale', 'retrieve_camera', 'next_sherd', 'recalibrate', 'regrasp'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg', 'attempts'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg', 'attempts'])
         self.core = core
         self.mat = mat
         
@@ -195,6 +199,10 @@ class PlaceSherd(smach.State):
         # Try to place sherd
         try:
             self.core.pick_place_fun(pose, self.mat.working_z, place=True)
+        except GraspFailure: # failed to grasp sherd from previous station
+            userdata.attempts += 1
+            userdata.station -= 1 # go back
+            return 'regrasp'
         except PlanningFailure: # may be raised by AutoCore's pick_place_fun
             return 'replan'
         except Exception as e:
@@ -276,9 +284,9 @@ def process_sherds():
         smach.StateMachine.add('Home', Home(core, mat), transitions = {'no_mask': 'Calibrate', 'ready': 'Translate'})
         smach.StateMachine.add('Calibrate', Calibrate(core, mat), transitions = {'replan': 'Calibrate', 'not_ready': 'NotReady', 'ready': 'Examine'})
         smach.StateMachine.add('Translate', Translate(core, mat), transitions = {'replan': 'Translate', 'failed': 'Home', 'search': 'Examine', 'put_down': 'PlaceSherd'})
-        smach.StateMachine.add('Examine', Examine(core, mat), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine'})
+        smach.StateMachine.add('Examine', Examine(core, mat), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine', 'check_scale': 'Translate'})
         smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire', 'check_scale': 'Translate'})
-        smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'replace': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate'})
+        smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'replace': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate', 'regrasp': 'Translate'})
 
     # ** Execute the SMACH plan **
     sm.execute()
