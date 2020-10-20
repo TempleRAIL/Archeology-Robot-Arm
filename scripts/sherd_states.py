@@ -157,10 +157,10 @@ class Acquire(smach.State):
                 pose['position'][2] += self.core.gripper_len + self.core.clearance
                 self.core.move_fun_retry(pose, use_MoveIt=True)
                 self.core.gripper.close()
-                self.core.grip_check_fun(pose)
                 pose['position'][2] = self.mat.working_z # move back up to working height after grasping
                 self.core.publish_status("Locomotion")
                 self.core.move_fun_retry(pose)
+                self.core.grip_check_fun(pose)
             else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
         except GraspFailure:
@@ -259,7 +259,7 @@ def process_sherds():
     # Initialize pyrobot objects
     bot = Robot("locobot", use_base=False)
     configs = bot.configs
-    gripper = LoCoBotGripper(configs, wait_time=3)
+    gripper = LoCoBotGripper(configs, wait_time=1)
     # Initialize AutoCore
     core = AutoCore(bot, gripper)
     mat = MatConfiguration()
