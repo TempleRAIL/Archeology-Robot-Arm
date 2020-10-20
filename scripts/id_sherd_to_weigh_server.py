@@ -14,9 +14,19 @@ from robot_arm.srv import SherdID, SherdIDResponse
 # gazebo_msgs/GetLinkProperties Service: https://docs.ros.org/kinetic/api/gazebo_msgs/html/srv/GetLinkProperties.html
 
 def id_sherd_callback(req):
-    # Subscribe to contact sensor ROS topic (echoed from Gazebo topic)
-    msg = rospy.wait_for_message("/scale_contact_sensor", ContactsState)
-    print("Got message from /scale_contact_sensor topic.")
+    attempts = 0
+    success = False
+
+    while not success:
+        if attempts >= 50:
+            break
+        msg = rospy.wait_for_message("/scale_contact_sensor", ContactsState)
+        if msg.states:
+            print("Got non-empty ContactsState msg from /scale_contact_sensor topic.")
+            success = True
+        else:
+            attempts += 1
+
     body_name = msg.states[0].collision1_name # e.g., "sherd2::sherd_b_link::collision" string
     string_list = body_name.split('::')
     del string_list[2] # delete 'collision' from string list
