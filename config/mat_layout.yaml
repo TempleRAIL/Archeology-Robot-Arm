@@ -53,9 +53,9 @@ standby_location:
   y: 0.0
 
 discard_area:
-  z: 2.5
+  z: 0.025
   offset_x: -0.03
   offset_y: -0.35
-  length_x: 0.20
-  length_y: 0.15
+  length_x: 0.18 #0.20
+  length_y: 0.13 #0.15
 
