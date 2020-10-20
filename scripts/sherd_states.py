@@ -123,7 +123,7 @@ class Examine(smach.State):
             else:
                 userdata.attempts += 1
                 if userdata.station == self.mat.stations['pickup']:
-                    if userdata.attempts == self.mat.num_pickup_positions: # robot camera has scanned whole pickup area
+                    if userdata.attempts == max(range(self.mat.num_pickup_positions)): # robot has scanned whole pickup area
                         userdata.attempts = 0
                         return 'none_found'
                     else:
