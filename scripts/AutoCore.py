@@ -109,7 +109,8 @@ class AutoCore():
         try:
             success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # plan=False means don't use MoveIt; args must be in this order due to the kwarg
             if not use_MoveIt: rospy.sleep(0.5)
-        except Exception:
+        except Exception as e:
+            rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
             raise
         else:
             if not success:
@@ -329,15 +330,17 @@ class AutoCore():
                 pose['position'][2] = working_z # move back up to working height after grasping
                 self.publish_status("Locomotion")
                 self.move_fun(pose)
-                self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
+                self.grip_check_fun(pose)
             except:
                 raise
     	# PLACE MODE
         else:
+            self.grip_check_fun(pose)
             try:
                 pose['position'][2] += self.gripper_len + self.clearance + self.sherd_allowance
                 self.publish_status("Locomotion")
                 self.move_fun(pose) # move down to surface
                 self.gripper.open()
-            except:
+            except Exception as e:
+                rospy.logwarn('AutoCore: failed to descend to placement height due to {}'.format(e))
                 raise
