@@ -59,9 +59,3 @@ discard_area:
   length_x: 0.20
   length_y: 0.15
 
-statuses:
-  init: 'Initialization'
-  move: 'Locomotion'
-  grasp: 'Grasping'
-  data: 'Data Collection'
-
