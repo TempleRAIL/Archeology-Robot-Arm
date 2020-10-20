@@ -133,7 +133,7 @@ class AutoCore():
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
         gripper_state = self.gripper.get_gripper_state()
-        rospy.loginfo('Gripper_state = {}'.format(gripper_state))
+        rospy.logwarn('Gripper_state = {}'.format(gripper_state))
         if not gripper_state == 2:
             raise GraspFailure(pose, 'Gripper_state = {}'.format(gripper_state))
 
@@ -326,10 +326,10 @@ class AutoCore():
                 pose['position'][2] -= 0.03 + self.clearance
                 self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
                 self.gripper.close()
-                self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
                 pose['position'][2] = working_z # move back up to working height after grasping
                 self.publish_status("Locomotion")
                 self.move_fun(pose)
+                self.grip_check_fun(pose) # TODO make it so arm goes back up even if gripper failure occurs
             except:
                 raise
     	# PLACE MODE
