@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # load sherd data bagfile
     current_dir = os.getcwd()
     package_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-    bagfile = 'sherd_data_2020-10-17-19-30-47.bag'  # edit name of bagfile as necessary
+    bagfile = 'sherd_data_sample.bag'  # edit name of bagfile as necessary
     filename = os.path.join(package_dir,'bagfiles',bagfile)
     bag = rosbag.Bag(filename)
 
