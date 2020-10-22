@@ -7,7 +7,7 @@
 #define LOCOBOT_GAZEBO_H
 
 #define GRIPPER_OPEN_POS 0.03
-#define GRIPPER_CLOSE_POS 0.0
+#define GRIPPER_CLOSE_POS 0.0025 //0.0
 
 #include <ros/ros.h>
 //#include "message_header.h"
