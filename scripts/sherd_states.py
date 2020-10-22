@@ -175,13 +175,11 @@ class Acquire(smach.State):
                 userdata.attempts += 1
                 return 'regrasp'
         except PlanningFailure: # may be raised by AutoCore's pick_place_fun
-            rospy.logwarn('AutoCore: failed to descend to sherd due to {}'.format(PlanningFailure.message))
             return 'replan'
         else:
             if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
             else: userdata.station += 1
             userdata.attempts = 0
-            #userdata.sherd_msg = SherdData()
             return 'acquired'
 
 
