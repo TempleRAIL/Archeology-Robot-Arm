@@ -201,7 +201,7 @@ class AutoCore():
         rospy.logdebug('AutoCore: get_color_mask_fun triggered.')
         # Move arm to calibration location
         try:
-            self.move_fun(calibrate_pose)
+            self.move_fun_retry(calibrate_pose)
         except:
             raise
         # Request data from service
@@ -228,7 +228,7 @@ class AutoCore():
         rospy.logdebug('AutoCore: get_background_fun triggered.')
         # Move arm to calibration location
         try:
-            self.move_fun(calibrate_pose)
+            self.move_fun_retry(calibrate_pose)
         except:
             raise
         # Request data from service
@@ -299,7 +299,7 @@ class AutoCore():
         rospy.loginfo('position: {}'.format(pose['position']))
         try:
             self.publish_status("Grasping")
-            self.move_fun(pose)
+            self.move_fun_retry(pose)
         except:
             raise
         # Check for sherd detections and get list of locations / rotations
@@ -323,13 +323,13 @@ class AutoCore():
             try:
                 pose['position'][2] += self.gripper_len # add gripper offset
                 pose['position'][2] += 0.03
-                self.move_fun(pose) # move above sherd and orient
+                self.move_fun_retry(pose) # move above sherd and orient
                 pose['position'][2] -= 0.03 + self.clearance
-                self.move_fun(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
+                self.move_fun_retry(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
                 self.gripper.close()
                 pose['position'][2] = working_z # move back up to working height after grasping
                 self.publish_status("Locomotion")
-                self.move_fun(pose)
+                self.move_fun_retry(pose)
                 self.grip_check_fun(pose)
             except:
                 raise
@@ -339,7 +339,7 @@ class AutoCore():
             try:
                 pose['position'][2] += self.gripper_len + self.clearance + self.sherd_allowance
                 self.publish_status("Locomotion")
-                self.move_fun(pose) # move down to surface
+                self.move_fun_retry(pose) # move down to surface
                 self.gripper.open()
             except Exception as e:
                 rospy.logwarn('AutoCore: failed to descend to placement height due to {}'.format(e))
