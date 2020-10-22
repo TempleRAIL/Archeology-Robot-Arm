@@ -18,7 +18,7 @@ def id_sherd_callback(req):
     success = False
 
     while not success:
-        if attempts >= 50:
+        if attempts >= 30:
             break
         msg = rospy.wait_for_message("/scale_contact_sensor", ContactsState)
         if msg.states:
