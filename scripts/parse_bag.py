@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # load sherd data bagfile
     current_dir = os.getcwd()
     package_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-    bagfile = 'sherd_data_sample.bag'  # edit name of bagfile as necessary
+    bagfile = 'benchmark_1_2020-10-22-21-45-54.bag'  # edit name of bagfile as necessary
     filename = os.path.join(package_dir,'bagfiles',bagfile)
     bag = rosbag.Bag(filename)
 
@@ -23,13 +23,24 @@ if __name__ == "__main__":
     timing = yaml.load(statuses)
     current_status = ''
     start_time = None
+    end_time = rospy.Time.from_sec(402.154)
+    total_time = 0
     num_sherds = 0
+
+    """
+    benchmark_1 bagfile ends at 402.154 seconds
+    benchmark_2 bagfile ends at
+    """
 
     # calculate time logged for each status
     try:
         for topic, msg, t in bag.read_messages():
             if topic == '/clock': # simulated time from Gazebo
                 time = msg.clock
+                if time <= end_time:
+                    pass
+                else:
+                    break
             elif topic == '/status':
                 if not start_time is None:
                     timing[current_status] += time - start_time
@@ -40,6 +51,11 @@ if __name__ == "__main__":
     finally:
         bag.close()
 
+    # print number of sherds processed
+    print('{} sherds processed.'.format(num_sherds, total_time))
+
     # print time logged for each status
     for key in timing:
-        print('{} took {} secs'.format(key, timing[key].to_sec()))
+        print('{} took {} secs.'.format(key, timing[key].to_sec()))
+        total_time += timing[key].to_sec()   
+    print('Total time: {} secs.'.format(total_time))
