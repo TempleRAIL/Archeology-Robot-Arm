@@ -106,7 +106,7 @@ class Examine(smach.State):
             elif userdata.station == self.mat.stations['scale_search']:
                 (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'])  
             elif userdata.station == self.mat.stations['camera_pick']:
-                (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['mat'], self.core.bgnds['camera'])
+                (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'], self.core.bgnds['camera'])
         except PlanningFailure: # may be raised by AutoCore's shard_fun
             return 'replan'
         except Exception as e:
@@ -140,7 +140,7 @@ class Examine(smach.State):
 # ** Fifth state of the State Machine: Lowers the gripper to acquire the sherd and returns to working height **
 class Acquire(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp', 'check_scale'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts', 'sherd_msg'])
+        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp', 'check_scale', 'check_camera'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts', 'sherd_msg'])
         self.core = core
         self.mat = mat
     
@@ -148,9 +148,12 @@ class Acquire(smach.State):
         pose = userdata.goal # get goal pose. 
         pose = self.mat.select_goal_z(pose, userdata.station) # get goal z
         # If failed first attempt to grasp sherd 'blind' from scale, get pose from sensor
-        if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts > 0:
-            userdata.station = self.mat.stations['scale_search']
-            return 'check_scale'
+        if userdata.attempts > 0:
+            if userdata.station == self.mat.stations['scale_pick']: 
+                userdata.station = self.mat.stations['scale_search']
+                return 'check_scale'
+            if userdata.station == self.mat.stations['camera_pick']:
+                return 'check_camera'
         # Try to acquire sherd
         try:
             # skip AutoCore pick_place_fun on first attempt to grasp from scale
@@ -162,7 +165,7 @@ class Acquire(smach.State):
                 self.core.gripper.close()
                 pose['position'][2] = self.mat.working_z # move back up to working height after grasping
                 self.core.publish_status("Locomotion")
-                self.core.move_fun_retry(pose)
+                self.core.move_fun_retry(pose, use_MoveIt=True) # Use MoveIt to prevent swinging at wrist
                 self.core.grip_check_fun(pose)
             else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
@@ -222,7 +225,7 @@ class PlaceSherd(smach.State):
                 try:
                     pose['position'][2] = self.mat.working_z
                     self.core.publish_status("Data Collection") # not Locomotion
-                    self.core.move_fun_retry(pose) # move straight up to working height
+                    self.core.move_fun_retry(pose, use_MoveIt=True) # move straight up to working height
                     self.core.move_fun_retry(self.mat.standby_pose)
                 except Exception as e:
                     rospy.logwarn('Could not move to standby position because: {}'.format(e))
@@ -283,7 +286,7 @@ def process_sherds():
         smach.StateMachine.add('Calibrate', Calibrate(core, mat), transitions = {'replan': 'Calibrate', 'not_ready': 'NotReady', 'ready': 'Examine'})
         smach.StateMachine.add('Translate', Translate(core, mat), transitions = {'replan': 'Translate', 'failed': 'Home', 'search': 'Examine', 'put_down': 'PlaceSherd'})
         smach.StateMachine.add('Examine', Examine(core, mat), transitions = {'not_ready': 'NotReady', 'replan': 'Examine', 'none_found': 'Home', 'sherd_found': 'Acquire', 'next_location': 'Examine', 'check_scale': 'Translate'})
-        smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire', 'check_scale': 'Translate'})
+        smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire', 'check_scale': 'Translate', 'check_camera': 'Translate'})
         smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'replace': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate', 'regrasp': 'Translate'})
 
     # ** Execute the SMACH plan **
