@@ -1,0 +1,4871 @@
+{
+ "history": {
+  "undo": [
+   {
+    "type": "update",
+    "key": [
+     "clips",
+     {
+      "id": "7CT6QASKFK"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "start": 0,
+     "layer": 1000000,
+     "id": "7CT6QASKFK",
+     "end": 48,
+     "position": 0
+    },
+    "old_values": {
+     "perspective_c1_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "duration": 48.0,
+     "rotation": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "alpha": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "display": 0,
+     "wave_color": {
+      "red": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 0.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "alpha": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "green": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 123.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "blue": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      }
+     },
+     "crop_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale": 1,
+     "has_audio": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "original_data": {
+      "video_length": "23222",
+      "end": 1548.13330078125,
+      "duration": 1548.13330078125
+     },
+     "title": "benchmark_1_raw.mp4",
+     "has_video": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c3_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "mixing": 0,
+     "location_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "id": "7CT6QASKFK",
+     "scale_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "channel_filter": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c2_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "file_id": "TU7QOG7U5O",
+     "location_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_height": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_width": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "position": 0,
+     "effects": [],
+     "shear_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "volume": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "reader": {
+      "metadata": {
+       "encoder": "x264",
+       "minor_version": "0",
+       "language": "eng",
+       "major_brand": "mp42",
+       "compatible_brands": "mp42mp41isomiso2",
+       "creation_time": "2020-10-23T02:43:58.000000Z",
+       "handler_name": "VideoHandler"
+      },
+      "acodec": "",
+      "duration": 1548.13330078125,
+      "path": "./benchmark_1_raw.mp4",
+      "fps": {
+       "den": 1,
+       "num": 15
+      },
+      "height": 1000,
+      "has_single_image": false,
+      "audio_stream_index": -1,
+      "width": 1214,
+      "has_audio": false,
+      "video_bit_rate": 57860,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 1500,
+       "num": 1
+      },
+      "vcodec": "h264",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "FFmpegReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 500,
+       "num": 607
+      },
+      "file_size": "89575807",
+      "video_stream_index": 0,
+      "interlaced_frame": false,
+      "video_length": "23222",
+      "pixel_format": 5,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "time": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 1
+       },
+       {
+        "co": {
+         "X": 1452.0,
+         "Y": 11609.0
+        },
+        "interpolation": 1
+       }
+      ]
+     },
+     "perspective_c2_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "end": 48,
+     "perspective_c1_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "start": 0,
+     "gravity": 4,
+     "layer": 1000000,
+     "channel_mapping": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "waveform": false,
+     "anchor": 0,
+     "perspective_c3_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "shear_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "clips",
+     {
+      "id": "7CT6QASKFK"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "crop_width": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c1_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "position": 0,
+     "duration": 1548.13330078125,
+     "rotation": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "shear_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "waveform": false,
+     "display": 0,
+     "wave_color": {
+      "red": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 0.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "alpha": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "green": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 123.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "blue": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      }
+     },
+     "crop_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale": 1,
+     "layer": 1000000,
+     "perspective_c3_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "volume": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "alpha": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "time": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 1
+       }
+      ]
+     },
+     "title": "benchmark_1_raw.mp4",
+     "has_video": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c3_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "mixing": 0,
+     "perspective_c4_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "end": 1548.13330078125,
+     "channel_filter": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c1_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "location_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "gravity": 4,
+     "id": "7CT6QASKFK",
+     "has_audio": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c2_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "start": 0,
+     "channel_mapping": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "effects": [],
+     "file_id": "TU7QOG7U5O",
+     "perspective_c2_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "location_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "anchor": 0,
+     "shear_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_height": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "perspective_c1_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "duration": 48.0,
+     "rotation": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "alpha": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "display": 0,
+     "wave_color": {
+      "red": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 0.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "alpha": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "green": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 123.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "blue": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      }
+     },
+     "crop_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale": 1,
+     "has_audio": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "original_data": {
+      "video_length": "23222",
+      "end": 1548.13330078125,
+      "duration": 1548.13330078125
+     },
+     "title": "benchmark_1_raw.mp4",
+     "has_video": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c3_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "mixing": 0,
+     "location_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "id": "7CT6QASKFK",
+     "scale_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "channel_filter": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c2_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "file_id": "TU7QOG7U5O",
+     "location_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_height": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_width": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "position": 0,
+     "effects": [],
+     "shear_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "volume": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "reader": {
+      "metadata": {
+       "encoder": "x264",
+       "minor_version": "0",
+       "language": "eng",
+       "major_brand": "mp42",
+       "compatible_brands": "mp42mp41isomiso2",
+       "creation_time": "2020-10-23T02:43:58.000000Z",
+       "handler_name": "VideoHandler"
+      },
+      "acodec": "",
+      "duration": 1548.13330078125,
+      "path": "./benchmark_1_raw.mp4",
+      "fps": {
+       "den": 1,
+       "num": 15
+      },
+      "height": 1000,
+      "has_single_image": false,
+      "audio_stream_index": -1,
+      "width": 1214,
+      "has_audio": false,
+      "video_bit_rate": 57860,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 1500,
+       "num": 1
+      },
+      "vcodec": "h264",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "FFmpegReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 500,
+       "num": 607
+      },
+      "file_size": "89575807",
+      "video_stream_index": 0,
+      "interlaced_frame": false,
+      "video_length": "23222",
+      "pixel_format": 5,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "time": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 1
+       },
+       {
+        "co": {
+         "X": 1452.0,
+         "Y": 11609.0
+        },
+        "interpolation": 1
+       }
+      ]
+     },
+     "perspective_c2_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "end": 48,
+     "perspective_c1_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "start": 0,
+     "gravity": 4,
+     "layer": 1000000,
+     "channel_mapping": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "waveform": false,
+     "anchor": 0,
+     "perspective_c3_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "shear_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "clips",
+     {
+      "id": "7CT6QASKFK"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "crop_width": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c1_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "position": 0,
+     "duration": 192.0,
+     "rotation": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "shear_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "waveform": false,
+     "display": 0,
+     "wave_color": {
+      "red": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 0.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "alpha": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "green": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 123.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "blue": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      }
+     },
+     "crop_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale": 1,
+     "layer": 1000000,
+     "perspective_c3_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "volume": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "alpha": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "original_data": {
+      "video_length": "23222",
+      "end": 1548.13330078125,
+      "duration": 1548.13330078125
+     },
+     "time": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 1
+       },
+       {
+        "co": {
+         "X": 5806.0,
+         "Y": 46441.0
+        },
+        "interpolation": 1
+       }
+      ]
+     },
+     "title": "benchmark_1_raw.mp4",
+     "has_video": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c3_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "mixing": 0,
+     "perspective_c4_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "end": 193.53333333333333,
+     "channel_filter": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c1_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "location_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "gravity": 4,
+     "id": "7CT6QASKFK",
+     "has_audio": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c2_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "start": 0,
+     "channel_mapping": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "effects": [],
+     "file_id": "TU7QOG7U5O",
+     "perspective_c2_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "location_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "anchor": 0,
+     "shear_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_height": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "perspective_c1_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "duration": 1548.13330078125,
+     "rotation": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "alpha": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "display": 0,
+     "wave_color": {
+      "red": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 0.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "alpha": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "green": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 123.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "blue": {
+       "Points": [
+        {
+         "co": {
+          "X": 1.0,
+          "Y": 255.0
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1.0
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0.0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      }
+     },
+     "crop_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale": 1,
+     "has_audio": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "scale_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "original_data": {
+      "video_length": "23222",
+      "end": 1548.13330078125,
+      "duration": 1548.13330078125
+     },
+     "title": "benchmark_1_raw.mp4",
+     "has_video": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c3_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "mixing": 0,
+     "location_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "id": "7CT6QASKFK",
+     "scale_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "channel_filter": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c2_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "file_id": "TU7QOG7U5O",
+     "location_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_height": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_width": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "crop_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "position": 0,
+     "effects": [],
+     "shear_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "volume": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "reader": {
+      "metadata": {
+       "encoder": "x264",
+       "minor_version": "0",
+       "language": "eng",
+       "major_brand": "mp42",
+       "compatible_brands": "mp42mp41isomiso2",
+       "creation_time": "2020-10-23T02:43:58.000000Z",
+       "handler_name": "VideoHandler"
+      },
+      "acodec": "",
+      "duration": 1548.13330078125,
+      "path": "./benchmark_1_raw.mp4",
+      "fps": {
+       "den": 1,
+       "num": 15
+      },
+      "height": 1000,
+      "has_single_image": false,
+      "audio_stream_index": -1,
+      "width": 1214,
+      "has_audio": false,
+      "video_bit_rate": 57860,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 1500,
+       "num": 1
+      },
+      "vcodec": "h264",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "FFmpegReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 500,
+       "num": 607
+      },
+      "file_size": "89575807",
+      "video_stream_index": 0,
+      "interlaced_frame": false,
+      "video_length": "23222",
+      "pixel_format": 5,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "time": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 1
+       }
+      ]
+     },
+     "perspective_c2_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "perspective_c4_y": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "end": 1548.13330078125,
+     "perspective_c1_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "start": 0,
+     "gravity": 4,
+     "layer": 1000000,
+     "channel_mapping": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "waveform": false,
+     "anchor": 0,
+     "perspective_c3_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": -1.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "shear_x": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 0.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "insert",
+    "key": [
+     "effects"
+    ],
+    "partial": false,
+    "value": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 3000000,
+     "end": 10,
+     "position": 2.85,
+     "reader": {
+      "channels": 0,
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "metadata": {},
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "5NATLA077F",
+     "replace_image": false
+    },
+    "old_values": []
+   },
+   {
+    "type": "delete",
+    "key": [
+     "effects",
+     {
+      "id": "5NATLA077F"
+     }
+    ],
+    "partial": false,
+    "value": null,
+    "old_values": {
+     "replace_image": false,
+     "layer": 3000000,
+     "end": 10,
+     "position": 2.85,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "5NATLA077F",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "insert",
+    "key": [
+     "effects"
+    ],
+    "partial": false,
+    "value": {
+     "replace_image": false,
+     "layer": 1000000,
+     "position": 0,
+     "end": 3.1,
+     "reader": {
+      "channels": 0,
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "metadata": {},
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 94,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "3QJBPO5GUP",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": []
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "3QJBPO5GUP"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "layer": 1000000,
+     "position": 0,
+     "end": 10,
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "start": 0,
+     "id": "3QJBPO5GUP",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "replace_image": false,
+     "layer": 2000000,
+     "end": 10,
+     "position": 0.0,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "3QJBPO5GUP",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "3QJBPO5GUP"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "layer": 1000000,
+     "position": 0,
+     "end": 3.1,
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 94,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "start": 0,
+     "id": "3QJBPO5GUP",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 1000000,
+     "position": 0,
+     "end": 10,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "3QJBPO5GUP",
+     "replace_image": false
+    }
+   },
+   {
+    "type": "insert",
+    "key": [
+     "effects"
+    ],
+    "partial": false,
+    "value": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 2000000,
+     "end": 10,
+     "position": 188.54999999999998,
+     "reader": {
+      "channels": 0,
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "metadata": {},
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "P1GVQ5VWOX",
+     "replace_image": false
+    },
+    "old_values": [
+     {
+      "contrast": {
+       "Points": [
+        {
+         "co": {
+          "X": 1,
+          "Y": 3
+         },
+         "interpolation": 2
+        }
+       ]
+      },
+      "layer": 1000000,
+      "position": 0,
+      "end": 3.1,
+      "reader": {
+       "metadata": {},
+       "acodec": "",
+       "duration": 3600.0,
+       "path": "@transitions/common/fade.svg",
+       "fps": {
+        "den": 1,
+        "num": 30
+       },
+       "height": 576,
+       "has_single_image": true,
+       "audio_stream_index": -1,
+       "width": 720,
+       "has_audio": false,
+       "video_bit_rate": 0,
+       "channel_layout": 4,
+       "video_timebase": {
+        "den": 30,
+        "num": 1
+       },
+       "vcodec": "",
+       "audio_bit_rate": 0,
+       "has_video": true,
+       "channels": 0,
+       "pixel_ratio": {
+        "den": 1,
+        "num": 1
+       },
+       "sample_rate": 0,
+       "type": "QtImageReader",
+       "top_field_first": true,
+       "display_ratio": {
+        "den": 4,
+        "num": 5
+       },
+       "file_size": "1658880",
+       "video_stream_index": -1,
+       "interlaced_frame": false,
+       "video_length": "108000",
+       "pixel_format": -1,
+       "audio_timebase": {
+        "den": 1,
+        "num": 1
+       }
+      },
+      "brightness": {
+       "Points": [
+        {
+         "co": {
+          "X": 1,
+          "Y": 1
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        },
+        {
+         "co": {
+          "X": 94,
+          "Y": -1
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "type": "Mask",
+      "start": 0,
+      "title": "Transition",
+      "id": "3QJBPO5GUP",
+      "replace_image": false
+     }
+    ]
+   },
+   {
+    "type": "delete",
+    "key": [
+     "effects",
+     {
+      "id": "P1GVQ5VWOX"
+     }
+    ],
+    "partial": false,
+    "value": null,
+    "old_values": {
+     "replace_image": false,
+     "layer": 2000000,
+     "end": 10,
+     "position": 188.54999999999998,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "P1GVQ5VWOX",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "insert",
+    "key": [
+     "effects"
+    ],
+    "partial": false,
+    "value": {
+     "replace_image": false,
+     "layer": 1000000,
+     "position": 191.13333333333333,
+     "end": 2.6499999999999995,
+     "reader": {
+      "channels": 0,
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "metadata": {},
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 80,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": [
+     {
+      "contrast": {
+       "Points": [
+        {
+         "co": {
+          "X": 1,
+          "Y": 3
+         },
+         "interpolation": 2
+        }
+       ]
+      },
+      "layer": 1000000,
+      "position": 0,
+      "end": 3.1,
+      "reader": {
+       "metadata": {},
+       "acodec": "",
+       "duration": 3600.0,
+       "path": "@transitions/common/fade.svg",
+       "fps": {
+        "den": 1,
+        "num": 30
+       },
+       "height": 576,
+       "has_single_image": true,
+       "audio_stream_index": -1,
+       "width": 720,
+       "has_audio": false,
+       "video_bit_rate": 0,
+       "channel_layout": 4,
+       "video_timebase": {
+        "den": 30,
+        "num": 1
+       },
+       "vcodec": "",
+       "audio_bit_rate": 0,
+       "has_video": true,
+       "channels": 0,
+       "pixel_ratio": {
+        "den": 1,
+        "num": 1
+       },
+       "sample_rate": 0,
+       "type": "QtImageReader",
+       "top_field_first": true,
+       "display_ratio": {
+        "den": 4,
+        "num": 5
+       },
+       "file_size": "1658880",
+       "video_stream_index": -1,
+       "interlaced_frame": false,
+       "video_length": "108000",
+       "pixel_format": -1,
+       "audio_timebase": {
+        "den": 1,
+        "num": 1
+       }
+      },
+      "brightness": {
+       "Points": [
+        {
+         "co": {
+          "X": 1,
+          "Y": 1
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        },
+        {
+         "co": {
+          "X": 94,
+          "Y": -1
+         },
+         "handle_left": {
+          "X": 0.5,
+          "Y": 1
+         },
+         "handle_right": {
+          "X": 0.5,
+          "Y": 0
+         },
+         "handle_type": 0,
+         "interpolation": 0
+        }
+       ]
+      },
+      "type": "Mask",
+      "start": 0,
+      "title": "Transition",
+      "id": "3QJBPO5GUP",
+      "replace_image": false
+     }
+    ]
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "L3SZSYO9H6"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "layer": 1000000,
+     "position": 183.78333333333333,
+     "end": 10,
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "start": 0,
+     "id": "L3SZSYO9H6",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "replace_image": false,
+     "layer": 1000000,
+     "end": 10,
+     "position": 202.64999999999998,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301.0,
+         "Y": -1.0
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1.0
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0.0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1.0,
+         "Y": 3.0
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "L3SZSYO9H6"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "layer": 1000000,
+     "position": 192.2,
+     "end": 1.5999999999999996,
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 49,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "start": 0,
+     "id": "L3SZSYO9H6",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 1000000,
+     "position": 183.78333333333333,
+     "end": 10,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 301,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "replace_image": false
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "L3SZSYO9H6"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "layer": 1000000,
+     "position": 191.13333333333333,
+     "end": 2.6499999999999995,
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 80,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "start": 0,
+     "id": "L3SZSYO9H6",
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     }
+    },
+    "old_values": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 1000000,
+     "position": 192.2,
+     "end": 1.5999999999999996,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 49,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "replace_image": false
+    }
+   },
+   {
+    "type": "update",
+    "key": [
+     "effects",
+     {
+      "id": "L3SZSYO9H6"
+     }
+    ],
+    "partial": false,
+    "value": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 1000000,
+     "position": 191.13333333333333,
+     "end": 2.6499999999999995,
+     "reader": {
+      "channels": 0,
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "metadata": {},
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 80,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "replace_image": false
+    },
+    "old_values": {
+     "contrast": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 3
+        },
+        "interpolation": 2
+       }
+      ]
+     },
+     "layer": 1000000,
+     "position": 191.13333333333333,
+     "end": 2.6499999999999995,
+     "reader": {
+      "metadata": {},
+      "acodec": "",
+      "duration": 3600.0,
+      "path": "@transitions/common/fade.svg",
+      "fps": {
+       "den": 1,
+       "num": 30
+      },
+      "height": 576,
+      "has_single_image": true,
+      "audio_stream_index": -1,
+      "width": 720,
+      "has_audio": false,
+      "video_bit_rate": 0,
+      "channel_layout": 4,
+      "video_timebase": {
+       "den": 30,
+       "num": 1
+      },
+      "vcodec": "",
+      "audio_bit_rate": 0,
+      "has_video": true,
+      "channels": 0,
+      "pixel_ratio": {
+       "den": 1,
+       "num": 1
+      },
+      "sample_rate": 0,
+      "type": "QtImageReader",
+      "top_field_first": true,
+      "display_ratio": {
+       "den": 4,
+       "num": 5
+      },
+      "file_size": "1658880",
+      "video_stream_index": -1,
+      "interlaced_frame": false,
+      "video_length": "108000",
+      "pixel_format": -1,
+      "audio_timebase": {
+       "den": 1,
+       "num": 1
+      }
+     },
+     "brightness": {
+      "Points": [
+       {
+        "co": {
+         "X": 1,
+         "Y": 1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       },
+       {
+        "co": {
+         "X": 80,
+         "Y": -1
+        },
+        "handle_left": {
+         "X": 0.5,
+         "Y": 1
+        },
+        "handle_right": {
+         "X": 0.5,
+         "Y": 0
+        },
+        "handle_type": 0,
+        "interpolation": 0
+       }
+      ]
+     },
+     "type": "Mask",
+     "start": 0,
+     "title": "Transition",
+     "id": "L3SZSYO9H6",
+     "replace_image": false
+    }
+   }
+  ],
+  "redo": []
+ },
+ "playhead_position": 0,
+ "progress": [],
+ "duration": 1558.13330078125,
+ "effects": [
+  {
+   "position": 0,
+   "layer": 1000000,
+   "replace_image": false,
+   "reader": {
+    "metadata": {},
+    "acodec": "",
+    "duration": 3600.0,
+    "path": "@transitions/common/fade.svg",
+    "height": 576,
+    "has_single_image": true,
+    "audio_stream_index": -1,
+    "width": 720,
+    "has_audio": false,
+    "video_bit_rate": 0,
+    "channel_layout": 4,
+    "video_timebase": {
+     "den": 30,
+     "num": 1
+    },
+    "top_field_first": true,
+    "audio_bit_rate": 0,
+    "has_video": true,
+    "channels": 0,
+    "pixel_ratio": {
+     "den": 1,
+     "num": 1
+    },
+    "sample_rate": 0,
+    "type": "QtImageReader",
+    "vcodec": "",
+    "video_stream_index": -1,
+    "display_ratio": {
+     "den": 4,
+     "num": 5
+    },
+    "file_size": "1658880",
+    "fps": {
+     "den": 1,
+     "num": 30
+    },
+    "interlaced_frame": false,
+    "video_length": "108000",
+    "pixel_format": -1,
+    "audio_timebase": {
+     "den": 1,
+     "num": 1
+    }
+   },
+   "end": 3.1,
+   "start": 0,
+   "type": "Mask",
+   "brightness": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1,
+       "X": 1
+      },
+      "handle_left": {
+       "Y": 1,
+       "X": 0.5
+      },
+      "handle_type": 0,
+      "handle_right": {
+       "Y": 0,
+       "X": 0.5
+      },
+      "interpolation": 0
+     },
+     {
+      "co": {
+       "Y": -1,
+       "X": 94
+      },
+      "handle_left": {
+       "Y": 1,
+       "X": 0.5
+      },
+      "handle_type": 0,
+      "handle_right": {
+       "Y": 0,
+       "X": 0.5
+      },
+      "interpolation": 0
+     }
+    ]
+   },
+   "title": "Transition",
+   "id": "3QJBPO5GUP",
+   "contrast": {
+    "Points": [
+     {
+      "co": {
+       "Y": 3,
+       "X": 1
+      },
+      "interpolation": 2
+     }
+    ]
+   }
+  },
+  {
+   "position": 191.13333333333333,
+   "layer": 1000000,
+   "replace_image": false,
+   "reader": {
+    "metadata": {},
+    "acodec": "",
+    "duration": 3600.0,
+    "path": "@transitions/common/fade.svg",
+    "height": 576,
+    "has_single_image": true,
+    "audio_stream_index": -1,
+    "width": 720,
+    "has_audio": false,
+    "video_bit_rate": 0,
+    "channel_layout": 4,
+    "video_timebase": {
+     "den": 30,
+     "num": 1
+    },
+    "top_field_first": true,
+    "audio_bit_rate": 0,
+    "has_video": true,
+    "channels": 0,
+    "pixel_ratio": {
+     "den": 1,
+     "num": 1
+    },
+    "sample_rate": 0,
+    "type": "QtImageReader",
+    "vcodec": "",
+    "video_stream_index": -1,
+    "display_ratio": {
+     "den": 4,
+     "num": 5
+    },
+    "file_size": "1658880",
+    "fps": {
+     "den": 1,
+     "num": 30
+    },
+    "interlaced_frame": false,
+    "video_length": "108000",
+    "pixel_format": -1,
+    "audio_timebase": {
+     "den": 1,
+     "num": 1
+    }
+   },
+   "end": 2.6499999999999995,
+   "start": 0,
+   "type": "Mask",
+   "brightness": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1,
+       "X": 1
+      },
+      "handle_left": {
+       "Y": 1,
+       "X": 0.5
+      },
+      "handle_type": 0,
+      "handle_right": {
+       "Y": 0,
+       "X": 0.5
+      },
+      "interpolation": 0
+     },
+     {
+      "co": {
+       "Y": 1,
+       "X": 80
+      },
+      "handle_left": {
+       "Y": 1,
+       "X": 0.5
+      },
+      "handle_type": 0,
+      "handle_right": {
+       "Y": 0,
+       "X": 0.5
+      },
+      "interpolation": 0
+     }
+    ]
+   },
+   "title": "Transition",
+   "id": "L3SZSYO9H6",
+   "contrast": {
+    "Points": [
+     {
+      "co": {
+       "Y": 3,
+       "X": 1
+      },
+      "interpolation": 2
+     }
+    ]
+   }
+  }
+ ],
+ "height": 720,
+ "scale": 15,
+ "tick_pixels": 100,
+ "import_path": "",
+ "channel_layout": 3,
+ "width": 1280,
+ "channels": 2,
+ "pixel_ratio": {
+  "den": 1,
+  "num": 1
+ },
+ "layers": [
+  {
+   "number": 1000000,
+   "y": 0,
+   "id": "L1",
+   "lock": false,
+   "label": ""
+  },
+  {
+   "number": 2000000,
+   "y": 0,
+   "id": "L2",
+   "lock": false,
+   "label": ""
+  },
+  {
+   "number": 3000000,
+   "y": 0,
+   "id": "L3",
+   "lock": false,
+   "label": ""
+  },
+  {
+   "number": 4000000,
+   "y": 0,
+   "id": "L4",
+   "lock": false,
+   "label": ""
+  },
+  {
+   "number": 5000000,
+   "y": 0,
+   "id": "L5",
+   "lock": false,
+   "label": ""
+  }
+ ],
+ "version": {
+  "libopenshot": "0.2.5",
+  "openshot-qt": "2.5.1"
+ },
+ "clips": [
+  {
+   "perspective_c1_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "reader": {
+    "metadata": {
+     "encoder": "x264",
+     "handler_name": "VideoHandler",
+     "language": "eng",
+     "major_brand": "mp42",
+     "compatible_brands": "mp42mp41isomiso2",
+     "creation_time": "2020-10-23T02:43:58.000000Z",
+     "minor_version": "0"
+    },
+    "acodec": "",
+    "duration": 1548.13330078125,
+    "path": "./benchmark_1_raw.mp4",
+    "height": 1000,
+    "has_single_image": false,
+    "audio_stream_index": -1,
+    "width": 1214,
+    "has_audio": false,
+    "video_bit_rate": 57860,
+    "channel_layout": 4,
+    "video_timebase": {
+     "den": 1500,
+     "num": 1
+    },
+    "top_field_first": true,
+    "audio_bit_rate": 0,
+    "has_video": true,
+    "channels": 0,
+    "pixel_ratio": {
+     "den": 1,
+     "num": 1
+    },
+    "sample_rate": 0,
+    "type": "FFmpegReader",
+    "vcodec": "h264",
+    "video_stream_index": 0,
+    "display_ratio": {
+     "den": 500,
+     "num": 607
+    },
+    "file_size": "89575807",
+    "fps": {
+     "den": 1,
+     "num": 15
+    },
+    "interlaced_frame": false,
+    "video_length": "23222",
+    "pixel_format": 5,
+    "audio_timebase": {
+     "den": 1,
+     "num": 1
+    }
+   },
+   "duration": 192.0,
+   "rotation": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "alpha": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "display": 0,
+   "wave_color": {
+    "red": {
+     "Points": [
+      {
+       "co": {
+        "Y": 0.0,
+        "X": 1.0
+       },
+       "handle_left": {
+        "Y": 1.0,
+        "X": 0.5
+       },
+       "handle_type": 0,
+       "handle_right": {
+        "Y": 0.0,
+        "X": 0.5
+       },
+       "interpolation": 0
+      }
+     ]
+    },
+    "alpha": {
+     "Points": [
+      {
+       "co": {
+        "Y": 255.0,
+        "X": 1.0
+       },
+       "handle_left": {
+        "Y": 1.0,
+        "X": 0.5
+       },
+       "handle_type": 0,
+       "handle_right": {
+        "Y": 0.0,
+        "X": 0.5
+       },
+       "interpolation": 0
+      }
+     ]
+    },
+    "green": {
+     "Points": [
+      {
+       "co": {
+        "Y": 123.0,
+        "X": 1.0
+       },
+       "handle_left": {
+        "Y": 1.0,
+        "X": 0.5
+       },
+       "handle_type": 0,
+       "handle_right": {
+        "Y": 0.0,
+        "X": 0.5
+       },
+       "interpolation": 0
+      }
+     ]
+    },
+    "blue": {
+     "Points": [
+      {
+       "co": {
+        "Y": 255.0,
+        "X": 1.0
+       },
+       "handle_left": {
+        "Y": 1.0,
+        "X": 0.5
+       },
+       "handle_type": 0,
+       "handle_right": {
+        "Y": 0.0,
+        "X": 0.5
+       },
+       "interpolation": 0
+      }
+     ]
+    }
+   },
+   "crop_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "scale": 1,
+   "has_audio": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "scale_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "original_data": {
+    "video_length": "23222",
+    "end": 1548.13330078125,
+    "duration": 1548.13330078125
+   },
+   "title": "benchmark_1_raw.mp4",
+   "has_video": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "perspective_c3_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "mixing": 0,
+   "location_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "id": "7CT6QASKFK",
+   "perspective_c4_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "channel_filter": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "perspective_c2_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "file_id": "TU7QOG7U5O",
+   "location_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "crop_height": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "crop_width": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "position": 0,
+   "effects": [],
+   "shear_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "anchor": 0,
+   "perspective_c2_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "perspective_c4_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "volume": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "image": "thumbnail/TU7QOG7U5O.png",
+   "crop_y": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "scale_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "end": 193.53333333333333,
+   "perspective_c1_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "start": 0,
+   "gravity": 4,
+   "layer": 1000000,
+   "channel_mapping": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "waveform": false,
+   "time": {
+    "Points": [
+     {
+      "co": {
+       "Y": 1.0,
+       "X": 1.0
+      },
+      "interpolation": 1
+     },
+     {
+      "co": {
+       "Y": 46441.0,
+       "X": 5806.0
+      },
+      "interpolation": 1
+     }
+    ]
+   },
+   "perspective_c3_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": -1.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   },
+   "shear_x": {
+    "Points": [
+     {
+      "co": {
+       "Y": 0.0,
+       "X": 1.0
+      },
+      "interpolation": 2
+     }
+    ]
+   }
+  }
+ ],
+ "sample_rate": 44100,
+ "export_path": "/home/deb/catkin_ws/src/robot_arm/paper",
+ "id": "IJQOLGYCS4",
+ "display_ratio": {
+  "den": 9,
+  "num": 16
+ },
+ "fps": {
+  "den": 1,
+  "num": 30
+ },
+ "settings": {},
+ "files": [
+  {
+   "metadata": {
+    "encoder": "x264",
+    "handler_name": "VideoHandler",
+    "language": "eng",
+    "major_brand": "mp42",
+    "compatible_brands": "mp42mp41isomiso2",
+    "creation_time": "2020-10-23T02:43:58.000000Z",
+    "minor_version": "0"
+   },
+   "acodec": "",
+   "duration": 1548.13330078125,
+   "path": "./benchmark_1_raw.mp4",
+   "id": "TU7QOG7U5O",
+   "media_type": "video",
+   "height": 1000,
+   "has_single_image": false,
+   "audio_stream_index": -1,
+   "channel_layout": 4,
+   "has_audio": false,
+   "image": "thumbnail/TU7QOG7U5O.png",
+   "video_bit_rate": 57860,
+   "width": 1214,
+   "video_timebase": {
+    "den": 1500,
+    "num": 1
+   },
+   "top_field_first": true,
+   "audio_bit_rate": 0,
+   "has_video": true,
+   "channels": 0,
+   "pixel_ratio": {
+    "den": 1,
+    "num": 1
+   },
+   "sample_rate": 0,
+   "type": "FFmpegReader",
+   "vcodec": "h264",
+   "video_stream_index": 0,
+   "display_ratio": {
+    "den": 500,
+    "num": 607
+   },
+   "file_size": "89575807",
+   "fps": {
+    "den": 1,
+    "num": 15
+   },
+   "interlaced_frame": false,
+   "video_length": "23222",
+   "pixel_format": 5,
+   "audio_timebase": {
+    "den": 1,
+    "num": 1
+   }
+  }
+ ],
+ "profile": "HD 720p 30 fps",
+ "markers": []
+}
