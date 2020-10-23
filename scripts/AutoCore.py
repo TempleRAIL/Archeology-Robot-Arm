@@ -107,8 +107,9 @@ class AutoCore():
     def move_fun(self, pose, use_MoveIt=False):
         rospy.logdebug('AutoCore: move_fun triggered')
         try:
-            success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # plan=False means don't use MoveIt; args must be in this order due to the kwarg
-            if not use_MoveIt: rospy.sleep(0.5)
+        # plan=False means don't use MoveIt
+            success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # args must be in this order due to the kwarg
+            if not use_MoveIt: rospy.sleep(0.5) # pause for accurate calibration images
         except Exception as e:
             rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
             raise
@@ -122,10 +123,12 @@ class AutoCore():
         while not success:
             try:
                 self.move_fun(pose, use_MoveIt)
-            except PlanningFailure:
-                continue
-            except:
+            #except PlanningFailure:
+                #continue
+            except rospy.ROSInterruptException:
                 raise
+            except:
+                continue
             else:
                 success = True
 
@@ -133,6 +136,8 @@ class AutoCore():
     ########## Sensor interface ##########
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
+        self.gripper.close()
+        rospy.sleep(1.5)
         gripper_state = self.gripper.get_gripper_state()
         rospy.logwarn('Gripper_state = {}'.format(gripper_state))
         if not gripper_state == 2:
@@ -218,7 +223,7 @@ class AutoCore():
         else:
             self.color_masks[mask_type] = res.color_mask
             self.mat_z = res.mat_z
-            rospy.logwarn('AutoCore: Got color masks.')
+            rospy.logwarn('AutoCore: Got color mask(s).')
             rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
 
 
@@ -329,7 +334,7 @@ class AutoCore():
                 self.gripper.close()
                 pose['position'][2] = working_z # move back up to working height after grasping
                 self.publish_status("Locomotion")
-                self.move_fun_retry(pose)
+                self.move_fun_retry(pose, use_MoveIt=True) # Use MoveIt to prevent swinging at wrist
                 self.grip_check_fun(pose)
             except:
                 raise
