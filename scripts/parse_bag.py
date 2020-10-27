@@ -4,6 +4,8 @@ import rospy
 import rosbag
 import os
 import yaml
+#import matplotlib as mpl
+#mpl.rcParams['font.size'] = 18.0 # to increase size of pie chart labels
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -16,7 +18,7 @@ if __name__ == "__main__":
     package_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 
     # bagfile names and simulation end times determined from Gazebo logfile playbacks
-    bagfile_end_times = {'benchmark_1_2020-10-22-21-45-54.bag': rospy.Time.from_sec(402.154), 'benchmark_2_2020-10-26-15-59-59.bag': rospy.Time.from_sec(515)} 
+    bagfile_end_times = {'benchmark_1_2020-10-22-21-45-54.bag': rospy.Time.from_sec(402.154), 'benchmark_2_2020-10-26-15-59-59.bag': rospy.Time.from_sec(515)}  #{'status_sample.bag': rospy.Time.from_sec(10)}
 
     # convert statuses listed in YAML file to Python dictionary with rospy.Duration items
     yaml_file = 'statuses.yaml'
@@ -73,7 +75,10 @@ if __name__ == "__main__":
     """
 
     fig, ax = plt.subplots()
-    ax.pie(sizes, explode=explode, labels=labels, autopct='%.0f%%', textprops={'fontsize': 20}, shadow=False, startangle=-60)
+    wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, autopct='%.0f%%', shadow=True, startangle=-60, textprops={'fontsize':18})
+    plt.setp(labels, fontsize=18) # status labels
+    plt.setp(autopcts, fontsize=18, weight="bold", color="w") # percentage labels
+    autopcts[1].set_color('black') # counting CCW
     ax.axis('equal')
-    plt.title('Simulated Time by Subroutine\nper 10 Sherds Processed', fontdict = {'fontsize' : 50})
+    plt.title('Simulated Time by Subroutine\nper 10 Sherds Processed', fontdict = {'fontsize' : 26})
     plt.show()
