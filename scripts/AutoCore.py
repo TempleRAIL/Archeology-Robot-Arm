@@ -54,7 +54,6 @@ class AutoCore():
         self.gripper = gripper
 
         # Pyrobot parameters
-        self.sim = rospy.get_param('~sim')
         self.gripper_len = rospy.get_param('~gripper_len')
         self.clearance = rospy.get_param('~clearance')
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
@@ -123,12 +122,13 @@ class AutoCore():
         while not success:
             try:
                 self.move_fun(pose, use_MoveIt)
-            #except PlanningFailure:
-                #continue
-            except rospy.ROSInterruptException:
-                raise
-            except:
+            except PlanningFailure:
                 continue
+            #except rospy.ROSInterruptException:
+                #raise
+            except Exception as e:
+                rospy.logwarn("AutoCore move_fun_retry: failed due to {}".format(e))
+                raise
             else:
                 success = True
 
@@ -212,8 +212,6 @@ class AutoCore():
         # Request data from service
         req = ColorMaskRequest()
         req.num_colors = num_colors
-        req.sim = self.sim
-        req.show_chart = False
         # Save results from service
         try:
             res = self.color_mask_srv(req)
