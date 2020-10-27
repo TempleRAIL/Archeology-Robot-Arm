@@ -122,8 +122,10 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 
         # Debugging        
         """
-        plt.imshow(nonsherd_mask)
-        plt.title("Final Non-sherd Mask")
+        plt.subplot(121),plt.imshow(non_sherds_img[:, :, ::-1])
+        plt.title('Non-sherds Image'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122),plt.imshow(nonsherd_mask)
+        plt.title('Non-sherds Mask'), plt.xticks([]), plt.yticks([])
         plt.show()
         """
         segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
