@@ -75,12 +75,12 @@ def get_color_as_string(color):
     return "({}, {}, {})".format(int(color[0]), int(color[1]), int(color[2]))
 
 ##############################################################
-# get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image)
+# get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image)
 # This function generates a ROS-msg friendly list of floors and ceilings defining a color mask for each color extracted by KMeans
 # inputs: number of colors, cluster_labels = output of KMeans fit_predict method, 2D_image = OpenCV HSV image used to generate color mask, reshaped as a 2D array
 # returns: flat list of floors and ceilings for each color mask
 
-def get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image):
+def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
     """
     cluster_labels and image are arrays with identical number of rows.
     
@@ -111,6 +111,7 @@ def get_mask_as_ROS_msg(num_colors, sim, cluster_labels, twoD_image):
         cluster_indices = np.where(cluster_labels == i)	# in array of cluster labels, find every position belonging to ith cluster
         colors_in_cluster = twoD_image[cluster_indices]  # cross-reference: get array of all HSV colors belonging to cluster i
 
+        sim = rospy.get_param('sherd_states/sim')
         if not sim:
             huethresh = np.std(colors_in_cluster[:,0])*0.01*180 # OpenCV hue format
             satthresh = np.std(colors_in_cluster[:,1])*0.01*255 # OpenCV saturation
@@ -182,14 +183,15 @@ def color_mask_callback(req):
     
 
     # Show pie chart of extracted colors
-    if (req.show_chart):
+    show_chart = rospy.get_param('sherd_states/show_pie_chart', False)
+    if show_chart:
         pie_chart_colors = [HSV2RGB(ordered_colors[i]) for i in counts.keys()]
         print ("Close pie chart to continue.")
         plt.figure(figsize = (8, 6))
         plt.pie(counts.values(), labels = color_strings, colors = pie_chart_colors)
         plt.show()
 
-    flat_mask = get_mask_as_ROS_msg(req.num_colors, req.sim, labels, reshaped_hsv)
+    flat_mask = get_mask_as_ROS_msg(req.num_colors, labels, reshaped_hsv)
 
     res = ColorMaskResponse()
     #res.mat_z = np.average(point_cloud['z']) # get average z value of top face of mat
@@ -241,7 +243,6 @@ def color_mask_server():
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     
-    #color_img_sub = rospy.Subscriber("/camera/color/image_raw", Image, image_callback)
     color_mask_server = rospy.Service('color_mask_server', ColorMask, color_mask_callback)
  
     rospy.spin() # simply keeps python from exiting until this node is stopped
