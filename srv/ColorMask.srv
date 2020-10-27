@@ -1,6 +1,4 @@
 int8 num_colors
-bool sim
-bool show_chart
 ---
 std_msgs/Int16MultiArray color_mask
 float32 mat_z
