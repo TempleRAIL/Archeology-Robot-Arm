@@ -4,5 +4,5 @@
 !status_sample.bag
 !benchmark_1_2020-10-22-21-45-54.bag
 !benchmark_2_2020-10-26-15-59-59.bag
-gazebo_logs/**
+**/gazebo_logs/**
 gazebo_logs/!benchmark*
