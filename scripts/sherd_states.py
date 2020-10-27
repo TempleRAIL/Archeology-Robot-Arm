@@ -106,7 +106,7 @@ class Examine(smach.State):
             elif userdata.station == self.mat.stations['scale_search']:
                 (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'])  
             elif userdata.station == self.mat.stations['camera_pick']:
-                (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'], self.core.bgnds['camera'])
+                (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['mat'], self.core.bgnds['camera'])
         except PlanningFailure: # may be raised by AutoCore's shard_fun
             return 'replan'
         except Exception as e:
@@ -176,13 +176,17 @@ class Acquire(smach.State):
                 return 'failed'
             else:
                 userdata.attempts += 1
+                if userdata.station == self.mat.stations['scale_search']:
+                    userdata.station = self.mat.stations['scale_pick']
                 return 'regrasp'
         except PlanningFailure: # may be raised by AutoCore's pick_place_fun
             return 'replan'
         else:
-            if userdata.station == self.mat.stations['scale_pick']: userdata.station = self.mat.stations['camera_place']
-            else: userdata.station += 1
             userdata.attempts = 0
+            if userdata.station == self.mat.stations['scale_pick']: 
+                userdata.station = self.mat.stations['camera_place']
+            else: 
+                userdata.station += 1
             return 'acquired'
 
 
@@ -289,8 +293,15 @@ def process_sherds():
         smach.StateMachine.add('Acquire', Acquire(core, mat), transitions = {'replan': 'Acquire', 'failed': 'Home', 'acquired': 'Translate', 'regrasp': 'Acquire', 'check_scale': 'Translate', 'check_camera': 'Translate'})
         smach.StateMachine.add('PlaceSherd', PlaceSherd(core, mat), transitions = {'failed': 'Home', 'replan': 'PlaceSherd', 'replace': 'PlaceSherd', 'next_sherd': 'Translate', 'retrieve_scale': 'Acquire', 'retrieve_camera': 'Translate', 'recalibrate': 'Calibrate', 'regrasp': 'Translate'})
 
+    # ** Create and start the introspection server for SMACH viewer  **
+    sis = smach_ros.IntrospectionServer('server_name', sm, '/SM_RASCAL')
+    sis.start()
+
     # ** Execute the SMACH plan **
     sm.execute()
+
+    rospy.spin()
+    sis.stop()
 
 if __name__ == '__main__':
     process_sherds()
