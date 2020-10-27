@@ -5,5 +5,5 @@
 !benchmark_1_2020-10-22-21-45-54.bag
 !benchmark_2_2020-10-26-15-59-59.bag
 *.log
-!benchmark_1/gzserver/state.log
-!benchmark_2/gzserver/state.log
+!**/benchmark_1/gzserver/state.log
+!**/benchmark_2/gzserver/state.log
