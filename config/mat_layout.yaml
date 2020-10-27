@@ -1,10 +1,12 @@
 sim: True
+show_cam_photo: False # toggle to show figure for every archival photo acquired
+show_pie_chart: False # toggle to show colors identified by k-means clustering for color masks
+scale_ft_mode: False # use force_torque mode for scale?
+
 gripper_len: 0.0775
 clearance: .0025  # gap between end of fingers and table/mat [m]
-scale_ft_mode: False # use force_torque mode for scale? 
 scale_tare: 0.1 # mass [kg] of scale cover link in simulation
-show_cam_photo: False # toggle to show figure for every archival photo acquired
-survey_z: 0.3 #0.25
+survey_z: 0.28 #0.25
 sherd_allowance: 0.02 # in case sherd curves past the tips of the the gripper fingers
 table_z: 0.0
 
@@ -54,8 +56,8 @@ standby_location:
 
 discard_area:
   z: 0.025
-  offset_x: -0.1 #-0.03
+  offset_x: -0.05 #-0.03
   offset_y: -0.375 #-0.35
-  length_x: 0.20
-  length_y: 0.15
+  length_x: 0.15
+  length_y: 0.13
 
