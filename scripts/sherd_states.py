@@ -253,14 +253,6 @@ class PlaceSherd(smach.State):
             else:  # if placed in discard pile
                 userdata.station = self.mat.stations['pickup']
                 userdata.cal_counter += 1  # refresh color mask every 10 cycles
-                """
-                try:
-                    pose['position'][2] = self.core.working_z
-                    self.core.publish_status("Locomotion")
-                    self.core.move_fun_retry(pose)
-                except Exception as e:
-                    rospy.logwarn('Could not move to working height because: {}'.format(e))
-                """
                 if userdata.cal_counter > 9:
                     userdata.cal_counter = 0
                     return 'recalibrate'
