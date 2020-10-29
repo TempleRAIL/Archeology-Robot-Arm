@@ -55,6 +55,7 @@ class AutoCore():
 
         # Pyrobot parameters
         self.gripper_len = rospy.get_param('~gripper_len')
+        self.orient_z = rospy.get_param('~orient_z')
         self.clearance = rospy.get_param('~clearance')
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
 
@@ -325,9 +326,9 @@ class AutoCore():
             self.gripper.open() # ensure gripper open if picking up a sherd
             try:
                 pose['position'][2] += self.gripper_len # add gripper offset
-                pose['position'][2] += 0.03
+                pose['position'][2] += self.orient_z
                 self.move_fun_retry(pose) # move above sherd and orient
-                pose['position'][2] -= 0.03 + self.clearance
+                pose['position'][2] -= self.orient_z + self.clearance
                 self.move_fun_retry(pose, use_MoveIt=True) # move down to surface. Use MoveIt to avoid grasp plugin failure.
                 self.gripper.close()
                 pose['position'][2] = working_z # move back up to working height after grasping
