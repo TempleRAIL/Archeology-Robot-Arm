@@ -4,8 +4,6 @@ import rospy
 import rosbag
 import os
 import yaml
-#import matplotlib as mpl
-#mpl.rcParams['font.size'] = 18.0 # to increase size of pie chart labels
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -55,30 +53,25 @@ if __name__ == "__main__":
     # print number of sherds processed
     print('{} sherds processed.'.format(num_sherds, total_time))
 
-    # show pie chart of time logged for each status
+    # show pie chart of time logged per sherd for each status
     sizes = []
     labels = []
-    explode = (0.05, 0.05, 0.05, 0.05)  # explode all slices
+    explode = (0.05, 0.05, 0.05)  # explode all slices
 
     for key in timing:
-        sizes.append( float('{}'.format(timing[key].to_sec())) )
-        labels.append('{}\n{} secs'.format( key, round(timing[key].to_sec(), 3) ))
+        if key != 'Initialization': # Initialization cannot be calculated per sherd
+            sizes.append( float('{}'.format(timing[key].to_sec()))/num_sherds )
+            labels.append('{}\n{} s/sherd'.format( key, round(timing[key].to_sec()/num_sherds, 1) ))
         print('{} took {} secs.'.format(key, timing[key].to_sec()))
         total_time += timing[key].to_sec()   
     print('Total time: {} secs.'.format(total_time))
 
-    """
-    def func(pct, allvals):
-        absolute = float(pct/100.*np.sum(allvals))
-        rounded = round(absolute, 3)
-        return "{:.1f}%\n({} secs)".format(pct, rounded)
-    """
-
     fig, ax = plt.subplots()
-    wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, autopct='%.0f%%', shadow=True, startangle=-60, textprops={'fontsize':18})
-    plt.setp(labels, fontsize=18) # status labels
-    plt.setp(autopcts, fontsize=18, weight="bold", color="w") # percentage labels
-    autopcts[1].set_color('black') # counting CCW
+    
+    wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, labeldistance=1.15, autopct='%.0f%%', shadow=True, startangle=-60, textprops={'fontsize':18})
+    plt.setp(labels, fontsize=24) # status labels
+    plt.setp(autopcts, fontsize=24, weight="bold", color="w") # percentage labels
+    #autopcts[1].set_color('black') # counting CCW
     ax.axis('equal')
-    plt.title('Simulated Time by Subroutine\nper 10 Sherds Processed', fontdict = {'fontsize' : 26})
+    #plt.title('Simulated Time by Subroutine\nper Sherd Processed', fontdict = {'fontsize' : 26})
     plt.show()
