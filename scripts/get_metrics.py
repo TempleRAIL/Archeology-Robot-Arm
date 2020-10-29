@@ -7,27 +7,32 @@ import yaml
 from matplotlib import pyplot as plt
 import numpy as np
 
+##############################################################
+# get_metrics()
+# This function initiates a ROS node that parses data processed sherds recorded in bagfiles. Bagfile(s) to be parsed and names of subroutines to expect in the bagfile(s) are loaded from a YAML configuration file.
+# inputs: None
+# outputs: 1) pie chart of processing time per sherd, broken down by subroutine, 2) printout of times for all sherds, 3) printout of number of grasp failures, 4) printout of number of sherds processed.
+
 # This script parses the data for processed sherds recorded in bagfiles
+def get_metrics():
+    rospy.init_node('get_metrics')
 
-if __name__ == "__main__":
-
-    # load sherd data bagfiles
+    # load bagfiles ( {filename: end_time, ... } ) and status timings ( {status_name: duration} ) from YAML file
     current_dir = os.getcwd()
     package_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 
-    # bagfile names and simulation end times determined from Gazebo logfile playbacks
-    bagfile_end_times = {'benchmark_1_2020-10-22-21-45-54.bag': rospy.Time.from_sec(402.154), 'benchmark_2_2020-10-26-15-59-59.bag': rospy.Time.from_sec(515)}  #{'status_sample.bag': rospy.Time.from_sec(10)}
-
-    # convert statuses listed in YAML file to Python dictionary with rospy.Duration items
-    yaml_file = 'statuses.yaml'
+    # convert statuses listed in YAML file to Python dictionary with rospy.Time and rospy.Duration objects
+    yaml_file = 'metrics.yaml'
     filename = os.path.join(package_dir,'config',yaml_file)
-    statuses = file(filename, 'r')
-    timing = yaml.load(statuses)
+    stream = file(filename, 'r')
+    metrics = yaml.load(stream)
+    bagfiles = metrics['bagfiles']
+    timing = metrics['statuses']
 
     # calculate time logged for each status
     total_time = 0
     num_sherds = 0
-    for bagfile, end_time in bagfile_end_times.items():
+    for bagfile, end_time in bagfiles.items():
         start_time = None
         current_status = ''           
         filename = os.path.join(package_dir,'bagfiles',bagfile)
@@ -58,6 +63,7 @@ if __name__ == "__main__":
     labels = []
     explode = (0.05, 0.05, 0.05)  # explode all slices
 
+    # build wedges (sizes) and labels for pie chart
     for key in timing:
         if key != 'Initialization': # Initialization cannot be calculated per sherd
             sizes.append( float('{}'.format(timing[key].to_sec()))/num_sherds )
@@ -71,7 +77,13 @@ if __name__ == "__main__":
     wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, labeldistance=1.15, autopct='%.0f%%', shadow=True, startangle=-60, textprops={'fontsize':18})
     plt.setp(labels, fontsize=24) # status labels
     plt.setp(autopcts, fontsize=24, weight="bold", color="w") # percentage labels
-    #autopcts[1].set_color('black') # counting CCW
+    #autopcts[1].set_color('black') # if 'Initialization' included
     ax.axis('equal')
     #plt.title('Simulated Time by Subroutine\nper Sherd Processed', fontdict = {'fontsize' : 26})
     plt.show()
+
+##############################################################
+# main function
+
+if __name__ == '__main__':
+    get_metrics()
