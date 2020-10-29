@@ -1,22 +1,27 @@
+### System Parameters ###
 sim: True
+use_numerical_ik: False # if False, will use analyticial IK solver
 show_cam_photo: False # toggle to show figure for every archival photo acquired
 show_pie_chart: False # toggle to show colors identified by k-means clustering for color masks
-scale_ft_mode: False # use force_torque mode for scale?
-
-gripper_len: 0.0775
-clearance: .0025  # gap between end of fingers and table/mat [m]
+scale_ft_mode: False # if False, will use contact mode
 scale_tare: 0.1 # mass [kg] of scale cover link in simulation
-survey_z: 0.28 #0.25
-sherd_allowance: 0.02 # in case sherd curves past the tips of the the gripper fingers
-table_z: 0.0
 
-working_pose:
-  z: 0.18
+working_pose: # translation between stations
+  z: 0.18 
   roll: 0
   pitch: 1.55
 
-use_numerical_ik: False
 
+### Pickup Parameters ###
+gripper_len: 0.0775
+orient_z: 0.03 # height above sherd at which gripper orients itself before descending to the table to grasp
+clearance: .0025  # gap between end of fingers and table/mat [m]
+sherd_allowance: 0.02 # in case sherd curves past the tips of the the gripper fingers
+survey_z: 0.28 # height from which to search for sherds
+table_z: 0.0
+
+
+### Calibration Locations ###
 mat_color_location:
   x: 0.3
   y: 0.15
@@ -25,6 +30,8 @@ scale_color_location:
   x: 0.215
   y: 0
 
+
+### Station Locations and Z-Heights ###
 pickup_area:
   step_size: 0.05
   offset_x: -0.03
