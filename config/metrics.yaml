@@ -1,0 +1,14 @@
+# See PyYAML documentation: https://pyyaml.org/wiki/PyYAMLDocumentation
+
+### Bagfiles to Be Parsed ###
+bagfiles:
+  benchmark_1_2020-10-22-21-45-54.bag: !!python/object/apply:rospy.Time [402.154]
+  benchmark_2_2020-10-26-15-59-59.bag: !!python/object/apply:rospy.Time [515]
+
+
+### Subroutines (Statuses) to Expect in Bagfiles ###
+statuses:
+  Initialization: !!python/object/apply:rospy.Duration [0]
+  Locomotion: !!python/object/apply:rospy.Duration [0]
+  Grasping: !!python/object/apply:rospy.Duration [0]
+  Data Collection: !!python/object/apply:rospy.Duration [0]

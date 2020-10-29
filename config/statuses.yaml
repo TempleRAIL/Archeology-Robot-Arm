@@ -1,6 +1,0 @@
-# For tagging Python objects, see PyYAML documentation: https://pyyaml.org/wiki/PyYAMLDocumentation
-
-Initialization: !!python/object/apply:rospy.Duration [0]
-Locomotion: !!python/object/apply:rospy.Duration [0]
-Grasping: !!python/object/apply:rospy.Duration [0]
-Data Collection: !!python/object/apply:rospy.Duration [0]
