@@ -138,7 +138,7 @@ class AutoCore():
     # Function to check for object in gripper
     def grip_check_fun(self, pose):
         self.gripper.close()
-        rospy.sleep(1.5)
+        rospy.sleep(1.5) # wait for /gripper/state topic to update
         gripper_state = self.gripper.get_gripper_state()
         rospy.logwarn('Gripper_state = {}'.format(gripper_state))
         if not gripper_state == 2:
@@ -149,7 +149,7 @@ class AutoCore():
     def get_mass_fun(self, msg):
         self.publish_status("Data Collection")
         sherd_msg = msg
-        # FORCE_TORQUE SCALE MODE
+        # FORCE_TORQUE MODE
         if self.scale_ft_mode:
             # run read_scale_srv
             req = ScaleReadingRequest()
@@ -158,7 +158,7 @@ class AutoCore():
             except rospy.ServiceException as e:
                 rospy.logerr('read_scale service call failed: {}'.format(e))
                 raise
-        # CONTACT SCALE MODE
+        # CONTACT MODE
         else:
             # run id_sherd_srv to get link name of sherd on scale
             req = SherdIDRequest()

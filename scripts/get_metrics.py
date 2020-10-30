@@ -2,6 +2,7 @@
 
 import rospy
 import rosbag
+import rospkg
 import os
 import yaml
 from matplotlib import pyplot as plt
@@ -16,14 +17,14 @@ import numpy as np
 # This script parses the data for processed sherds recorded in bagfiles
 def get_metrics():
     rospy.init_node('get_metrics')
+    rospack = rospkg.RosPack()
 
     # load bagfiles ( {filename: end_time, ... } ) and status timings ( {status_name: duration} ) from YAML file
-    current_dir = os.getcwd()
-    package_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+    package_path = rospack.get_path('robot_arm')
 
     # convert statuses listed in YAML file to Python dictionary with rospy.Time and rospy.Duration objects
     yaml_file = 'metrics.yaml'
-    filename = os.path.join(package_dir,'config',yaml_file)
+    filename = os.path.join(package_path,'config',yaml_file)
     stream = file(filename, 'r')
     metrics = yaml.load(stream)
     bagfiles = metrics['bagfiles']
@@ -32,10 +33,11 @@ def get_metrics():
     # calculate time logged for each status
     total_time = 0
     num_sherds = 0
+    num_drops = 0
     for bagfile, end_time in bagfiles.items():
         start_time = None
         current_status = ''           
-        filename = os.path.join(package_dir,'bagfiles',bagfile)
+        filename = os.path.join(package_path,'bagfiles/benchmarks',bagfile)
         bag = rosbag.Bag(filename) 
         try:           
             for topic, msg, t in bag.read_messages():
@@ -52,11 +54,16 @@ def get_metrics():
                     start_time = time
                 elif topic == '/sherd_data' and not msg.incomplete:
                     num_sherds += 1
+                    try:
+                        num_drops += msg.drops
+                        print('{} drops at {} sherds'.format(num_drops, num_sherds))
+                    except:
+                        pass
         finally:
             bag.close()
 
-    # print number of sherds processed
-    print('{} sherds processed.'.format(num_sherds, total_time))
+    # print number of sherds processed and number of drop events
+    print('{} sherds processed with {} drop events.'.format(num_sherds, num_drops))
 
     # show pie chart of time logged per sherd for each status
     sizes = []
@@ -74,7 +81,7 @@ def get_metrics():
 
     fig, ax = plt.subplots()
     
-    wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, labeldistance=1.15, autopct='%.0f%%', shadow=True, startangle=-60, textprops={'fontsize':18})
+    wedges, labels, autopcts = ax.pie(sizes, explode=explode, labels=labels, labeldistance=1.15, autopct='%.0f%%', shadow=True, 					startangle=-60, textprops={'fontsize':18})
     plt.setp(labels, fontsize=24) # status labels
     plt.setp(autopcts, fontsize=24, weight="bold", color="w") # percentage labels
     #autopcts[1].set_color('black') # if 'Initialization' included

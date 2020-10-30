@@ -94,7 +94,7 @@ class Translate(smach.State):
 # ** Fourth state of the State Machine: Examines area under wrist-mounted camera for sherds **
 class Examine(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['not_ready', 'replan', 'none_found', 'sherd_found', 'next_location','check_scale'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal'])
+        smach.State.__init__(self, outcomes = ['not_ready', 'replan', 'none_found', 'sherd_found', 'next_location','check_scale'], input_keys = ['station', 'attempts'], output_keys = ['station', 'attempts', 'goal', 'sherd_msg'])
         self.core = core
         self.mat = mat
         
@@ -140,7 +140,7 @@ class Examine(smach.State):
 # ** Fifth state of the State Machine: Lowers the gripper to acquire the sherd and returns to working height **
 class Acquire(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp', 'check_scale', 'check_camera'], input_keys = ['station', 'attempts', 'goal'], output_keys = ['station', 'attempts', 'sherd_msg'])
+        smach.State.__init__(self, outcomes = ['replan', 'failed', 'acquired', 'regrasp', 'check_scale', 'check_camera'], input_keys = ['station', 'attempts', 'goal', 'drop_counter'], output_keys = ['station', 'attempts', 'drop_counter'])
         self.core = core
         self.mat = mat
     
@@ -170,6 +170,7 @@ class Acquire(smach.State):
             else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
         except GraspFailure:
+            userdata.drop_counter += 1
             if userdata.attempts > 2:
                 userdata.attempts = 0
                 userdata.station = self.mat.stations['pickup']
@@ -193,7 +194,7 @@ class Acquire(smach.State):
 # ** Sixth state of the State Machine: Lowers the gripper to discard the sherd and returns to working height **
 class PlaceSherd(smach.State):
     def __init__(self, core, mat):
-        smach.State.__init__(self, outcomes = ['failed', 'replan', 'replace', 'retrieve_scale', 'retrieve_camera', 'next_sherd', 'recalibrate', 'regrasp'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg', 'attempts'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg', 'attempts'])
+        smach.State.__init__(self, outcomes = ['failed', 'replan', 'replace', 'retrieve_scale', 'retrieve_camera', 'next_sherd', 'recalibrate', 'regrasp'], input_keys = ['station', 'goal', 'cal_counter', 'sherd_msg', 'attempts', 'drop_counter'], output_keys = ['station', 'cal_counter', 'goal', 'sherd_msg', 'attempts', 'drop_counter'])
         self.core = core
         self.mat = mat
         
@@ -205,6 +206,7 @@ class PlaceSherd(smach.State):
         try:
             self.core.pick_place_fun(pose, self.mat.working_z, place=True)
         except GraspFailure: # failed to grasp sherd from previous station
+            userdata.drop_counter += 1
             userdata.attempts += 1
             userdata.station -= 1 # go back
             return 'regrasp'
@@ -244,7 +246,9 @@ class PlaceSherd(smach.State):
                         rospy.logwarn('SherdData msg seq# {} has missing fields.'.format(sherd_msg.header.seq))
                     else:
                         sherd_msg.incomplete = False
+                    sherd_msg.drops = userdata.drop_counter
                     sherd_data_pub.publish(sherd_msg) # publish SherdData message to /sherd_data
+                    userdata.drop_counter = 0
                 except Exception as e:
                     rospy.logwarn('Exception raised: {}'.format(e))
                 else:
@@ -273,6 +277,7 @@ def process_sherds():
     sm.userdata.station = mat.stations['pickup']
     sm.userdata.attempts = 0
     sm.userdata.cal_counter = 0
+    sm.userdata.drop_counter = 0
     sm.userdata.goal = None
     sm.userdata.sherd_msg = SherdData()
     # ** Opens state machine container **

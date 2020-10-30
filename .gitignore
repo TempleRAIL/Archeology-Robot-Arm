@@ -1,6 +1,6 @@
 *.pyc
 *.orig.bag
-*.bag.active
+*.active
 *.bag
 !/bagfiles/benchmarks/**
 *.log
