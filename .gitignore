@@ -2,7 +2,6 @@
 *.active
 *.bag
 *.log
-/bagfiles/benchmarks/**.orig.bag
-
-!/bagfiles/benchmarks/**.bag
+!/bagfiles/benchmarks/**
+/bagfiles/benchmarks/*.orig.bag
 !/paper/gazebo_logs/benchmarks/**
