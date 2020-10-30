@@ -63,7 +63,7 @@ def get_metrics():
             bag.close()
 
     # print number of sherds processed and number of drop events
-    print('{} sherds processed with {} drop events.'.format(num_sherds, num_drops))
+    print('{} sherds processed with {} drop events. If a bagfile had no drop count, must count drops manually by reviewing gazebo log files.'.format(num_sherds, num_drops))
 
     # show pie chart of time logged per sherd for each status
     sizes = []
@@ -76,7 +76,7 @@ def get_metrics():
             sizes.append( float('{}'.format(timing[key].to_sec()))/num_sherds )
             labels.append('{}\n{} s/sherd'.format( key, round(timing[key].to_sec()/num_sherds, 1) ))
         print('{} took {} secs.'.format(key, timing[key].to_sec()))
-        total_time += timing[key].to_sec()   
+        total_time += timing[key].to_sec()
     print('Total time: {} secs.'.format(total_time))
 
     fig, ax = plt.subplots()
