@@ -1,5 +1,4 @@
 *.pyc
-*.orig.bag
 *.active
 *.bag
 *.log
