@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+
+<!-- Geometric constraints of model meshes removed in Blender
+Inertials and bounding box size of model meshes calculated in Meshlab.
+Mass derived from volume calculated in Meshlab and assumed density of 5000 kg/m^3
+See Computing Inertial Parameters and Rescaling Inertia Values: http://gazebosim.org/tutorials?tut=inertia#Overview -->
+
+  <model name='sherd_i'>
+    <pose frame=''>0 0 0 0 0 0</pose>
+    <static>false</static> <!-- mass is ignored for static models -->
+    <link name='sherd_i_link'>
+      <pose frame=''>0 0 0.005 0 0 0</pose>
+      <inertial>
+        <mass>0.162</mass>
+        <inertia>
+          <ixx>5.564637e-05</ixx>
+          <ixy>4.5782365e-06</ixy>
+          <ixz>-8.304574e-06</ixz>
+          <iyy>7.6009186e-05</iyy>
+          <iyz>2.6780175000000004e-06</iyz>
+          <izz>2.9795393e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='collision'> <!-- .dae mesh for collision falls through the blue mat; .stl avoids this -->
+        <geometry>
+          <!--<box>
+            <size>0.05773278 0.03323571 0.08026088</size>
+          </box>-->
+          <mesh>
+            <!-- <uri>model://sherd_a/meshes/sherd_a.dae</uri> -->
+            <uri>model://sherd_i/meshes/sherd_i.stl</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+        <surface>
+          <contact>
+            <poissons_ratio>0.15</poissons_ratio>
+            <elastic_modulus>8e+10</elastic_modulus>
+            <ode>
+              <kp>100000</kp>
+              <kd>100</kd>
+              <max_vel>100</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <torsional>
+              <coefficient>1</coefficient>
+            </torsional>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <fdir1>1 0 0</fdir1> <!-- specify in x dir to prevent slipping on mat AND in gripper. Gazebo automatically picks fdir2 as vector normal to applied force on surface -->
+            </ode>
+          </friction>
+          <bounce/>
+        </surface>
+        <max_contacts>10</max_contacts>
+      </collision>
+      <visual name='visual'>
+        <geometry>
+          <mesh>
+            <!-- <uri>model://sherd_a/meshes/sherd_a.dae</uri> -->
+            <uri>model://sherd_i/meshes/sherd_i.stl</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+          <!--<box>
+            <size>0.07 0.025 0.01</size>
+          </box>-->
+        </geometry>
+        <material>
+          <script>
+            <uri>model://sherd_i/materials/scripts</uri>
+            <uri>model://sherd_i/materials/textures</uri>
+            <name>sherdMat/i</name>
+          </script>
+        </material>
+      </visual>
+      <self_collide>0</self_collide>
+      <kinematic>0</kinematic>
+      <gravity>1</gravity>
+    </link>
+  </model>
+</sdf>

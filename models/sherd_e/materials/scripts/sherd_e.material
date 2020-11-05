@@ -1,0 +1,15 @@
+material sherdMat/e
+{
+  receive_shadows on
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture e.jpg
+      }  
+    }
+  }
+}      
+
