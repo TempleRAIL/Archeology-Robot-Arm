@@ -124,7 +124,7 @@ class AutoCore():
             #Converting to Cylindrical Coordinates
             self.cart_to_cyl(self.pose)
             self.cart_to_cyl(pose)
-            dis = np.linalg.norm(pose['position'] - self.pose['position'])
+            dis = np.linalg.norm(pose['position'] - self.pose['position']) # need to convert to polar here 
             n_steps = np.ceil(dis/d_min).astype(int)
             if n_steps > 1:
                 step = self.pose
