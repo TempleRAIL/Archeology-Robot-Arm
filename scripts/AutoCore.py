@@ -98,6 +98,18 @@ class AutoCore():
         self.pub_status.publish(status)
         rospy.loginfo("#####" + status + "#####")
     
+    def cart_to_cyl(self, pos):
+        r = np.sqrt(pos['position'][0] ** 2 + pos['position'][1] ** 2)
+        theta = np.arctan2(pos['position'][1], pos['position'][0])
+        pos['position'][0] = r
+        pos['position'][1] = theta
+        
+    def cyl_to_cart(self, pos):
+        x = pos['position'][0] * np.cos(pos['position'][1])
+        y = pos['position'][0] * np.sin(pos['position'][1])
+        pos['position'][0] = x
+        pos['position'][1] = y
+        
     # Function to go home
     def go_home(self):
         self.publish_status("Initialization")
@@ -106,17 +118,45 @@ class AutoCore():
     # Function to call IK to plot and execute trajectory
     def move_fun(self, pose, use_MoveIt=False):
         rospy.logdebug('AutoCore: move_fun triggered')
+        dis = 0
+        d_min = 0.3
         try:
-        # plan=False means don't use MoveIt
-            success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # args must be in this order due to the kwarg
-            if not use_MoveIt: rospy.sleep(0.5) # pause for accurate calibration images
+            #Converting to Cylindrical Coordinates
+            self.cart_to_cyl(self.pose)
+            self.cart_to_cyl(pose)
+            dis = np.linalg.norm(pose['position'] - self.pose['position'])
+            n_steps = np.ceil(dis/d_min).astype(int)
+            if n_steps > 1:
+                step = self.pose
+                step_size = (pose['position'] - self.pose['position'])/n_steps
+                self.cyl_to_cart(pose)
+                self.cyl_to_cart(self.pose)
+            else:
+                self.cyl_to_cart(pose)
+                self.cyl_to_cart(self.pose)
         except Exception as e:
-            rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
-            raise
+            rospy.logwarn("AutoCore move_fun exception: {}".format(e))
+        if dis > d_min:
+            try:
+                for i in range(n_steps):
+                    self.cart_to_cyl(step)
+                    step['position'] = step['position'] + (step_size)
+                    self.cyl_to_cart(step)
+                    success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **step) # args must be in this order due to the kwarg
+            except Exception as e:
+                rospy.logwarn("AutoCore move_fun exception: {}".format(e))
         else:
-            if not success:
-                raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
-            self.pose = pose
+            try:
+                # plan=False means don't use MoveIt
+                success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # args must be in this order due to the kwarg
+                if not use_MoveIt: rospy.sleep(0.5) # pause for accurate calibration images
+            except Exception as e:
+                rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
+                raise
+            else:
+                if not success:
+                    raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
+                self.pose = pose
 
     def move_fun_retry(self, pose, use_MoveIt=False):
         success = False
