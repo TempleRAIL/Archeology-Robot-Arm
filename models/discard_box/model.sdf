@@ -24,8 +24,8 @@
       <visual name="visual">
         <geometry>
           <mesh>
-		    <uri>model://discard_box/meshes/discard_box.dae</uri>
-		  </mesh>
+            <uri>model://discard_box/meshes/discard_box.dae</uri>
+          </mesh>
         </geometry>
         <material>
           <ambient>0.4 0.26 0.12 1</ambient>
