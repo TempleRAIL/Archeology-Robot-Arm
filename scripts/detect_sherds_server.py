@@ -101,6 +101,7 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 
     # Debugging        
     """
+    plt.figure()
     plt.imshow(sherds_mask)
     plt.title("Final Sherds Mask")
     plt.show()
@@ -114,6 +115,10 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
     plt.show()
     """
+    plt.figure()
+    plt.imshow(segmented_sherds)
+    plt.title("Segmented Sherds")
+    plt.show()
 
     if non_sherds_img is not None:
         fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
@@ -170,7 +175,7 @@ def locate_sherds(sherds_image, points, header):
     # For each detected contour, find bounding box
     for cnt in contours:
         rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
-        box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
+        box = cv2.boxPoints(rect) # [4x1 array of tuples: pixel coordinates of vertices]
         box = np.int0(box)
 
         # check that contour does not meet edges of image frame
@@ -261,7 +266,7 @@ def locate_sherds(sherds_image, points, header):
             detections.detections.append(detection)
 
             # Debugging: draw, display, and print details of bounding boxes around sherds
-            """
+            
             #Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
@@ -270,6 +275,7 @@ def locate_sherds(sherds_image, points, header):
             plt.imshow(sherd_contours)
             plt.title("Bounding Box around Sherd")
             plt.show()
+            """
 
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
