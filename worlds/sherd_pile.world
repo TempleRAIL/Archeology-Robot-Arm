@@ -627,7 +627,6 @@
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
       </link>
-      <!--<pose frame=''>0 -0.3 0.05 0 -0 0</pose>-->
     </model>
     <model name='sherd1'>
       <pose frame=''>0.123 0.22 0.04 1.335 0.292 0.217</pose>
@@ -981,61 +980,11 @@
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <model name='pickup_box'>
-      <link name='link'>
-        <pose frame=''>0 0 0.031 0 -0 0</pose>
-        <inertial>
-          <mass>5</mass>
-          <inertia>
-            <ixx>5</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>5</iyy>
-            <iyz>0</iyz>
-            <izz>5</izz>
-          </inertia>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://pickup_box/meshes/pickup_box.dae</uri>
-            </mesh>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://pickup_box/meshes/pickup_box.dae</uri>
-            </mesh>
-          </geometry>
-          <material>
-            <ambient>0.4 0.26 0.12 1</ambient>
-            <diffuse>0.6 0.46 0.32 1</diffuse>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <kinematic>0</kinematic>
-      </link>
-      <pose frame=''>0.116009 0.254284 -0.001382 0 -1e-06 0</pose>
-    </model>
     <state world_name='default'>
-      <sim_time>130 514000000</sim_time>
-      <real_time>109 422124665</real_time>
-      <wall_time>1606861729 446475046</wall_time>
-      <iterations>58975</iterations>
+      <sim_time>141 381000000</sim_time>
+      <real_time>76 847366887</real_time>
+      <wall_time>1607983717 726696145</wall_time>
+      <iterations>10867</iterations>
       <model name='color_board'>
         <pose frame=''>0.4 -0.2 0.023951 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1047,10 +996,10 @@
         </link>
       </model>
       <model name='discard_box'>
-        <pose frame=''>0 -0.3 -0.001383 0 1e-06 0</pose>
+        <pose frame=''>0 -0.3 -0.001392 -1e-06 0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>0 -0.3 0.029617 0 1e-06 0</pose>
+          <pose frame=''>0 -0.3 0.029608 -1e-06 0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 -9.8 0 -0 0</acceleration>
           <wrench>0 0 -49 0 -0 0</wrench>
@@ -1088,16 +1037,6 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='pickup_box'>
-        <pose frame=''>0.145 0.275 -0.001382 0 0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose frame=''>0.145 0.275 -0.001382 0 0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.000516 -0.004228 0.070595 0.917308 -0.10753 -0.000507</acceleration>
-          <wrench>-0.002579 -0.021141 0.352975 0 -0 0</wrench>
-        </link>
-      </model>
       <model name='scale'>
         <pose frame=''>0.3 0 0.025 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1125,53 +1064,53 @@
         </link>
       </model>
       <model name='sherd1'>
-        <pose frame=''>0.248043 0.262088 0.055947 -1.72094 -0.312515 1.01797</pose>
+        <pose frame=''>0.113423 0.276612 0.034057 -1.58479 0.327282 0.979486</pose>
         <scale>1 1 1</scale>
         <link name='sherd_a_link'>
-          <pose frame=''>0.243957 0.264879 0.055236 -1.72094 -0.312515 1.01797</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.008408 -0.037409 0.085244 1.69175 -0.727499 0.030329</acceleration>
-          <wrench>-0.001362 -0.00606 0.01381 0 -0 0</wrench>
+          <pose frame=''>0.10926 0.27938 0.033991 -1.58479 0.327282 0.979486</pose>
+          <velocity>-0.000594 0.000992 0.000324 0.045846 -0.128371 -0.023304</velocity>
+          <acceleration>-1.0331 1.07958 0.686252 -0.525038 -0.312622 -0.814758</acceleration>
+          <wrench>-0.167363 0.174892 0.111173 0 -0 0</wrench>
         </link>
       </model>
       <model name='sherd2'>
-        <pose frame=''>0.142025 0.279229 0.041131 -0.314186 -0.016097 -2.85397</pose>
+        <pose frame=''>0.050251 0.27459 0.035342 -0.303604 0.088561 -2.77978</pose>
         <scale>1 1 1</scale>
         <link name='sherd_b_link'>
-          <pose frame=''>0.142537 0.277769 0.045886 -0.314186 -0.016097 -2.85397</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.007246 0.005015 0.051346 -1.06857 -0.545265 0.389722</acceleration>
-          <wrench>-0.001928 0.001334 0.013658 0 -0 0</wrench>
+          <pose frame=''>0.050386 0.273042 0.040095 -0.303604 0.088561 -2.77978</pose>
+          <velocity>0.000163 0.000536 -0.001021 -0.034231 0.003676 -0.003511</velocity>
+          <acceleration>0.16331 0.535924 -1.02109 -1.50368 -1.38791 1.26047</acceleration>
+          <wrench>0.04344 0.142556 -0.271609 0 -0 0</wrench>
         </link>
       </model>
       <model name='sherd3'>
-        <pose frame=''>0.179895 0.318691 0.045425 0.333463 0.17302 1.59668</pose>
+        <pose frame=''>0.096719 0.306068 0.055245 0.687165 0.022507 1.98568</pose>
         <scale>1 1 1</scale>
         <link name='sherd_b_link'>
-          <pose frame=''>0.18151 0.319546 0.050079 0.333463 0.17302 1.59668</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.061604 -0.157708 -0.025908 0.948353 -0.599943 -0.188989</acceleration>
-          <wrench>-0.016387 -0.04195 -0.006891 0 -0 0</wrench>
+          <pose frame=''>0.099587 0.307426 0.059109 0.687165 0.022507 1.98568</pose>
+          <velocity>0.002326 0.001397 -0.001531 -0.039875 0.182799 -0.002511</velocity>
+          <acceleration>-1.66559 0.770681 0.775 0.137571 -1.54032 2.10389</acceleration>
+          <wrench>-0.443046 0.205001 0.20615 0 -0 0</wrench>
         </link>
       </model>
       <model name='sherd4'>
-        <pose frame=''>0.183397 0.2464 0.044507 -0.435471 -0.60533 0.663828</pose>
+        <pose frame=''>0.087792 0.259989 0.052219 -1.2482 -1.07683 2.00662</pose>
         <scale>1 1 1</scale>
         <link name='sherd_c_link'>
-          <pose frame=''>0.180066 0.246472 0.048235 -0.435471 -0.60533 0.663828</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.013607 -0.039603 0.066588 0.737144 1.04956 1.12116</acceleration>
-          <wrench>-0.00068 -0.00198 0.003329 0 -0 0</wrench>
+          <pose frame=''>0.084082 0.256722 0.05297 -1.2482 -1.07683 2.00662</pose>
+          <velocity>0.00025 0.001071 -0.000856 -0.034908 0.015625 0.00406</velocity>
+          <acceleration>0.166026 1.33563 -0.94258 -2.71522 -1.39892 2.59597</acceleration>
+          <wrench>0.008301 0.066782 -0.047129 0 -0 0</wrench>
         </link>
       </model>
       <model name='sherd5'>
-        <pose frame=''>0.239509 0.295718 0.04295 -0.585932 -0.595478 -0.749835</pose>
+        <pose frame=''>0.063329 0.323619 0.032953 -1.05594 -0.459477 -0.136006</pose>
         <scale>1 1 1</scale>
         <link name='sherd_c_link'>
-          <pose frame=''>0.239683 0.299333 0.046399 -0.585932 -0.595478 -0.749835</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.006796 -0.029747 0.09304 2.63379 -0.908603 0.809052</acceleration>
-          <wrench>0.00034 -0.001487 0.004652 0 -0 0</wrench>
+          <pose frame=''>0.062837 0.328078 0.03516 -1.05594 -0.459477 -0.136006</pose>
+          <velocity>0.000261 0.00045 -6.6e-05 -0.03302 0.005365 0.004132</velocity>
+          <acceleration>0.306246 1.15436 0.60522 2.06798 -1.14492 -0.301658</acceleration>
+          <wrench>0.015312 0.057718 0.030261 0 -0 0</wrench>
         </link>
       </model>
       <model name='sherdmat'>
