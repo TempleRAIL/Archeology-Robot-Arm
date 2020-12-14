@@ -172,10 +172,11 @@ def in_frame_only(img):
 
         # remove contour from array if its edges meet the image frame
         in_frame = True        
-        for corner in box:            
+        for corner in box:
             if (corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
                 in_frame = False
                 contours.remove(cnt)
+                break
 
     #Debugging
     """
@@ -218,6 +219,10 @@ def get_top_sherd(point_map, sherds_image, if_contours):
     counter=0
 
     for cnt in if_contours:
+        rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
+        box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
+        box = np.int0(box)
+
         # assuming that each contour represents a pile of sherds, get coordinates of all pixels in sherd pile
         r = np.array( [vertex[0] for vertex in box] ) # row coordinates of box vertices
         c = np.array( [vertex[1] for vertex in box] ) # column coordinates of box vertices
@@ -246,13 +251,13 @@ def get_top_sherd(point_map, sherds_image, if_contours):
 
         # generate adjacency matrix from graph
         adj_matrix = nx.adjacency_matrix(G, nodelist=sherd_pile) # SciPy adjacency matrix, ordered using sherd_pile
-        print("SciPy adjacency matrix: {}".format(adj_matrix[0:20]))
+        #print("SciPy adjacency matrix: {}".format(adj_matrix[0:20]))
 
         # get number of sherds (i.e., groups of connected pixels) and list of labels (sherd 0, sherd 1, etc.)
         # list of labels maps onto pixel coordinates in sherd_pile.
         num_sherds, sherd_labels = connected_components(adj_matrix, return_labels=True)
 
-        print("Number of sherds: {}; First 100 labels: {}.".format(num_groups, group_labels[0:99]))
+        print("Number of sherds: {}; First 100 labels: {}.".format(num_sherds, sherd_labels[0:99]))
 
         # dictionary: {sherd 0: [connected pixels], sherd 1: [connected pixels] ...}
         sherds_and_pixels = {}
@@ -268,20 +273,20 @@ def get_top_sherd(point_map, sherds_image, if_contours):
         for sherd, pixel_list in sherds_and_pixels.items():
             xyz_coords = np.array( [point_map[pix[0]][pix[1]] for pix in pixel_list] )
             temp_z = np.average(xyz_coords[:,2])
-            if not max_avg_z or if temp_z >= max_avg_z:
+            if (not max_avg_z) or (temp_z >= max_avg_z):
                 top_sherd = sherd
                 max_avg_z = temp_z
             
         print("Top sherd for this pile is {} with average z of {}.".format(sherd, max_avg_z))
 
         # this dictionary contains the top sherd from each pile
-        top_sherd_candidates[counter] = { 'max_avg_z': max_avg_z, 'pixels': sherds_and_pixels[top_sherd] ]
+        top_sherd_candidates[counter] = { 'max_avg_z': max_avg_z, 'pixels': sherds_and_pixels[top_sherd] }
         counter+=1
 
     avg_z = None
     for sherd, data in top_sherd_candidates.items():
         temp_z = data['max_avg_z']
-        if not avg_z or if temp_z >= avg_z:
+        if (not avg_z) or (temp_z >= avg_z):
             top_sherd = sherd
             avg_z = temp_z
   
@@ -293,32 +298,36 @@ def get_top_sherd(point_map, sherds_image, if_contours):
     # mask out every pixel NOT in top sherd --> final image
     top_sherd_img = cv2.bitwise_and(sherds_image, sherds_image, mask=top_sherd_mask)
 
+    # Debugging:
+    plt.figure()
+    plt.imshow(top_sherd_img)
+    plt.title("Top Sherd, Segmentedd")
+    plt.show()
+
     return top_sherd_img, avg_z
 
 ##############################################################
-# locate_sherds(sherds_image, bgnd_image, points, header)
-# This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
+# locate_sherds(color_seg_img, bgnd_image, points, header)
+# This function draws bounding boxes around segmented sherds and publishes in [meters] their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
 # publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
 
-def locate_sherds(sherds_image, point_map, header):
-
-    if_contours = in_frame_only(sherds_image)
-
-    # get segmented image of top sherd with average z position
-    top_sherd_img, avg_z = get_top_sherd(point_map, sherds_image, if_contours)
-    if_contours = in_frame_only(top_sherd_img)
-
-    # exclude boxes smaller than a minimum area
-    use_min_area = False
-    min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
-    #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
-
-    #TODO exclude outermost contour? (the sherd container)
+def locate_sherds(color_seg_img, point_map, header):
 
     # Construct Detection3DRPYArray custom ROS message to contain all valid bounding boxes around sherds
     detections = Detection3DRPYArray()
     detections.header = header    # meta-data
+
+    if_contours = in_frame_only(color_seg_img) # list of in-frame contours only
+    top_sherd_img, avg_z = get_top_sherd(point_map, color_seg_img, if_contours) # segmented image of top sherd
+    if_contours = in_frame_only(top_sherd_img)
+
+    # exclude boxes smaller than a minimum area
+    use_min_area = False
+    min_area = 0.0006  # [sq. meters]
+    #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
+
+    #TODO exclude outermost contour? (the sherd container)
 
     # For each detected contour, disaggregate sherd pile, then find bounding box around each sherd
     for cnt in if_contours:
@@ -344,11 +353,11 @@ def locate_sherds(sherds_image, point_map, header):
             grip_angle = angle+ 80
         else:
             grip_angle = angle
+
         # get real-world dimensions of boxes using point map
-        # x,y coordinates of bounding box center in meters
-        x_center = point_map[row_center_pos][col_center_pos][0]
+        x_center = point_map[row_center_pos][col_center_pos][0] # x, y coordinates of bounding box center in [m]
         y_center = point_map[row_center_pos][col_center_pos][1]
-        z_center = point_map[row_center_pos][col_center_pos][2]
+        z_center = avg_z # end effector of robot will descend to this height for grasping
         """
         print("x_center as found in pointcloud: ", x_center, "meters.")
         print("y_center as found in pointcloud: ", y_center, "meters.")
@@ -398,7 +407,7 @@ def locate_sherds(sherds_image, point_map, header):
             detections.detections.append(detection)
 
             # Debugging: draw, display, and print details of bounding boxes around sherds
-            """
+            
             #Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
@@ -408,6 +417,7 @@ def locate_sherds(sherds_image, point_map, header):
             plt.title("Bounding Box around Sherd")
             plt.show()
 
+            """
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
             print("Width endpoints in pixels: (%f, %f) and (%f, %f)." % (col_width_end1, row_width_end1, col_width_end2, row_width_end2) )
@@ -446,24 +456,24 @@ def detect_sherds_callback(req):
         non_sherds_img = bridge.imgmsg_to_cv2(req.background_image, "bgr8")  # BGR OpenCV image
     else:
         non_sherds_img = None
-    # Segment sherds using HSV color mask and non-sherds mask
-    sherds_image = segment_sherds(req.color_mask, img, non_sherds_img)
+    # Segment sherd piles using HSV color mask and non-sherds mask
+    color_seg_img = segment_sherds(req.color_mask, img, non_sherds_img)
     # Locate sherds in image
     point_map = np.zeros( (point_cloud.shape[0], point_cloud.shape[1], 3) )
     point_map[:,:,0] = point_cloud['x']
     point_map[:,:,1] = point_cloud['y']
     point_map[:,:,2] = point_cloud['z']
     res = SherdDetectionsResponse()
-    res.detections = locate_sherds(sherds_image, point_map, header)
+    res.detections = locate_sherds(color_seg_img, point_map, header)
     return res
 
 ##############################################################
-# detect_sherds_server()
-# This function initiates the detect_sherds ROS node. It subscribes to the /Color_Mask topic.  It also sends the arm to the surveillance position.  Finally, it subscribes to the /Color_Image (camera), /Color-Aligned_PointCloud (camera), and the /Survey_Stamped topics in sync.
-# inputs: none
+# detect_sherds_pile_server()
+# This function initiates the detect_sherds_pile ROS node. It subscribes to the 
+# subscriptions: /Color_Mask; synced [/Color_Image (camera), /Color-Aligned_PointCloud (camera), /Survey_Stamped]
   
-def detect_sherds_server():
-    rospy.init_node('detect_sherds_server')  # initiate 'detect sherds' node
+def detect_sherds_pile_server():
+    rospy.init_node('detect_sherds_pile_server')  # initiate 'detect sherds' node
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
@@ -476,11 +486,11 @@ def detect_sherds_server():
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     
-    detect_sherds_server = rospy.Service('detect_sherds_server', SherdDetections, detect_sherds_callback)
+    detect_sherds_pile_server = rospy.Service('detect_sherds_pile_server', SherdDetections, detect_sherds_callback)
  
     rospy.spin() # keeps Python from exiting until this node is stopped
     
 ##############################################################
 # main function
 if __name__ == '__main__':
-    detect_sherds_server()
+    detect_sherds_pile_server()
