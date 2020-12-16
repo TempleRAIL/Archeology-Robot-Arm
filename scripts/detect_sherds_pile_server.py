@@ -224,10 +224,11 @@ def get_top_sherd(point_map, sherds_image, if_contours):
         box = np.int0(box)
 
         # assuming that each contour represents a pile of sherds, get coordinates of all pixels in sherd pile
-        r = np.array( [vertex[0] for vertex in box] ) # row coordinates of box vertices
-        c = np.array( [vertex[1] for vertex in box] ) # column coordinates of box vertices
+        r = np.array( [vertex[1] for vertex in box] ) # row coordinates of box vertices
+        c = np.array( [vertex[0] for vertex in box] ) # column coordinates of box vertices
         rr, cc = polygon(r,c) # row and column coordinates of all pixels inside bounding box
         sherd_pile = zip(rr,cc) # merge into one list of tuple coordinates
+        print("Sherd_pile: {}".format(sherd_pile))
 
         # add pixels in sherd_pile as nodes to a networkx graph
         G = nx.Graph()
@@ -263,9 +264,9 @@ def get_top_sherd(point_map, sherds_image, if_contours):
         sherds_and_pixels = {}
         for i in range(0,num_sherds):
             indices = [j for j in range(len(sherd_labels)) if sherd_labels[j] == i]  # indices of all pixels labeled as sherd i
-            sherds_and_pixels[i] = [np.array(sherd_pile[index]) for index in indices]
+            sherds_and_pixels[i] = [sherd_pile[index] for index in indices] #[np.array(sherd_pile[index]) for index in indices]
 
-        print(sherds_and_pixels)
+        print("First 5 items in sherds_and_pixels: {}".format( sherds_and_pixels.items()[0:5] ))
         
         # identify top sherd in this pile, (highest avg. z coordinate)
         # we index into point map using coordinates of connected pixels
