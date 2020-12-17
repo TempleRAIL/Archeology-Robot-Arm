@@ -269,13 +269,13 @@ def locate_sherds(sherds_image, points, header):
             
             #Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
+            """
             sherd_contours = cv2.drawContours( np.array(sherds_image), [box], 0, (255,0,0), 3 )
 
             plt.figure("Figure 2")
             plt.imshow(sherd_contours)
             plt.title("Bounding Box around Sherd")
             plt.show()
-            """
 
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
