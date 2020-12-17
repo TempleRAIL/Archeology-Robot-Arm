@@ -1,5 +1,6 @@
 std_msgs/Int16MultiArray color_mask
 bool subtract_background
 sensor_msgs/Image background_image
+float32 cluster_threshold
 ---
 robot_arm/Detection3DRPYArray detections
