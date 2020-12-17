@@ -3,6 +3,7 @@
 #Import Python libraries
 import time
 import numpy as np
+import copy
 
 # Import pyrobot libraries
 from pyrobot import Robot
@@ -98,65 +99,80 @@ class AutoCore():
         self.pub_status.publish(status)
         rospy.loginfo("#####" + status + "#####")
     
-    def cart_to_cyl(self, pos):
-        r = np.sqrt(pos['position'][0] ** 2 + pos['position'][1] ** 2)
-        theta = np.arctan2(pos['position'][1], pos['position'][0])
-        pos['position'][0] = r
-        pos['position'][1] = theta
+    def cart_to_cyl(self, pose):
+        r = np.sqrt(pose[0] ** 2 + pose[1] ** 2)
+        theta = np.arctan2(pose[1], pose[0])
+        return np.array([r, theta, pose[2]])
         
-    def cyl_to_cart(self, pos):
-        x = pos['position'][0] * np.cos(pos['position'][1])
-        y = pos['position'][0] * np.sin(pos['position'][1])
-        pos['position'][0] = x
-        pos['position'][1] = y
+    def cyl_to_cart(self, pose):
+        x = pose[0] * np.cos(pose[1])
+        y = pose[0] * np.sin(pose[1])
+        return np.array([x, y, pose[2]])
         
     # Function to go home
     def go_home(self):
         self.publish_status("Initialization")
         self.bot.arm.go_home(plan=False) #plan=False means don't use MoveIt
-
+        time.sleep(2)
+         
+        #Set Initial Pose
+        pose = self.bot.arm.pose_ee # https://github.com/facebookresearch/pyrobot/blob/master/src/pyrobot/core.py#L519
+        self.pose = {"position": np.zeros(3), "pitch": 0.0, "roll": 0.0, "numerical": False}
+        self.pose['position'][0] = pose[0][0]
+        self.pose['position'][1] = pose[0][1]
+        self.pose['position'][2] = pose[0][2]
+        self.pose['roll'] = 0.0 # TODO set the angles, but need to convert quaternion to Euler angles https://github.com/facebookresearch/pyrobot/blob/master/src/pyrobot/utils/util.py#L111
+        self.pose['pitch'] = 0.0
+        self.pose['numerical'] = False
+        
     # Function to call IK to plot and execute trajectory
-    def move_fun(self, pose, use_MoveIt=False):
+    def move_fun(self, goal, use_MoveIt=False):
         rospy.logdebug('AutoCore: move_fun triggered')
-        dis = 0
-        d_min = 0.3
-        try:
-            #Converting to Cylindrical Coordinates
-            self.cart_to_cyl(self.pose)
-            self.cart_to_cyl(pose)
-            dis = np.linalg.norm(pose['position'] - self.pose['position']) # need to convert to polar here 
-            n_steps = np.ceil(dis/d_min).astype(int)
-            if n_steps > 1:
-                step = self.pose
-                step_size = (pose['position'] - self.pose['position'])/n_steps
-                self.cyl_to_cart(pose)
-                self.cyl_to_cart(self.pose)
-            else:
-                self.cyl_to_cart(pose)
-                self.cyl_to_cart(self.pose)
-        except Exception as e:
-            rospy.logwarn("AutoCore move_fun exception: {}".format(e))
-        if dis > d_min:
+        d_min = 0.05
+        success = True
+        # Convert to Cylindrical Coordinates
+        start = self.cart_to_cyl(self.pose['position'])
+        end = self.cart_to_cyl(goal['position'])
+        # Compute number of steps
+        dis = np.linalg.norm(goal['position'] - self.pose['position'])
+        n_steps = np.ceil(dis/d_min).astype(int)
+        if n_steps >= 1:
+            step = (end - start) / n_steps
+            step_roll = (goal['roll'] - self.pose['roll']) / n_steps
+            step_pitch = (goal['pitch'] - self.pose['pitch']) / n_steps
+            # Initialize location
+            current = copy.deepcopy(self.pose)
+            current_cyl = start
             try:
                 for i in range(n_steps):
-                    self.cart_to_cyl(step)
-                    step['position'] = step['position'] + (step_size)
-                    self.cyl_to_cart(step)
-                    success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **step) # args must be in this order due to the kwarg
+                    current_cyl += step
+                    current['position'] = self.cyl_to_cart(current_cyl)
+                    current['roll'] += step_roll
+                    current['pitch'] += step_pitch
+                    success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **current) # args must be in this order due to the kwarg
+                    if not success:
+                        raise PlanningFailure(current, 'AutoCore: move_fun: Planning failed')
             except Exception as e:
-                rospy.logwarn("AutoCore move_fun exception: {}".format(e))
-        else:
+                rospy.logwarn("AutoCore move_fun exception: {} Why is this empty?".format(e))
+            else:
+                if not use_MoveIt: 
+                    rospy.sleep(0.5) # pause for accurate calibration images
+                self.pose = goal
+
+        if not success or n_steps < 1:
             try:
-                # plan=False means don't use MoveIt
-                success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **pose) # args must be in this order due to the kwarg
+                self.pose = None
+                #plan=False means don't use MoveIt
+                success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **goal) # args must be in this order due to the kwarg
+                self.pose = goal
                 if not use_MoveIt: rospy.sleep(0.5) # pause for accurate calibration images
             except Exception as e:
                 rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
                 raise
             else:
                 if not success:
-                    raise PlanningFailure(pose, 'AutoCore: move_fun: Planning failed')
-                self.pose = pose
+                    raise PlanningFailure(goal, 'AutoCore: move_fun: Planning failed')
+
 
     def move_fun_retry(self, pose, use_MoveIt=False):
         success = False
@@ -377,7 +393,7 @@ class AutoCore():
                 self.grip_check_fun(pose)
             except:
                 raise
-    	# PLACE MODE
+        # PLACE MODE
         else:
             self.grip_check_fun(pose)
             try:
