@@ -58,6 +58,7 @@ class AutoCore():
         self.orient_z = rospy.get_param('~orient_z')
         self.clearance = rospy.get_param('~clearance')
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
+        self.cluster_threshold = rospy.get_param('~cluster_threshold')
 
         # Initialize other class members
         self.color_masks = {'mat': None, 'scale': None} # color masks for sherd detection
@@ -250,7 +251,7 @@ class AutoCore():
 
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
-    def detect_fun(self, color_mask, bgnd_img=None):
+    def detect_fun(self, color_mask, bgnd_img=None, handle_overlap=False):
         found = False
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
@@ -260,6 +261,10 @@ class AutoCore():
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
         req.color_mask = color_mask
+        if handle_overlap:
+            req.cluster_threshold = self.cluster_threshold
+        else:
+            req.cluster_threshold = None
         if bgnd_img:
             req.subtract_background = True
             req.background_image = bgnd_img
@@ -308,7 +313,7 @@ class AutoCore():
             raise
         # Check for sherd detections and get list of locations / rotations
         try:
-            return self.detect_fun(self.color_masks['mat'])
+            return self.detect_fun(self.color_masks['mat'], handle_overlap=True)
         except:
             raise
 
