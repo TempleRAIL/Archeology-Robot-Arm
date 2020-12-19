@@ -148,36 +148,54 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     """
     return segmented_sherds
 
+
 ##############################################################
-# in_frame_only(img)
+# get_contours(img)
+# This function converts the image to grayscale and extracts contours.
+# inputs: OpenCV image
+# returns: contours (array of arrays)
+
+def get_contours(img):
+    gray = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2GRAY) # convert to grayscale
+    _, contours, _ = cv2.findContours( gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
+
+    return contours
+
+##############################################################
+# in_frame_only(contours)
 # This function filters out contours which run out of the image frame.
 # inputs: contours (array of arrays) from cv2.findContours
 # returns: in-frame contours only (array of arrays)
 
-def in_frame_only(img):
-    img_height, img_width, _ = img.shape
-
-    gray = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2GRAY) # convert to grayscale
-    _, contours, _ = cv2.findContours( gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
-
+def in_frame_only(img, contours):
     #Debugging
     """
     print("Found {} contours total - may or may not all be sherds.".format( len(contours) ))
     """
+    img_height, img_width, _ = img.shape
 
     for cnt in contours:
         rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
         box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
         box = np.int0(box)
 
+        # Debugging: draw and display bounding boxes around contours
+        # Convert original RGB image to np.array to draw contours as boxes
+        
+        sherd_contours = cv2.drawContours( np.array(img), [box], 0, (255,0,0), 3 )
+
+        plt.figure("Figure 2")
+        plt.imshow(sherd_contours)
+        plt.title("Bounding Box around Sherd")
+        plt.show()
+        
         # remove contour from array if its edges meet the image frame
         in_frame = True        
         for corner in box:
-            if (corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
+            if ( corner[0] not in range(0,img_width) ) or ( corner[1] not in range(0,img_height) ): #(corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
                 in_frame = False
                 contours.remove(cnt)
                 break
-
     #Debugging
     """
     print("Found {} contours in frame.".format( len(contours) ))
@@ -193,6 +211,7 @@ def in_frame_only(img):
 
 def get_top_sherd(sherds_image, point_map, eps, if_contours):
     img_height, img_width, _ = sherds_image.shape
+    print("Img_height and img_width are {} and {}.".format(img_height, img_width))
 
     # calculate difference matrices
     row_diff = np.diff(point_map, axis=0)
@@ -207,11 +226,11 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
     # build distance matrices
     for i in range(0,row_diff.shape[0]):
         for j in range(0,row_diff.shape[1]):
-            row_dist[i,j] = math.sqrt(np.sum(np.square(row_diff[i,j])))
+            row_dist[i,j] = math.sqrt(np.sum(np.square(row_diff[i,j][2])))
 
     for i in range(0,col_diff.shape[0]):
         for j in range(0,col_diff.shape[1]):
-            col_dist[i,j] = math.sqrt(np.sum(np.square(col_diff[i,j])))
+            col_dist[i,j] = math.sqrt(np.sum(np.square(col_diff[i,j][2])))
 
     #print("Distance matrix for columns: {}".format(col_dist))
 
@@ -227,12 +246,14 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
         r = np.array( [vertex[1] for vertex in box] ) # row coordinates of box vertices
         c = np.array( [vertex[0] for vertex in box] ) # column coordinates of box vertices
         rr, cc = polygon(r,c) # row and column coordinates of all pixels inside bounding box
-        sherd_pile = zip(rr,cc) # merge into one list of tuple coordinates
-        for coord in sherd_pile:
-            if (coord[0] > img_height) or (coord[1] > img_width): # some box vertices can fall outside of image frame
-                sherd_pile.remove(coord)
+        temp_list = zip(rr,cc) # merge into one list of tuple coordinates
 
-        # print("Sherd_pile: {}".format(sherd_pile))
+        sherd_pile = []
+        for coord in temp_list:
+            if not (coord[0] >= img_height or coord[1] >= img_width): # some box vertices can fall outside of image frame
+                sherd_pile.append(coord)
+
+        #print("First 4 pixels in sherd_pile: {}".format(sherd_pile[0:4]))
 
         # add pixels in sherd_pile as nodes to a networkx graph
         G = nx.Graph()
@@ -262,15 +283,13 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
         # list of labels maps onto pixel coordinates in sherd_pile.
         num_sherds, sherd_labels = connected_components(adj_matrix, return_labels=True)
 
-        print("Number of sherds: {}; First 4 labels: {}.".format(num_sherds, sherd_labels[0:3]))
-
         # dictionary: {sherd 0: [connected pixels], sherd 1: [connected pixels] ...}
         sherds_and_pixels = {}
         for i in range(0,num_sherds):
             indices = [j for j in range(len(sherd_labels)) if sherd_labels[j] == i]  # indices of all pixels labeled as sherd i
             sherds_and_pixels[i] = [sherd_pile[index] for index in indices] #[np.array(sherd_pile[index]) for index in indices]
 
-        print("{} items in sherds_and_pixels.".format( len(sherds_and_pixels.items()) ))
+        print("Number of sherds: {}. {} items in sherds_and_pixels.".format( num_sherds, len(sherds_and_pixels.items()) ))
         
         # identify top sherd in this pile, (highest avg. z coordinate)
         # we index into point map using coordinates of connected pixels
@@ -278,7 +297,7 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
         for sherd, pixel_list in sherds_and_pixels.items():
             xyz_coords = np.array( [point_map[pix[0]][pix[1]] for pix in pixel_list] )
             temp_z = np.average(xyz_coords[:,2])
-            if (not max_avg_z) or (temp_z >= max_avg_z):
+            if not max_avg_z or temp_z > max_avg_z: # update top sherd candidate from this pile
                 top_sherd = sherd
                 max_avg_z = temp_z
             
@@ -287,11 +306,13 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
         # this dictionary contains the top sherd from each pile
         top_sherd_candidates[counter] = { 'max_avg_z': max_avg_z, 'pixels': sherds_and_pixels[top_sherd] }
         counter+=1
+    
+    print( "Keys in top_sherd_candidates: {}".format(top_sherd_candidates.keys()) )
 
     avg_z = None
     for sherd, data in top_sherd_candidates.items():
         temp_z = data['max_avg_z']
-        if (not avg_z) or (temp_z >= avg_z):
+        if not avg_z or temp_z > avg_z: # update top sherd across all piles
             top_sherd = sherd
             avg_z = temp_z
   
@@ -313,26 +334,29 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
     return top_sherd_img, avg_z
 
 ##############################################################
-# locate_sherds(color_seg_img, bgnd_image, points, header)
+# locate_sherds(color_seg_img, point_map, handle_overlap, eps, header)
 # This function draws bounding boxes around segmented sherds and publishes in [meters] their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
 # publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
 
-def locate_sherds(color_seg_img, point_map, eps, header):
+def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
 
     # Construct Detection3DRPYArray custom ROS message to contain all valid bounding boxes around sherds
     detections = Detection3DRPYArray()
     detections.header = header    # meta-data
 
-    if_contours = in_frame_only(color_seg_img) # list of in-frame contours only
-    
-    if eps is not None: # if viewing overlapping sherds
-        top_sherd_img, avg_z = get_top_sherd(color_seg_img, point_map, eps, if_contours) # segmented image of top sherd + z-height
-        if_contours = in_frame_only(top_sherd_img)
+    contours = get_contours(color_seg_img)
+
+    if not handle_overlap: # if not viewing overlapping sherds
+        if_contours = in_frame_only(color_seg_img, contours) # list of in-frame contours only
+    else:
+        top_sherd_img, avg_z = get_top_sherd(color_seg_img, point_map, eps, contours) # segmented image of top sherd + z-height
+        contours = get_contours(top_sherd_img)
+        if_contours = in_frame_only(top_sherd_img, contours)
 
     # exclude boxes smaller than a minimum area
-    use_min_area = False
-    min_area = 0.0006  # [sq. meters]
+    use_min_area = True
+    min_area = 0.0009  # [sq. meters]
     #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
     #TODO exclude outermost contour? (the sherd container)
@@ -367,7 +391,11 @@ def locate_sherds(color_seg_img, point_map, eps, header):
         # get real-world dimensions of boxes using point map
         x_center = point_map[row_center_pos][col_center_pos][0] # x, y coordinates of bounding box center in [m]
         y_center = point_map[row_center_pos][col_center_pos][1]
-        z_center = avg_z # end effector of robot will descend to this height for grasping
+        if handle_overlap: # if viewing overlapping sherds
+            z_center = avg_z # end effector of robot will descend to this height for grasping
+        else:
+            z_center = point_map[row_center_pos][col_center_pos][2]
+
         """
         print("x_center as found in pointcloud: ", x_center, "meters.")
         print("y_center as found in pointcloud: ", y_center, "meters.")
@@ -402,8 +430,9 @@ def locate_sherds(color_seg_img, point_map, eps, header):
         # bounding box width and height in meters
         width_meter = math.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
         height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
+        area = width_meter*height_meter
         
-        if not (use_min_area) or (use_min_area and width_meter*height_meter >= min_area):
+        if (not use_min_area) or (not (use_min_area and area <= min_area) ):
             # print("This sherd's bounding box: " + str(rect))
             # Construct a Detection3DRPY() msg to add this bounding box to detections
             detection = Detection3DRPY()
@@ -420,6 +449,7 @@ def locate_sherds(color_seg_img, point_map, eps, header):
             
             #Convert original RGB image to np.array to draw contours as boxes
             # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
+            """            
             sherd_contours = cv2.drawContours( np.array(color_seg_img), [box], 0, (255,0,0), 3 )
 
             plt.figure("Figure 2")
@@ -427,7 +457,6 @@ def locate_sherds(color_seg_img, point_map, eps, header):
             plt.title("Bounding Box around Sherd")
             plt.show()
 
-            """
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
             print("Width endpoints in pixels: (%f, %f) and (%f, %f)." % (col_width_end1, row_width_end1, col_width_end2, row_width_end2) )
@@ -474,7 +503,7 @@ def detect_sherds_callback(req):
     point_map[:,:,1] = point_cloud['y']
     point_map[:,:,2] = point_cloud['z']
     res = SherdDetectionsResponse()
-    res.detections = locate_sherds(color_seg_img, point_map, req.cluster_threshold, header)
+    res.detections = locate_sherds(color_seg_img, point_map, req.handle_overlap, req.cluster_threshold, header)
 
     return res
 
