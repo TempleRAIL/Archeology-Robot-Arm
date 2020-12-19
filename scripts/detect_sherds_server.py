@@ -108,16 +108,11 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
     """
 
     # Debugging: Display original image and segmented sherds
-    """
+    
     plt.subplot(121),plt.imshow(rgb)
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
     plt.subplot(122),plt.imshow(segmented_sherds)
     plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
-    plt.show()
-    """
-    plt.figure()
-    plt.imshow(segmented_sherds)
-    plt.title("Segmented Sherds")
     plt.show()
 
     if non_sherds_img is not None:
