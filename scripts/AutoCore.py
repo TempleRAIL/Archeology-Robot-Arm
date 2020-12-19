@@ -58,6 +58,7 @@ class AutoCore():
         self.orient_z = rospy.get_param('~orient_z')
         self.clearance = rospy.get_param('~clearance')
         self.sherd_allowance = rospy.get_param('~sherd_allowance')
+        self.handle_overlap = rospy.get_param('~overlapping_sherds')
         self.cluster_threshold = rospy.get_param('~cluster_threshold')
 
         # Initialize other class members
@@ -261,10 +262,8 @@ class AutoCore():
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
         req.color_mask = color_mask
-        if handle_overlap:
-            req.cluster_threshold = self.cluster_threshold
-        else:
-            req.cluster_threshold = None
+        req.cluster_threshold = self.cluster_threshold
+        req.handle_overlap = handle_overlap
         if bgnd_img:
             req.subtract_background = True
             req.background_image = bgnd_img
@@ -313,7 +312,7 @@ class AutoCore():
             raise
         # Check for sherd detections and get list of locations / rotations
         try:
-            return self.detect_fun(self.color_masks['mat'], handle_overlap=True)
+            return self.detect_fun(self.color_masks['mat'], handle_overlap=self.handle_overlap)
         except:
             raise
 
