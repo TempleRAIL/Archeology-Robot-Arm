@@ -18,7 +18,8 @@ gripper_len: 0.0775
 orient_z: 0.03 # height above sherd at which gripper orients itself before descending to the table to grasp
 clearance: .0025  # gap between end of fingers and table/mat [m]
 sherd_allowance: 0.02 # in case sherd curves past the tips of the the gripper fingers
-cluster_threshold: 0.01 # max. distance between pixels to be considered members of the same sherd
+overlapping_sherds: True
+cluster_threshold: 0.01 # if sherds overlap: max. z-distance between pixels to be considered members of the same sherd
 survey_z: 0.28 # height from which to search for sherds
 table_z: 0.0
 
