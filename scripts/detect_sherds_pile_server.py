@@ -192,7 +192,7 @@ def in_frame_only(img, contours):
         # remove contour from array if its edges meet the image frame
         in_frame = True        
         for corner in box:
-            if ( corner[0] not in range(0,img_width) ) or ( corner[1] not in range(0,img_height) ): #(corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
+            if (corner[0] <= 0) or (corner[0] >= img_width-1) or (corner[1] <= 0) or (corner[1] >= img_height-1):
                 in_frame = False
                 contours.remove(cnt)
                 break
@@ -356,7 +356,7 @@ def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
 
     # exclude boxes smaller than a minimum area
     use_min_area = True
-    min_area = 0.0009  # [sq. meters]
+    min_area = 0.0006  # [sq. meters]
     #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
     #TODO exclude outermost contour? (the sherd container)
@@ -432,7 +432,7 @@ def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
         height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
         area = width_meter*height_meter
         
-        if (not use_min_area) or (not (use_min_area and area <= min_area) ):
+        if not (use_min_area and area <= min_area) or not use_min_area:
             # print("This sherd's bounding box: " + str(rect))
             # Construct a Detection3DRPY() msg to add this bounding box to detections
             detection = Detection3DRPY()
