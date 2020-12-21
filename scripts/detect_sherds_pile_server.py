@@ -48,106 +48,6 @@ def camera_data_callback(im_msg, pc_msg):
     finally:
         camera_data_lock.release()
 
-##############################################################
-# segment_sherds(color_mask, sherds_img, non_sherds_img)
-# This function segments sherds from the color image.
-# inputs: robot_arm/SherdDetectionsRequest
-# outputs: OpenCV RGB image
-
-def segment_sherds(color_mask, sherds_img, non_sherds_img):
-    """
-    Structure of color_mask ROS msg:
-
-                Floor       Ceiling
-    Color 1     [H,S,V]     [H,S,V]
-    Color 2     [H,S,V]     [H,S,V]
-    Color 3     [H,S,V]     [H,S,V]
-    .
-    .
-    .
-    color_mask.layout.dim[0].size = num_colors
-    color_mask.layout.dim[1].size = 2 (floor, ceiling)
-    color_mask.layout.dim[2].size = 3 (H,S,V)
-    
-    """
-    num_colors = color_mask.layout.dim[0].size
-    stride = color_mask.layout.dim[1].stride
-      
-    # convert images to HSV for color-masking
-    hsv_sherds = cv2.cvtColor(sherds_img, cv2.COLOR_BGR2HSV)
-    if non_sherds_img is not None:
-        hsv_nonsherd = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)
-
-    # initialize masks outside of loop as all zeros
-    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1]),np.uint8)
-    bg_mask_nonsherd = np.copy(bg_mask_sherds)  # super important - assignment statements in Python do not copy objects, they create bindings between a target and an object.
-
-    # build background mask(s) by applying every color range in succession 
-    for i in range(0, num_colors):
-        floor = [color_mask.data[0+(i*stride)], color_mask.data[1+(i*stride)], color_mask.data[2+(i*stride)]]
-        ceiling = [color_mask.data[3+(i*stride)], color_mask.data[4+(i*stride)], color_mask.data[5+(i*stride)]]
-
-        this_mask = cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
-        bg_mask_sherds += this_mask
-
-        # Debugging
-        """   
-        plt.imshow(bg_mask_sherds)
-        plt.title("bg_mask_sherds iteration {}".format(i))
-        plt.show()
-        """
-        if non_sherds_img is not None:
-            that_mask = cv2.inRange( hsv_nonsherd, np.array(floor), np.array(ceiling) )  # non-sherds blocked out
-            bg_mask_nonsherd += that_mask
-
-    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through
-
-    sherds_mask = cv2.morphologyEx(fg_mask_sherds, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8))  # final sherds mask
-    rgb = sherds_img[:, :, ::-1]  # flip to RGB for display
-    segmented_sherds = cv2.bitwise_and(rgb, rgb, mask=sherds_mask) # apply mask that allows sherds through
-
-    # Debugging        
-    """
-    plt.imshow(sherds_mask)
-    plt.title("Final Sherds Mask")
-    plt.show()
-    """
-
-    # Debugging: Display original image and segmented sherds
-    """
-    plt.subplot(121),plt.imshow(rgb)
-    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(segmented_sherds)
-    plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
-    plt.show()
-    """
-
-    if non_sherds_img is not None:
-        fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
-        fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=20) # dilate non-sherd areas
-        nonsherd_mask = cv2.bitwise_not(fg_mask_nonsherd) # re-invert to block out non-sherds: final non-sherds mask
-
-        # Debugging        
-        """
-        plt.subplot(121),plt.imshow(non_sherds_img[:, :, ::-1])
-        plt.title('Non-sherds Image'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122),plt.imshow(nonsherd_mask)
-        plt.title('Non-sherds Mask'), plt.xticks([]), plt.yticks([])
-        plt.show()
-        """
-        segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
- 
-    # Debugging: Display original image and segmented sherds
-    """
-    if non_sherds_img is not None:
-        plt.subplot(121),plt.imshow(rgb)
-        plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122),plt.imshow(segmented_sherds)
-        plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
-        plt.show()
-    """
-    return segmented_sherds
-
 
 ##############################################################
 # get_contours(img)
@@ -167,28 +67,16 @@ def get_contours(img):
 # inputs: contours (array of arrays) from cv2.findContours
 # returns: in-frame contours only (array of arrays)
 
-def in_frame_only(img, contours):
+def in_frame_only(img_height, img_width, contours):
     #Debugging
     """
     print("Found {} contours total - may or may not all be sherds.".format( len(contours) ))
     """
-    img_height, img_width, _ = img.shape
-
     for cnt in contours:
         rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
         box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
         box = np.int0(box)
-
-        # Debugging: draw and display bounding boxes around contours
-        # Convert original RGB image to np.array to draw contours as boxes
-        
-        sherd_contours = cv2.drawContours( np.array(img), [box], 0, (255,0,0), 3 )
-
-        plt.figure("Figure 2")
-        plt.imshow(sherd_contours)
-        plt.title("Bounding Box around Sherd")
-        plt.show()
-        
+       
         # remove contour from array if its edges meet the image frame
         in_frame = True        
         for corner in box:
@@ -210,9 +98,6 @@ def in_frame_only(img, contours):
 # returns: in-frame contours only (array of arrays)
 
 def get_top_sherd(sherds_image, point_map, eps, if_contours):
-    img_height, img_width, _ = sherds_image.shape
-    print("Img_height and img_width are {} and {}.".format(img_height, img_width))
-
     # calculate difference matrices
     row_diff = np.diff(point_map, axis=0)
     col_diff = np.diff(point_map, axis=1)
@@ -226,11 +111,11 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
     # build distance matrices
     for i in range(0,row_diff.shape[0]):
         for j in range(0,row_diff.shape[1]):
-            row_dist[i,j] = math.sqrt(np.sum(np.square(row_diff[i,j][2])))
+            row_dist[i,j] = math.sqrt(np.sum(np.square(row_diff[i,j]))) #math.sqrt(np.sum(np.square(row_diff[i,j][2])))
 
     for i in range(0,col_diff.shape[0]):
         for j in range(0,col_diff.shape[1]):
-            col_dist[i,j] = math.sqrt(np.sum(np.square(col_diff[i,j][2])))
+            col_dist[i,j] = math.sqrt(np.sum(np.square(col_diff[i,j]))) #math.sqrt(np.sum(np.square(col_diff[i,j][2])))
 
     #print("Distance matrix for columns: {}".format(col_dist))
 
@@ -249,8 +134,8 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
         temp_list = zip(rr,cc) # merge into one list of tuple coordinates
 
         sherd_pile = []
-        for coord in temp_list:
-            if not (coord[0] >= img_height or coord[1] >= img_width): # some box vertices can fall outside of image frame
+        for coord in temp_list: # skip box vertices that fall outside of image frame
+            if not (coord[0] >= sherds_image.shape[0] or coord[1] >= sherds_image.shape[1]): 
                 sherd_pile.append(coord)
 
         #print("First 4 pixels in sherd_pile: {}".format(sherd_pile[0:4]))
@@ -333,6 +218,7 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
     
     return top_sherd_img, avg_z
 
+
 ##############################################################
 # locate_sherds(color_seg_img, point_map, handle_overlap, eps, header)
 # This function draws bounding boxes around segmented sherds and publishes in [meters] their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
@@ -341,6 +227,8 @@ def get_top_sherd(sherds_image, point_map, eps, if_contours):
 
 def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
 
+    img_height, img_width, _ = color_seg_img.shape
+
     # Construct Detection3DRPYArray custom ROS message to contain all valid bounding boxes around sherds
     detections = Detection3DRPYArray()
     detections.header = header    # meta-data
@@ -348,11 +236,11 @@ def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
     contours = get_contours(color_seg_img)
 
     if not handle_overlap: # if not viewing overlapping sherds
-        if_contours = in_frame_only(color_seg_img, contours) # list of in-frame contours only
+        if_contours = in_frame_only(img_height, img_width, contours) # filter out out-of-frame contours
     else:
         top_sherd_img, avg_z = get_top_sherd(color_seg_img, point_map, eps, contours) # segmented image of top sherd + z-height
         contours = get_contours(top_sherd_img)
-        if_contours = in_frame_only(top_sherd_img, contours)
+        if_contours = in_frame_only(img_height, img_width, contours)
 
     # exclude boxes smaller than a minimum area
     use_min_area = True
@@ -467,6 +355,108 @@ def locate_sherds(color_seg_img, point_map, handle_overlap, eps, header):
             print("Gripper rotation angle is %f degrees." % grip_angle)
             """
     return detections
+
+
+##############################################################
+# segment_sherds(color_mask, sherds_img, non_sherds_img)
+# This function segments sherds from the color image.
+# inputs: robot_arm/SherdDetectionsRequest
+# outputs: OpenCV RGB image
+
+def segment_sherds(color_mask, sherds_img, non_sherds_img):
+    """
+    Structure of color_mask ROS msg:
+
+                Floor       Ceiling
+    Color 1     [H,S,V]     [H,S,V]
+    Color 2     [H,S,V]     [H,S,V]
+    Color 3     [H,S,V]     [H,S,V]
+    .
+    .
+    .
+    color_mask.layout.dim[0].size = num_colors
+    color_mask.layout.dim[1].size = 2 (floor, ceiling)
+    color_mask.layout.dim[2].size = 3 (H,S,V)
+    
+    """
+    num_colors = color_mask.layout.dim[0].size
+    stride = color_mask.layout.dim[1].stride
+      
+    # convert images to HSV for color-masking
+    hsv_sherds = cv2.cvtColor(sherds_img, cv2.COLOR_BGR2HSV)
+    if non_sherds_img is not None:
+        hsv_nonsherd = cv2.cvtColor(non_sherds_img, cv2.COLOR_BGR2HSV)
+
+    # initialize masks outside of loop as all zeros
+    bg_mask_sherds = np.zeros((hsv_sherds.shape[0], hsv_sherds.shape[1]),np.uint8)
+    bg_mask_nonsherd = np.copy(bg_mask_sherds)  # super important - assignment statements in Python do not copy objects, they create bindings between a target and an object.
+
+    # build background mask(s) by applying every color range in succession 
+    for i in range(0, num_colors):
+        floor = [color_mask.data[0+(i*stride)], color_mask.data[1+(i*stride)], color_mask.data[2+(i*stride)]]
+        ceiling = [color_mask.data[3+(i*stride)], color_mask.data[4+(i*stride)], color_mask.data[5+(i*stride)]]
+
+        this_mask = cv2.inRange( hsv_sherds, np.array(floor), np.array(ceiling) )  # sherds blocked out
+        bg_mask_sherds += this_mask
+
+        # Debugging
+        """   
+        plt.imshow(bg_mask_sherds)
+        plt.title("bg_mask_sherds iteration {}".format(i))
+        plt.show()
+        """
+        if non_sherds_img is not None:
+            that_mask = cv2.inRange( hsv_nonsherd, np.array(floor), np.array(ceiling) )  # non-sherds blocked out
+            bg_mask_nonsherd += that_mask
+
+    fg_mask_sherds = cv2.bitwise_not(bg_mask_sherds)  # invert so that sherds are allowed through
+
+    sherds_mask = cv2.morphologyEx(fg_mask_sherds, cv2.MORPH_OPEN, kernel=np.ones((3,3),np.uint8))  # final sherds mask
+    rgb = sherds_img[:, :, ::-1]  # flip to RGB for display
+    segmented_sherds = cv2.bitwise_and(rgb, rgb, mask=sherds_mask) # apply mask that allows sherds through
+
+    # Debugging        
+    """
+    plt.imshow(sherds_mask)
+    plt.title("Final Sherds Mask")
+    plt.show()
+    """
+
+    # Debugging: Display original image and segmented sherds
+    """
+    plt.subplot(121),plt.imshow(rgb)
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(segmented_sherds)
+    plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
+    plt.show()
+    """
+
+    if non_sherds_img is not None:
+        fg_mask_nonsherd = cv2.bitwise_not(bg_mask_nonsherd)  # invert so that non-sherds are allowed through
+        fg_mask_nonsherd = cv2.dilate(fg_mask_nonsherd, kernel=np.ones((3,3),np.uint8), iterations=20) # dilate non-sherd areas
+        nonsherd_mask = cv2.bitwise_not(fg_mask_nonsherd) # re-invert to block out non-sherds: final non-sherds mask
+
+        # Debugging        
+        """
+        plt.subplot(121),plt.imshow(non_sherds_img[:, :, ::-1])
+        plt.title('Non-sherds Image'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122),plt.imshow(nonsherd_mask)
+        plt.title('Non-sherds Mask'), plt.xticks([]), plt.yticks([])
+        plt.show()
+        """
+        segmented_sherds = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
+ 
+    # Debugging: Display original image and segmented sherds
+    """
+    if non_sherds_img is not None:
+        plt.subplot(121),plt.imshow(rgb)
+        plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+        plt.subplot(122),plt.imshow(segmented_sherds)
+        plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
+        plt.show()
+    """
+    return segmented_sherds
+
 
 ##############################################################
 # detect_sherds_callback(req)
