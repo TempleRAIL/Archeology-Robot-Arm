@@ -43,7 +43,7 @@ def camera_data_callback(im_msg, pc_msg):
 ##############################################################
 # segment_sherds(color_mask, sherds_img, non_sherds_img)
 # This function segments sherds from the color image.
-# inputs: robot_arm/SherdDetectionsRequest
+# inputs: robot_arm/SherdDetectionsRequest, OpenCV BGR images
 # outputs: OpenCV RGB image
 
 def segment_sherds(color_mask, sherds_img, non_sherds_img):
@@ -139,7 +139,7 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
         plt.title('Segmented Objects'), plt.xticks([]), plt.yticks([])
         plt.show()
     """
-    return segmented_sherds
+    return segmented_sherds # this is an RGB OpenCV image now (not BGR)
 
 ##############################################################
 # locate_sherds(sherds_image, bgnd_image, points, header)
@@ -153,7 +153,7 @@ def locate_sherds(sherds_image, points, header):
     img_height, img_width, _ = sherds_image.shape
 
     # Convert sherds_image to grayscale and find contours
-    gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY) # convert to grayscale
+    gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_RGB2GRAY) # convert to grayscale
     _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
     #Debugging
@@ -340,7 +340,8 @@ def detect_sherds_server():
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     
-    detect_sherds_server = rospy.Service('detect_sherds_server', SherdDetections, detect_sherds_callback)
+    #detect_sherds_server = rospy.Service('detect_sherds_server', SherdDetections, detect_sherds_callback)
+    rospy.Service('detect_sherds_server', SherdDetections, detect_sherds_callback)
  
     rospy.spin() # keeps Python from exiting until this node is stopped
     
