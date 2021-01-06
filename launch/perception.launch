@@ -3,7 +3,7 @@
     <node name="color_mask" pkg="robot_arm" type="color_mask_server.py" 
           output="screen" respawn="true"/>
 
-    <node name="detect_sherds" pkg="robot_arm" type="detect_sherds_pile_server.py" 
+    <node name="detect_sherds" pkg="robot_arm" type="detect_by_watershed_server.py" 
           output="screen" respawn="true"/>
 
 </launch>
