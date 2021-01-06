@@ -52,33 +52,20 @@ def camera_data_callback(im_msg, pc_msg):
 
 
 ##############################################################
-# external_contours(img)
-# This function converts the image to grayscale and extracts contours.
-# inputs: OpenCV image
-# returns: contours (array of arrays)
-
-def external_contours(gray_img):
-    _, contours, _ = cv2.findContours( gray_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
-    
-    return contours
-
-##############################################################
-# show_contours(img)
+# show_box(img, box)
 # This function...
 # inputs:
 # returns:
 
-def show_contours(img, gray_img):
-    contours = get_contours(gray_img)
-    for cnt in contours:
-        rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
-        box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
-        box = np.int0(box)
-        sherd_contours = cv2.drawContours( img, [box], 0, (255,0,0), 3 )
-        plt.figure()
-        plt.imshow(sherd_contours)
-        plt.title("Bounding Box around Sherd")
-        plt.show()
+def show_box(img, box):
+    sherd_box = cv2.drawContours( img, [box], 0, (255,0,0), 3 )
+    print("Press any key to continue.")
+    plt.figure()
+    plt.imshow(sherd_box)
+    plt.title("Bounding Box around Sherd")
+    plt.show()
+
+    cv2.waitKey(0) # wait until any key is pressed
 
 ##############################################################
 # def in_frame_only(img)
@@ -88,7 +75,7 @@ def show_contours(img, gray_img):
 
 def in_frame_only(img):
     img_height, img_width, _ = img.shape
-    gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY) # convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) # convert to grayscale
     _, contours, _ = cv2.findContours( gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
 
     #Debugging
@@ -123,10 +110,10 @@ def in_frame_only(img):
 # returns: bool
 
 def within(list_of_arrays, row_limits, col_limits):
-    #TODO check argument types 
+    #TODO write code to catch wrong argument types 
     row_min, row_max = row_limits[0], row_limits[1]
     col_min, col_max = col_limits[0], col_limits[1]
-    if any(list_of_arrays[0] <= row_min) or any(list_of_arrays[0] >= row_max) or any(list_of_arrays[1] <= row_min) or any(list_of_arrays[1] >= row_max):
+    if any(list_of_arrays[0] <= row_min) or any(list_of_arrays[0] >= row_max) or any(list_of_arrays[1] <= col_min) or any(list_of_arrays[1] >= col_max):
         return False
     else:
         return True
@@ -177,26 +164,25 @@ def labels2rgb(labels, lut):
 
 def get_top_sherd(labels, color_seg_img, point_map):
     img_height, img_width = labels.shape
-    row_lims, col_lims = (0,img_height), (0,img_width)
-
+    frame_row_lims = (0,img_height-1)
+    frame_col_lims = (0,img_width-1)
     unique_labels = np.unique(labels)
     top_sherd = {}
 
     for label in unique_labels:
         if label==0:  # exclude background pixels
             continue
-        pixel_coords = np.where(labels==label) # returns [array(row_coords), array(col_coords)]
-        if pixel_coords[0].size <= 500 :  # exclude small clusters
+        pixel_coords = np.where(labels==label) # returns [np.array(row_coords), np.array(col_coords)]
+        # exclude small clusters and out-of-frame clusters
+        if (pixel_coords[0].size <= 500): 
             continue
         pixel_list = list(zip(pixel_coords[0], pixel_coords[1])) # reorg as [ (r,c), (r,c), (r,c) ]
         xyz = np.array( [point_map[pix[0]][pix[1]] for pix in pixel_list] )
         current_z = np.average(xyz[:,2])
-        # within() checks that cluster is entirely contained within image frame
-        if (not top_sherd) or ( current_z > top_sherd['z'] and within(pixel_coords, row_lims, col_lims) ):
+        # within() checks that cluster being considered is not internal to current top_sherd
+        if (not top_sherd) or (current_z > top_sherd['z'] and within( pixel_coords, frame_row_lims, frame_col_lims )):
             top_sherd = {'label': label, 'pixels': pixel_list, 'z': current_z}
             print(top_sherd)
-            row_limits = ( np.min(pixel_coords[0]), np.max(pixel_coords[0]) )  # update extents of top sherd cluster
-            col_limits = ( np.min(pixel_coords[1]), np.max(pixel_coords[1]) )
 
     print("Top sherd for this pile is {}".format(top_sherd))
   
@@ -225,7 +211,7 @@ def get_top_sherd(labels, color_seg_img, point_map):
 # outputs: segmented_sherds (OpenCV RGB image)
 
 def apply_watershed(color_seg_img):
-    gray = cv2.cvtColor(np.array(color_seg_img), cv2.COLOR_RGB2GRAY) # convert to grayscale
+    gray = cv2.cvtColor(color_seg_img, cv2.COLOR_RGB2GRAY) # convert to grayscale
 
     # WATERSHED ON GRADIENT IMAGE
     # denoise image
@@ -289,8 +275,8 @@ def apply_watershed(color_seg_img):
 
 def locate_sherds(color_seg_img, point_map, header, handle_overlap):
     # Construct Detection3DRPYArray custom ROS message to contain all valid bounding boxes around sherds
-    detections = Detection3DRPYArray()
-    detections.header = header    # meta-data
+    sherds = Detection3DRPYArray()
+    sherds.header = header    # meta-data
 
     # exclude detections smaller than a minimum area?
     use_min_area = False
@@ -304,13 +290,14 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
     else:
         contours = in_frame_only(color_seg_img)
 
+    if not contours.any():  # if no in-frame contours, return empty sherds message
+        return sherds
+
     #TODO exclude outermost contour? (the sherd container)
 
     # For each detected contour, find bounding box around each sherd
     for cnt in contours:
         rect = cv2.minAreaRect(cnt) # [(x center, y center), (width, height), (rotation) in pixels]
-        box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
-        box = np.int0(box)       
 
         # col (x), row (y) of bounding box centers [pixel coordinates]
         col_center_pos = int(rect[0][0])
@@ -381,28 +368,24 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
         
         if not (use_min_area and area <= min_area) or not use_min_area:
             # print("This sherd's bounding box: " + str(rect))
-            # Construct a Detection3DRPY() msg to add this bounding box to detections
+            # Construct a Detection3DRPY() msg to add this bounding box to the list of sherd detections
             detection = Detection3DRPY()
-            detection.header = detections.header
+            detection.header = sherds.header
             detection.bbox.center.position.x = x_center
             detection.bbox.center.position.y = y_center
             detection.bbox.center.position.z = z_center
             detection.bbox.center.roll = np.radians(grip_angle)  # radians
             detection.bbox.size.x = width_meter
             detection.bbox.size.y = height_meter
-            detections.detections.append(detection)
+            sherds.detections.append(detection)
 
-            # Debugging: draw, display, and print details of bounding boxes around sherds
-            
-            #Convert original RGB image to np.array to draw contours as boxes
-            # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
+            # Debugging: draw, display, and print details of bounding box just added to sherd detections
                         
-            sherd_contours = cv2.drawContours( np.array(color_seg_img), [box], 0, (255,0,0), 3 )
-
-            plt.figure("Figure 2")
-            plt.imshow(sherd_contours)
-            plt.title("Bounding Box around Sherd")
-            plt.show()
+            box = cv2.boxPoints(rect) # [4x1 array of tuples: coordinates of vertices in pixels]
+            box = np.int0(box)
+            show_box(color_seg_img, box)
+            
+            # Extract (x,y) coordinates of box corners for drawing rectangles, starting at "lowest" corner (largest y-coordinate) and moving CW. Height is distance between 0th and 1st corner. Width is distance between 1st and 2nd corner.
             """
             print("Row of center is " + str(row_center_pos))
             print("Col of center is " + str(col_center_pos))
@@ -413,7 +396,7 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
             print("Height in meters:  %f." % (height_meter) )
             print("Gripper rotation angle is %f degrees." % grip_angle)
             """
-    return detections
+    return sherds
 
 
 ##############################################################
