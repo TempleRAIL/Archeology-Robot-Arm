@@ -38,7 +38,7 @@ scale_color_location:
 pickup_area:
   step_size: 0.05
   offset_x: -0.03
-  offset_y: 0.20
+  offset_y: 0.21
   length_x: 0.35
   length_y: 0.15
 
