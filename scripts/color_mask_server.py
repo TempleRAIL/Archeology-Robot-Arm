@@ -103,6 +103,12 @@ def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
     An HSV color in the 2D_image is linked to its color cluster (cluster 0, cluster 1, etc.) by cross-referencing row numbers
     across these two arrays.
     """
+    try:
+        sim = rospy.get_param('sherd_states/sim')
+    except:
+        print("ROS Parameter Server not available; assuming simulated environment.")
+        sim = True
+
     flat_mask = []
     minval = 17.85  # OpenCV value format
     maxval = 255
@@ -111,7 +117,6 @@ def get_mask_as_ROS_msg(num_colors, cluster_labels, twoD_image):
         cluster_indices = np.where(cluster_labels == i)	# in array of cluster labels, find every position belonging to ith cluster
         colors_in_cluster = twoD_image[cluster_indices]  # cross-reference: get array of all HSV colors belonging to cluster i
 
-        sim = rospy.get_param('sherd_states/sim')
         if not sim:
             huethresh = np.std(colors_in_cluster[:,0])*0.01*180 # OpenCV hue format
             satthresh = np.std(colors_in_cluster[:,1])*0.01*255 # OpenCV saturation
