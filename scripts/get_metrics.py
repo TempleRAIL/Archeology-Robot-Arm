@@ -12,7 +12,7 @@ import numpy as np
 # get_metrics()
 # This function initiates a ROS node that parses data processed sherds recorded in bagfiles. Bagfile(s) to be parsed and names of subroutines to expect in the bagfile(s) are loaded from a YAML configuration file.
 # inputs: None
-# outputs: 1) pie chart of processing time per sherd, broken down by subroutine, 2) printout of times for all sherds, 3) printout of number of grasp failures, 4) printout of number of sherds processed.
+# outputs: 1) pie chart of processing time per sherd, broken down by subroutine, 2) printout of times for all sherds, 3) printout of number of grasp failures (drops), 4) printout of number of sherds processed.
 
 # This script parses the data for processed sherds recorded in bagfiles
 def get_metrics():
@@ -22,7 +22,8 @@ def get_metrics():
     # load bagfiles ( {filename: end_time, ... } ) and status timings ( {status_name: duration} ) from YAML file
     package_path = rospack.get_path('robot_arm')
 
-    # convert statuses listed in YAML file to Python dictionary with rospy.Time and rospy.Duration objects
+    # convert dictionaries in YAML file to Python dictionaries with rospy.Time and rospy.Duration objects
+    # YAML file contains dictionary of bagfiles {bagfile_name: simulation end_time} and dictionary of statuses {status: duration}
     yaml_file = 'metrics.yaml'
     filename = os.path.join(package_path,'config',yaml_file)
     stream = file(filename, 'r')
@@ -30,15 +31,15 @@ def get_metrics():
     bagfiles = metrics['bagfiles']
     timing = metrics['statuses']
 
-    # calculate time logged for each status
+    # calculate time logged for each status, summed across all bagfiles listed in YAML file
     total_time = 0
     num_sherds = 0
     num_drops = 0
-    for bagfile, end_time in bagfiles.items():
+    for bagfile, end_time in bagfiles.items(): 
         start_time = None
         current_status = ''           
         filename = os.path.join(package_path,'bagfiles/benchmarks',bagfile)
-        bag = rosbag.Bag(filename) 
+        bag = rosbag.Bag(filename) # create bag object
         try:           
             for topic, msg, t in bag.read_messages():
                 if topic == '/clock': # simulated time from Gazebo
@@ -47,12 +48,12 @@ def get_metrics():
                         pass
                     else:
                         break
-                elif topic == '/status':
+                elif topic == '/status': 
                     if not start_time is None:
-                        timing[current_status] += time - start_time
-                    current_status = msg.data
-                    start_time = time
-                elif topic == '/sherd_data' and not msg.incomplete:
+                        timing[current_status] += time - start_time # update duration of current status {status: duration}
+                    current_status = msg.data # update current status
+                    start_time = time # update start time
+                elif topic == '/sherd_data' and not msg.incomplete: # count sherds processed and grasp failures
                     num_sherds += 1
                     try:
                         num_drops += msg.drops
@@ -63,7 +64,7 @@ def get_metrics():
             bag.close()
 
     # print number of sherds processed and number of drop events
-    print('{} sherds processed with {} drop events. If a bagfile had no drop count, must count drops manually by reviewing gazebo log files.'.format(num_sherds, num_drops))
+    print('{} sherds processed with {} grasp failures. For a bagfile with no grasp failure count, grasp failures must be counted manually by reviewing gazebo log files.'.format(num_sherds, num_drops))
 
     # show pie chart of time logged per sherd for each status
     sizes = []
