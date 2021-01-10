@@ -156,6 +156,24 @@ def labels2rgb(labels, lut):
   """
   return cv2.LUT(cv2.merge((labels, labels, labels)), lut)
 
+
+##############################################################
+# get_z(z_values, thresh)
+# This function takes the average and standard of all z values, then returns the mean of those values that fall within a certain range of the overall average.
+# inputs: flat array of z-values, 
+# returns: average z-height for topography
+
+def get_z(z_values,thresh=0.005):
+    avg_z, std_dev = np.average(z_values), np.std(z_values)
+    if std_dev < thresh:
+        thresh = std_dev
+    floor, ceil = avg_z-thresh, avg_z+thresh
+    first_dev = np.array( [value for value in z_values if floor<=value<=ceil] )
+    z=np.average(first_dev)
+    
+    return z
+
+
 ##############################################################
 # get_top_sherd(labels)
 # This function filters out contours which run out of the image frame.
@@ -167,24 +185,24 @@ def get_top_sherd(labels, color_seg_img, point_map):
     frame_row_lims = (0,img_height-1)
     frame_col_lims = (0,img_width-1)
     unique_labels = np.unique(labels)
+    unique_labels = np.delete(unique_labels, np.where(unique_labels==0)) # remove label for background pixels
+    print('Unique labels: {}'.format(unique_labels))
     top_sherd = {}
 
     for label in unique_labels:
-        if label==0:  # exclude background pixels
-            continue
         pixel_coords = np.where(labels==label) # returns [np.array(row_coords), np.array(col_coords)]
         # exclude small clusters and out-of-frame clusters
-        if (pixel_coords[0].size <= 500): 
+        if (pixel_coords[0].size <= 2000): 
             continue
         pixel_list = list(zip(pixel_coords[0], pixel_coords[1])) # reorg as [ (r,c), (r,c), (r,c) ]
         xyz = np.array( [point_map[pix[0]][pix[1]] for pix in pixel_list] )
-        current_z = np.average(xyz[:,2])
-        # within() checks that cluster being considered is not internal to current top_sherd
-        if (not top_sherd) or (current_z > top_sherd['z'] and within( pixel_coords, frame_row_lims, frame_col_lims )):
+        current_z = get_z(xyz[:,2])
+        #current_z = np.average(xyz[:,2])
+        # ensure bounding box around pixels is fully within image frame before updating top sherd
+        if (not top_sherd) or (current_z < top_sherd['z']):
             top_sherd = {'label': label, 'pixels': pixel_list, 'z': current_z}
-            print(top_sherd)
 
-    print("Top sherd for this pile is {}".format(top_sherd))
+    print("Top sherd label: {} and z: {}".format(top_sherd['label'], top_sherd['z']))
   
     # create mask: top sherd pixels --> foreground; else --> background
     top_sherd_mask = np.zeros( labels.shape, np.uint8 )
@@ -220,7 +238,7 @@ def apply_watershed(color_seg_img):
     # find continuous region (low gradient -
     # where less than [low_grad_thresh] for this image) --> markers
     # disk(5) is used here to get a more smooth image
-    low_grad_thresh = 15
+    low_grad_thresh = 17
     markers = rank.gradient(denoised, disk(5)) < low_grad_thresh
     markers, num_markers = ndi.label(markers)
     
@@ -239,10 +257,12 @@ def apply_watershed(color_seg_img):
     lock.release
 
     # convert watershed labels (single channel) to RGB image format (3-channel)
+    # these colorized labels are not used elsewhere in this script; created only in case they are useful later
     lut=gen_lut()
     rgb_labels = labels2rgb(labels, lut)
     
-    # display results    
+    # display results
+    
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8,8), sharex=True, sharey=True)
     ax = axes.ravel()
 
@@ -265,7 +285,7 @@ def apply_watershed(color_seg_img):
     fig.tight_layout()
     plt.show()
     
-    return labels, rgb_labels
+    return labels
 
 ##############################################################
 # locate_sherds(color_seg_img, point_map, header, handle_overlap)
@@ -284,7 +304,7 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
     #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
     if handle_overlap:
-        labels, rgb_labels = apply_watershed(color_seg_img)
+        labels = apply_watershed(color_seg_img)
         top_sherd_img, top_sherd = get_top_sherd(labels, color_seg_img, point_map)
         contours = in_frame_only(top_sherd_img)
     else:
@@ -321,15 +341,15 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
             grip_angle = angle
 
         # get real-world dimensions of boxes using point map
+        
         x_center = point_map[row_center_pos][col_center_pos][0] # x, y coordinates of bounding box center in [m]
         y_center = point_map[row_center_pos][col_center_pos][1]
-        z_center = point_map[row_center_pos][col_center_pos][2]
-        """
+        #z_center = point_map[row_center_pos][col_center_pos][2]
+        
         if handle_overlap: # if viewing overlapping sherds
-            z_center = avg_z # end effector of robot will descend to this height for grasping
+            z_center = top_sherd['z'] # end effector of robot will descend to this height for grasping
         else:
-            z_center = point_map[row_center_pos][col_center_pos][2]
-        """
+            z_center = None
         """
         print("x_center as found in pointcloud: ", x_center, "meters.")
         print("y_center as found in pointcloud: ", y_center, "meters.")
@@ -485,7 +505,7 @@ def segment_by_color(color_mask, sherds_img, non_sherds_img):
         plt.title('Non-sherds Mask'), plt.xticks([]), plt.yticks([])
         plt.show()
         """
-        color_seg_img = cv2.bitwise_and(segmented_sherds, segmented_sherds, mask=nonsherd_mask) # apply mask to remove non-sherds
+        color_seg_img = cv2.bitwise_and(color_seg_img, color_seg_img, mask=nonsherd_mask) # apply mask to remove non-sherds
  
     # Debugging: Display original image and segmented sherds
     """
