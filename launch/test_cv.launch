@@ -3,6 +3,7 @@
   <arg name="path" default="$(find robot_arm)/bagfiles/perception/" />
   <arg name="color_mask_bagfile" default="mat_calibration" />
   <arg name="pickup_area_bagfile" default="pickup_area" />
+  <arg name="start_time" default="20" />
   <arg name = "test_script" default="detect_sherds_test" />
 
   <include file="$(find robot_arm)/launch/perception.launch"/>
@@ -10,7 +11,7 @@
   <node pkg="rosbag" type="play" name="color_mask_bagfile" args="$(arg path)$(arg color_mask_bagfile).bag" output="screen" />
   <node name="pub_color_mask" pkg="robot_arm" type="pub_color_mask.py" output="screen" />
 
-  <node pkg="rosbag" type="play" name="pickup_area_bagfile" args="$(arg path)$(arg pickup_area_bagfile).bag" output="screen" />
+  <node pkg="rosbag" type="play" name="pickup_area_bagfile" args="-s $(arg start_time) $(arg path)$(arg pickup_area_bagfile).bag" output="screen" />
   <node name="$(arg test_script)" pkg="robot_arm" type="$(arg test_script).py" output="screen" />
 
 
