@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+This script works when sherds are arranged to not touch.
+It utilizes color segmentation ONLY.
+"""
+
 #Import Python libraries
 import cv2
 import os

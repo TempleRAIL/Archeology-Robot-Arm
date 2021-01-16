@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+This script tests a sherd detection service.
+The service is triggered without running the full simulation.
+Be sure to update the 'service' variable as necessary.
+"""
+
 # Import Python libraries
 import rospy
 from std_msgs.msg import Int16MultiArray
@@ -10,9 +16,10 @@ from robot_arm.srv import *
 ##############################################################
 # Callback to request sherd detections from service
 def callback(msg):
+    service = 'detect_by_watershed_server'
     # ROS service clients
-    rospy.wait_for_service('detect_by_watershed_server')
-    detection_srv = rospy.ServiceProxy('detect_by_watershed_server', SherdDetections)
+    rospy.wait_for_service(service)
+    detection_srv = rospy.ServiceProxy(service, SherdDetections)
 
     color_mask = msg
     bgnd_img=None
