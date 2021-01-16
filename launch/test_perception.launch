@@ -3,8 +3,8 @@
   <arg name="path" default="$(find robot_arm)/bagfiles/perception/" />
   <arg name="color_mask_bagfile" default="mat_calibration" />
   <arg name="pickup_area_bagfile" default="pickup_area" />
-  <arg name="start_time" default="20" />
-  <arg name = "test_script" default="detect_sherds_test" />
+  <arg name="start_time" default="5" />
+  <arg name = "test_script" default="test_detect_sherds" />
 
   <include file="$(find robot_arm)/launch/perception.launch"/>
 
