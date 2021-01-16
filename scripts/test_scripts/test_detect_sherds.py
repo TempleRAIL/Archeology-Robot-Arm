@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+This script calls a sherd detection service without running the full simulation.
+Use in conjunction with a rosbag playback.
+Update the 'service', 'handle_overlap', and 'threshold' variables as necessary.
+"""
+
 # Import Python libraries
 import rospy
 from std_msgs.msg import Int16MultiArray
@@ -10,14 +16,20 @@ from robot_arm.srv import *
 ##############################################################
 # Callback to request sherd detections from service
 def callback(msg):
+    service = 'detect_sherds_watershed_server'
     # ROS service clients
-    rospy.wait_for_service('detect_sherds_pile_server')
-    detection_srv = rospy.ServiceProxy('detect_sherds_pile_server', SherdDetections)
+    rospy.wait_for_service(service)
+    detection_srv = rospy.ServiceProxy(service, SherdDetections)
 
     color_mask = msg
     bgnd_img=None
     handle_overlap=True
-    cluster_threshold=0.01
+    """
+    - If using the watershed approach, 'threshold' represents the low gradient threshold.
+    - If using clusters approach, 'threshold' is the maximum spatial distance allowed between pixels while still assigning them 
+    to the same cluster.    
+    """
+    threshold=17
     found = False
     sherd_poses = [] # initialize empty
 
@@ -28,7 +40,7 @@ def callback(msg):
     # create srv request
     req = SherdDetectionsRequest()
     req.color_mask = color_mask
-    req.cluster_threshold = cluster_threshold
+    req.threshold = threshold
     req.handle_overlap = handle_overlap
     if bgnd_img:
         req.subtract_background = True

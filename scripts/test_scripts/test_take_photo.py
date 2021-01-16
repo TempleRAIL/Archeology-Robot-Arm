@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-# RUN THIS NODE AFTER ARCHAEOLOGY.LAUNCH AND ARM.LAUNCH IN THE ROBOT_ARM PACKAGE TO TEST THE ARCHIVAL PHOTO FUNCTIONALITY
+"""
+This script tests archival camera functionality in simulation.
+Run this node after launching archaeology.launch and arm.launch.
+"""
 
 # Import ROS libraries and message types
 import rospy

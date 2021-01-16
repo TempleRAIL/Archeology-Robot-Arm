@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+"""
+Instance segmentation of overlapping sherds based on Euclidean distance (from point map) between pixels.
+Deb was not able to get this working - watershed is much more promising.
+"""
+
 #Import Python libraries
 import cv2
 import os
@@ -498,12 +503,12 @@ def detect_sherds_callback(req):
     return res
 
 ##############################################################
-# detect_by_cluster_server()
+# detect_sherds_distance_server()
 # This function initiates the detect_sherds_pile ROS node. It subscribes to the 
 # subscriptions: /Color_Mask; synced [/Color_Image (camera), /Color-Aligned_PointCloud (camera), /Survey_Stamped]
   
-def detect_by_cluster_server():
-    rospy.init_node('detect_by_cluster_server')  # initiate 'detect sherds' node
+def detect_sherds_distance_server():
+    rospy.init_node('detect_sherds_distance_server')  # initiate 'detect sherds' node
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
@@ -517,7 +522,7 @@ def detect_by_cluster_server():
     sync.registerCallback( camera_data_callback )
     
     #detect_by_cluster_server = rospy.Service('detect_by_cluster_server', SherdDetections, detect_sherds_callback)
-    rospy.Service('detect_by_cluster_server', SherdDetections, detect_sherds_callback)
+    rospy.Service('detect_sherds_distance_server', SherdDetections, detect_sherds_callback)
  
     rospy.spin() # keeps Python from exiting until this node is stopped
     

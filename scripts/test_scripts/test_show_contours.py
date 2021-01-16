@@ -3,6 +3,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 
+"""
+This script loads a static image from file and displays bounding boxes around contours.
+Use to investigate how different findContours arguments behave.
+"""
+
 ##############################################################
 # get_contours(img)
 # This function converts the image to grayscale and extracts contours.

@@ -7,6 +7,11 @@ import rospy
 from robot_arm.srv import *
 from std_msgs.msg import Int16MultiArray
 
+"""
+This script publishes calls the color_mask_server service once and and publishes the response without.
+Allows for testing perception scrips without running the full simulation.
+Use in conjunction with a rosbag playback.
+"""
 
 # Function to generate color mask from image of empty background
 def color_mask_publisher():

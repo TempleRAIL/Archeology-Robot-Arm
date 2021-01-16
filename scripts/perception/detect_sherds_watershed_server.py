@@ -223,12 +223,12 @@ def get_top_sherd(labels, color_seg_img, point_map):
     
 
 ##############################################################
-# apply_watershed(color_seg_img)
+# apply_watershed(color_seg_img, low_grad_thresh)
 # This function applies OpenCV's watershed algorithm for instance segmentation (separating touching/overlapping sherds).
 # inputs: color_seg_img (OpenCV RGB image) showing sherd pile only
 # outputs: segmented_sherds (OpenCV RGB image)
 
-def apply_watershed(color_seg_img):
+def apply_watershed(color_seg_img, low_grad_thresh):
     gray = cv2.cvtColor(color_seg_img, cv2.COLOR_RGB2GRAY) # convert to grayscale
 
     # WATERSHED ON GRADIENT IMAGE
@@ -238,7 +238,6 @@ def apply_watershed(color_seg_img):
     # find continuous region (low gradient -
     # where less than [low_grad_thresh] for this image) --> markers
     # disk(5) is used here to get a more smooth image
-    low_grad_thresh = 17
     markers = rank.gradient(denoised, disk(5)) < low_grad_thresh
     markers, num_markers = ndi.label(markers)
     
@@ -288,12 +287,12 @@ def apply_watershed(color_seg_img):
     return labels
 
 ##############################################################
-# locate_sherds(color_seg_img, point_map, header, handle_overlap)
+# locate_sherds(color_seg_img, point_map, header, low_grad_thresh, handle_overlap)
 # This function draws bounding boxes around segmented sherds and publishes in [meters] their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2, std_msgs/Header
 # outputs: robot_arm.msg/Detection3DArrayRPY custom ROS message
 
-def locate_sherds(color_seg_img, point_map, header, handle_overlap):
+def locate_sherds(color_seg_img, point_map, header, low_grad_thresh, handle_overlap):
     # Construct Detection3DRPYArray custom ROS message to contain all valid bounding boxes around sherds
     sherds = Detection3DRPYArray()
     sherds.header = header    # meta-data
@@ -304,7 +303,7 @@ def locate_sherds(color_seg_img, point_map, header, handle_overlap):
     #print ("Recognizing only rectangles larger than %f sq. meters as sherds" % (min_area) )
 
     if handle_overlap:
-        labels = apply_watershed(color_seg_img)
+        labels = apply_watershed(color_seg_img, low_grad_thresh)
         top_sherd_img, top_sherd = get_top_sherd(labels, color_seg_img, point_map)
         contours = in_frame_only(top_sherd_img)
     else:
@@ -554,17 +553,17 @@ def detect_sherds_callback(req):
     point_map[:,:,1] = point_cloud['y']
     point_map[:,:,2] = point_cloud['z']
     res = SherdDetectionsResponse()
-    res.detections = locate_sherds(color_seg_img, point_map, header, req.handle_overlap)
+    res.detections = locate_sherds(color_seg_img, point_map, header, req.threshold, req.handle_overlap)
 
     return res
 
 ##############################################################
-# detect_by_watershed_server()
+# detect_sherds_watershed_server()
 # This function initiates the detect_sherds_pile ROS node. It subscribes to the 
 # subscriptions: /Color_Mask; synced [/Color_Image (camera), /Color-Aligned_PointCloud (camera), /Survey_Stamped]
   
-def detect_by_watershed_server():
-    rospy.init_node('detect_by_watershed_server')  # initiate 'detect sherds' node
+def detect_sherds_watershed_server():
+    rospy.init_node('detect_sherds_watershed_server')  # initiate 'detect sherds' node
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
@@ -577,8 +576,7 @@ def detect_by_watershed_server():
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     
-    #detect_by_watershed_server = rospy.Service('detect_by_watershed_server', SherdDetections, detect_sherds_callback)
-    rospy.Service('detect_by_watershed_server', SherdDetections, detect_sherds_callback)
+    rospy.Service('detect_sherds_watershed_server', SherdDetections, detect_sherds_callback)
  
     rospy.spin() # keeps Python from exiting until this node is stopped
     
