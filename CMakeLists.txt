@@ -126,7 +126,7 @@ add_service_files(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES robot_arm
  CATKIN_DEPENDS camera_calibration camera_info_manager cv_bridge message_runtime polled_camera robot_state_publisher roscpp rospy std_msgs vision_msgs sensor_msgs geometry_msgs actionlib actionlib_msgs dynamixel_workbench_msgs
 #  DEPENDS system_lib
