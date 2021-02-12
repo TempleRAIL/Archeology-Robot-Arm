@@ -26,6 +26,27 @@ image_msg = None
 point_cloud_msg = None
 camera_data_lock = threading.Lock()
 
+def is_cv2():
+    # if we are using OpenCV 2, then our cv2.__version__ will start
+    # with '2.'
+    return check_opencv_version("2.")
+def is_cv3():
+    # if we are using OpenCV 3.X, then our cv2.__version__ will start
+    # with '3.'
+    return check_opencv_version("3.")
+def is_cv4():
+    # if we are using OpenCV 3.X, then our cv2.__version__ will start
+    # with '4.'
+    return check_opencv_version("4.")
+def check_opencv_version(major, lib=None):
+    # if the supplied library is None, import OpenCV
+    if lib is None:
+        import cv2 as lib
+        
+    # return whether or not the current OpenCV version matches the
+    # major version number
+    return lib.__version__.startswith(major)
+
 ##############################################################
 # camera_data_callback(msg)
 # This function saves the time-synced image and point cloud
@@ -154,7 +175,10 @@ def locate_sherds(sherds_image, points, header):
 
     # Convert sherds_image to grayscale and find contours
     gray_image = cv2.cvtColor(np.array(sherds_image), cv2.COLOR_BGR2GRAY) # convert to grayscale
-    _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
+    if is_cv2() or is_cv4():
+        contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
+    elif is_cv3():
+        _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
     #Debugging
     print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
