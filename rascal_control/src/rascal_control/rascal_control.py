@@ -73,10 +73,10 @@ class RascalControl():
         self.pub_status = rospy.Publisher('status', String, queue_size=100) # locobot status publisher
         
         # ROS service clients
-        rospy.wait_for_service('color_mask_server')
-        self.color_mask_srv = rospy.ServiceProxy('color_mask_server', ColorMask)
-        rospy.wait_for_service('detect_sherds_server')
-        self.detection_srv = rospy.ServiceProxy('detect_sherds_server', SherdDetections)
+        rospy.wait_for_service('color_mask')
+        self.color_mask_srv = rospy.ServiceProxy('color_mask', ColorMask)
+        rospy.wait_for_service('detect_sherds')
+        self.detection_srv = rospy.ServiceProxy('detect_sherds', SherdDetections)
         rospy.wait_for_service('take_photo')
         self.photo_srv = rospy.ServiceProxy('take_photo', Photo)
 
