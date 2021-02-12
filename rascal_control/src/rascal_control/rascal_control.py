@@ -77,15 +77,15 @@ class RascalControl():
         self.color_mask_srv = rospy.ServiceProxy('color_mask_server', ColorMask)
         rospy.wait_for_service('detect_sherds_server')
         self.detection_srv = rospy.ServiceProxy('detect_sherds_server', SherdDetections)
-        rospy.wait_for_service('take_photo_server')
-        self.photo_srv = rospy.ServiceProxy('take_photo_server', Photo)
+        rospy.wait_for_service('take_photo')
+        self.photo_srv = rospy.ServiceProxy('take_photo', Photo)
 
         if self.scale_ft_mode:
-            rospy.wait_for_service('read_scale_server')
-            self.read_scale_srv = rospy.ServiceProxy('read_scale_server', ScaleReading)
+            rospy.wait_for_service('read_scale')
+            self.read_scale_srv = rospy.ServiceProxy('read_scale', ScaleReading)
         else:
-            rospy.wait_for_service('id_sherd_to_weigh_server')
-            self.id_sherd_srv = rospy.ServiceProxy('id_sherd_to_weigh_server', SherdID)
+            rospy.wait_for_service('sherd_mass')
+            self.id_sherd_srv = rospy.ServiceProxy('sherd_mass', SherdID)
             rospy.wait_for_service('gazebo/get_link_properties')
             self.link_props_srv = rospy.ServiceProxy('gazebo/get_link_properties', GetLinkProperties)
         
@@ -245,7 +245,7 @@ class RascalControl():
         rospy.logwarn('RascalControl: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
         # run take_photo_server.py
         req = PhotoRequest()
-        req.which_camera = 'archival'
+        req.camera_type = PhotoRequest.ARCHIVAL
         try:
             res = self.photo_srv(req)
         except rospy.ServiceException as e:
@@ -293,7 +293,7 @@ class RascalControl():
             raise
         # Request data from service
         req = PhotoRequest()
-        req.which_camera = 'robot'
+        req.camera_type = PhotoRequest.WRIST
         # Save results from service
         try:
             res = self.photo_srv(req)

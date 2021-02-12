@@ -8,7 +8,7 @@
     <rosparam command="load" file="$(find rascal_launch)/config/mat_layout.yaml"/>
   </node>
 
-  <node name="id_sherd_to_weigh_server" pkg="rascal_interface" type="id_sherd_to_weigh_server.py" output="screen" respawn="true"/>
+  <node name="sherd_mass" pkg="rascal_interface" type="sherd_mass_server.py" output="screen" respawn="true"/>
   <node name="read_scale_server" pkg="rascal_interface" type="read_scale_server.py" output="screen" respawn="true"/>
   <node name="take_photo_server" pkg="rascal_interface" type="take_photo_server.py" output="screen" respawn="true"/>
 
