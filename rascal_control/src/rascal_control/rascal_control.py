@@ -15,8 +15,8 @@ import rospy
 import tf2_ros
 from tf2_geometry_msgs import PointStamped
 from gazebo_msgs.srv import GetLinkProperties, GetLinkPropertiesRequest
-from robot_arm.msg import SherdData
-from robot_arm.srv import *
+from rascal_msgs.msg import SherdData
+from rascal_msgs.srv import *
 from std_msgs.msg import String
 
 
@@ -47,7 +47,7 @@ class GraspFailure(Exception):
         self.goal_pose = goal_pose
         self.message = message
 
-class AutoCore():
+class RascalControl():
     
     def __init__(self, bot, gripper):
         # Robot passed from state machine
@@ -127,7 +127,7 @@ class AutoCore():
         
     # Function to call IK to plot and execute trajectory
     def move_fun(self, goal, use_MoveIt=False):
-        rospy.logdebug('AutoCore: move_fun triggered')
+        rospy.logdebug('RascalControl: move_fun triggered')
         d_min = 0.05
         success = True
         # Convert to Cylindrical Coordinates
@@ -151,9 +151,9 @@ class AutoCore():
                     current['pitch'] += step_pitch
                     success = self.bot.arm.set_ee_pose_pitch_roll(plan=use_MoveIt, **current) # args must be in this order due to the kwarg
                     if not success:
-                        raise PlanningFailure(current, 'AutoCore: move_fun: Planning failed')
+                        raise PlanningFailure(current, 'RascalControl: move_fun: Planning failed')
             except Exception as e:
-                rospy.logwarn("AutoCore move_fun exception: {} Why is this empty?".format(e))
+                rospy.logwarn("RascalControl move_fun exception: {} Why is this empty?".format(e))
             else:
                 if not use_MoveIt: 
                     rospy.sleep(0.5) # pause for accurate calibration images
@@ -167,11 +167,11 @@ class AutoCore():
                 self.pose = goal
                 if not use_MoveIt: rospy.sleep(0.5) # pause for accurate calibration images
             except Exception as e:
-                rospy.logwarn("AutoCore move_fun: failed due to {}".format(e))
+                rospy.logwarn("RascalControl move_fun: failed due to {}".format(e))
                 raise
             else:
                 if not success:
-                    raise PlanningFailure(goal, 'AutoCore: move_fun: Planning failed')
+                    raise PlanningFailure(goal, 'RascalControl: move_fun: Planning failed')
 
 
     def move_fun_retry(self, pose, use_MoveIt=False):
@@ -184,7 +184,7 @@ class AutoCore():
             #except rospy.ROSInterruptException:
                 #raise
             except Exception as e:
-                rospy.logwarn("AutoCore move_fun_retry: failed due to {}".format(e))
+                rospy.logwarn("RascalControl move_fun_retry: failed due to {}".format(e))
                 raise
             else:
                 success = True
@@ -221,46 +221,46 @@ class AutoCore():
             try:
                 res = self.id_sherd_srv(req)
             except rospy.ServiceException as e:
-                rospy.logerr('AutoCore: id_sherd service call failed: {}'.format(e))
+                rospy.logerr('RascalControl: id_sherd service call failed: {}'.format(e))
                 raise
             link_name = res.link_name
             sherd_msg.which_sherd = link_name
-            rospy.logwarn('AutoCore: got link name of sherd on scale: {}'.format(link_name))
+            rospy.logwarn('RascalControl: got link name of sherd on scale: {}'.format(link_name))
             # call link_props_srv to get mass of sherd
             req = GetLinkPropertiesRequest()
             req.link_name = link_name
             try:
                 res = self.link_props_srv(req)
             except rospy.ServiceException as e:
-                rospy.logerr('AutoCore: id_sherd service call failed: {}'.format(e))
+                rospy.logerr('RascalControl: id_sherd service call failed: {}'.format(e))
                 raise
         sherd_msg.mass = res.mass
-        rospy.logwarn('AutoCore: got mass of sherd on scale: {}'.format(sherd_msg.mass))
+        rospy.logwarn('RascalControl: got mass of sherd on scale: {}'.format(sherd_msg.mass))
         return sherd_msg
 
     # Function to take archival photo and save in ROS sherd_msg
     def archival_photo_fun(self, msg):
         self.publish_status("Data Collection")
         sherd_msg = msg
-        rospy.logwarn('AutoCore: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
+        rospy.logwarn('RascalControl: taking archival photo. If shown, close figure to continue. Toggle figure display in mat_layout.yaml.')
         # run take_photo_server.py
         req = PhotoRequest()
         req.which_camera = 'archival'
         try:
             res = self.photo_srv(req)
         except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: take_photo service call failed: {}'.format(e))
+            rospy.logerr('RascalControl: take_photo service call failed: {}'.format(e))
             raise
         else:
             sherd_msg.archival_photo = res.image
-            rospy.logwarn('AutoCore: Got archival photo of sherd.')
+            rospy.logwarn('RascalControl: Got archival photo of sherd.')
             return sherd_msg
 
 
     # Function to generate color mask from image of empty background
     def get_color_mask_fun(self, calibrate_pose, mask_type, num_colors=1):
         self.publish_status("Initialization")
-        rospy.logdebug('AutoCore: get_color_mask_fun triggered.')
+        rospy.logdebug('RascalControl: get_color_mask_fun triggered.')
         # Move arm to calibration location
         try:
             self.move_fun_retry(calibrate_pose)
@@ -273,19 +273,19 @@ class AutoCore():
         try:
             res = self.color_mask_srv(req)
         except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: Color mask service call failed: {}'.format(e))
+            rospy.logerr('RascalControl: Color mask service call failed: {}'.format(e))
             raise
         else:
             self.color_masks[mask_type] = res.color_mask
             self.mat_z = res.mat_z
-            rospy.logwarn('AutoCore: Got color mask(s).')
-            rospy.loginfo('Average z value of mat (top face): {}'.format(self.mat_z))
+            rospy.logwarn('RascalControl: Got color mask(s).')
+            rospy.loginfo('RascalControl z value of mat (top face): {}'.format(self.mat_z))
 
 
     #Function to save image of empty background
     def get_background_fun(self, calibrate_pose, station):
         self.publish_status("Initialization")
-        rospy.logdebug('AutoCore: get_background_fun triggered.')
+        rospy.logdebug('RascalControl: get_background_fun triggered.')
         # Move arm to calibration location
         try:
             self.move_fun_retry(calibrate_pose)
@@ -298,11 +298,11 @@ class AutoCore():
         try:
             res = self.photo_srv(req)
         except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: take_photo service call failed: {}'.format(e))
+            rospy.logerr('RascalControl: take_photo service call failed: {}'.format(e))
             raise
         else:
             self.bgnds[station] = res.image
-            rospy.logwarn('AutoCore: Got background at {}'.format(station))
+            rospy.logwarn('RascalControl: Got background at {}'.format(station))
 
 
     # Function to check for and return sherd detections as list of lists: [x_center, y_center, rotation_angle]
@@ -311,7 +311,7 @@ class AutoCore():
         sherd_poses = [] # initialize empty
         # confirm that color mask exists
         if color_mask is None:
-            rospy.logwarn('AutoCore: This color mask is missing.')
+            rospy.logwarn('RascalControl: This color mask is missing.')
             return found, sherd_poses
         # run segment_sherds.py on what robot sees in this position
         req = SherdDetectionsRequest()
@@ -324,7 +324,7 @@ class AutoCore():
         try:
             res = self.detection_srv(req)
         except rospy.ServiceException as e:
-            rospy.logerr('AutoCore: Bounding box service call failed: {}'.format(e))
+            rospy.logerr('RascalControl: Bounding box service call failed: {}'.format(e))
             raise
         else:
             detections = res.detections.detections
@@ -340,7 +340,7 @@ class AutoCore():
                 try:
                     point_base = self.tfBuffer.transform(point_cam, 'base_link')
                 except tf2_ros.buffer_interface.TypeException as e:
-                    rospy.logerr('AutoCore: tf failure: {}'.format(e))
+                    rospy.logerr('RascalControl: tf failure: {}'.format(e))
                     raise
                 rospy.logdebug('Obtained transform between camera_link and base_link.')
                 rospy.logdebug('Sherd center point (x,y,z) [m] in base_link frame: {}'.format(point_base))
@@ -371,7 +371,7 @@ class AutoCore():
 
     # Function to retrieve an object
     def pick_place_fun(self, pose, working_z, pick=False, place=False):
-        rospy.logdebug('AutoCore: pickFun triggered.')
+        rospy.logdebug('RascalControl: pickFun triggered.')
         if pick and place:
             rospy.logerr('Only one of pick or place can be selected')
         elif not (pick or place):
@@ -402,5 +402,5 @@ class AutoCore():
                 self.move_fun_retry(pose) # move down to surface
                 self.gripper.open()
             except Exception as e:
-                rospy.logwarn('AutoCore: failed to descend to placement height due to {}'.format(e))
+                rospy.logwarn('RascalControl: failed to descend to placement height due to {}'.format(e))
                 raise

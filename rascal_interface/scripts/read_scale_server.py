@@ -3,13 +3,13 @@
 # Import ROS libraries and message types
 import rospy
 from geometry_msgs.msg import WrenchStamped
-from robot_arm.srv import ScaleReading, ScaleReadingResponse
+from rascal_msgs.srv import ScaleReading, ScaleReadingResponse
 
 ##############################################################
 # read_scale_callback(req)
 # This function is the callback for the read_scale service
-# inputs: robot_arm/ScaleReadingRequest
-# returns: robot_arm/ScaleReadingResponse 
+# inputs: rascal_msgs/ScaleReadingRequest
+# returns: rascal_msgs/ScaleReadingResponse 
 
 def read_scale_callback(req):
     tare = rospy.get_param('sherd_states/scale_tare')

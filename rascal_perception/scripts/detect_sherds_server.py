@@ -2,13 +2,10 @@
 
 #Import Python libraries
 import cv2
-import os
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
 import sys
 import threading
-import math
 
 # Import ROS libraries and message types
 import rospy
@@ -16,8 +13,8 @@ import ros_numpy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
 import message_filters
 from sensor_msgs.msg import PointCloud2, Image
-from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import *
+from rascal_msgs.msg import Detection3DRPY, Detection3DRPYArray
+from rascal_msgs.srv import *
 
 bridge = CvBridge()  # OpenCV converter
 
@@ -64,7 +61,7 @@ def camera_data_callback(im_msg, pc_msg):
 ##############################################################
 # segment_sherds(color_mask, sherds_img, non_sherds_img)
 # This function segments sherds from the color image.
-# inputs: robot_arm/SherdDetectionsRequest
+# inputs: rascal_msgs/SherdDetectionsRequest
 # outputs: OpenCV RGB image
 
 def segment_sherds(color_mask, sherds_img, non_sherds_img):
@@ -166,7 +163,7 @@ def segment_sherds(color_mask, sherds_img, non_sherds_img):
 # locate_sherds(sherds_image, bgnd_image, points, header)
 # This function draws bounding boxes around segmented sherds and publishes -in meters- their x,y,z center coordinates, widths, and heights.  It also publishes rotation angles in radians, optimized for the robot end effector.
 # inputs: sensor_msgs/Image, sensor_msgs/PointCloud2
-# publications: robot_arm.msg/Detection3DArrayRPY custom ROS message
+# publications: rascal_msgs.msg/Detection3DArrayRPY custom ROS message
 
 def locate_sherds(sherds_image, points, header):
     point_map = points 
@@ -181,7 +178,7 @@ def locate_sherds(sherds_image, points, header):
         _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
     #Debugging
-    print("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
+    ROS_DEBUG("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
     # exclude boxes smaller than a minimum area
     use_min_area = False
     min_area = 0.0006  # sq. meters (roughly 1 sq. inch)
@@ -243,15 +240,15 @@ def locate_sherds(sherds_image, points, header):
         """
         # endpoints of bounding box minor and major axes in pixel coordinates
         # pixel coordinates of width endpoints
-        col_width_end1 = int( col_center_pos + math.trunc( 0.5*width_px*np.cos( np.radians(grip_angle) ) ) )
-        col_width_end2 = int( col_center_pos - math.trunc( 0.5*width_px*np.cos( np.radians(grip_angle) ) ) )
-        row_width_end1 = int( row_center_pos + math.trunc( 0.5*width_px*np.sin( np.radians(grip_angle) ) ) )
-        row_width_end2 = int( row_center_pos - math.trunc( 0.5*width_px*np.sin( np.radians(grip_angle) ) ) )
+        col_width_end1 = int( col_center_pos + np.trunc( 0.5*width_px*np.cos( np.radians(grip_angle) ) ) )
+        col_width_end2 = int( col_center_pos - np.trunc( 0.5*width_px*np.cos( np.radians(grip_angle) ) ) )
+        row_width_end1 = int( row_center_pos + np.trunc( 0.5*width_px*np.sin( np.radians(grip_angle) ) ) )
+        row_width_end2 = int( row_center_pos - np.trunc( 0.5*width_px*np.sin( np.radians(grip_angle) ) ) )
         # pixel coordinates of height endpoints
-        col_height_end1 = int( col_center_pos + math.trunc( 0.5*height_px*np.cos( np.radians(grip_angle) ) ) )
-        col_height_end2 = int( col_center_pos - math.trunc( 0.5*height_px*np.cos( np.radians(grip_angle) ) ) )
-        row_height_end1 = int( row_center_pos + math.trunc( 0.5*height_px*np.sin( np.radians(grip_angle) ) ) )
-        row_height_end2 = int( row_center_pos - math.trunc( 0.5*height_px*np.sin( np.radians(grip_angle) ) ) )
+        col_height_end1 = int( col_center_pos + np.trunc( 0.5*height_px*np.cos( np.radians(grip_angle) ) ) )
+        col_height_end2 = int( col_center_pos - np.trunc( 0.5*height_px*np.cos( np.radians(grip_angle) ) ) )
+        row_height_end1 = int( row_center_pos + np.trunc( 0.5*height_px*np.sin( np.radians(grip_angle) ) ) )
+        row_height_end2 = int( row_center_pos - np.trunc( 0.5*height_px*np.sin( np.radians(grip_angle) ) ) )
 
         try:
             # meter coordinates of width endpoints
@@ -268,8 +265,8 @@ def locate_sherds(sherds_image, points, header):
             continue
 
         # bounding box width and height in meters
-        width_meter = math.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
-        height_meter = math.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
+        width_meter = np.sqrt( (x_width_end1-x_width_end2)**2+(y_width_end1-y_width_end2)**2 )
+        height_meter = np.sqrt( (x_height_end1-x_height_end2)**2+(y_height_end1-y_height_end2)**2 )
         
         if not (not in_frame) or use_min_area or (use_min_area and width_meter*height_meter >= min_area):
             # print("This sherd's bounding box: " + str(rect))
@@ -309,8 +306,8 @@ def locate_sherds(sherds_image, points, header):
 ##############################################################
 # detect_sherds_callback(req)
 # This function segments sherds from the color image and returns their 3D coordinates
-# inputs: robot_arm/SherdDetectionsRequest
-# outputs: robot_arm/SherdDetectionsResponse
+# inputs: rascal_msgs/SherdDetectionsRequest
+# outputs: rascal_msgs/SherdDetectionsResponse
 
 def detect_sherds_callback(req):
     global image_msg, point_cloud_msg, camera_data_lock
@@ -354,12 +351,10 @@ def detect_sherds_server():
 
     # Subscribe in sync to Color Image and Color-Aligned PointCloud
     color_img_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
-    print("Subscribed to color image.")
-
+    
     # use rs_rgbd.launch with physical RealSense camera
     pointcloud_sub = message_filters.Subscriber("/camera/depth_registered/points", PointCloud2)
-    print("Subscribed to point cloud.")
-
+    
     sync = message_filters.ApproximateTimeSynchronizer([color_img_sub, pointcloud_sub], 1, 0.1, allow_headerless = True)
     sync.registerCallback( camera_data_callback )
     

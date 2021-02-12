@@ -8,11 +8,8 @@ from skimage.color import rgb2lab, rgb2hsv, deltaE_cie76
 import colorsys
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
 import sys
 import threading
-import math
-import operator
 
 # Import ROS libraries and message types
 import rospy
@@ -21,8 +18,8 @@ from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs 
 import message_filters
 from std_msgs.msg import MultiArrayDimension
 from sensor_msgs.msg import PointCloud2, Image
-from robot_arm.msg import Detection3DRPY, Detection3DRPYArray
-from robot_arm.srv import *
+from rascal_msgs.msg import Detection3DRPY, Detection3DRPYArray
+from rascal_msgs.srv import *
 
 bridge = CvBridge()  # OpenCV converter
 
@@ -147,8 +144,8 @@ def image_callback(msg):
 ##############################################################
 # color_mask_callback(req)
 # This function is the callback for the color mask service
-# inputs: robot_arm/ColorMaskRequest
-# returns: robot_arm/ColorMaskResponse 
+# inputs: rascal_msgs/ColorMaskRequest
+# returns: rascal_msgs/ColorMaskResponse 
 
 def color_mask_callback(req):
     global image_msg, point_cloud_msg, camera_data_lock

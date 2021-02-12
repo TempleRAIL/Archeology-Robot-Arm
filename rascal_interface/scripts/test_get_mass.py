@@ -4,7 +4,7 @@
 
 # Import ROS libraries and message types
 import rospy
-from robot_arm.srv import ScaleReading, ScaleReadingRequest, SherdID, SherdIDRequest
+from rascal_msgs.srv import ScaleReading, ScaleReadingRequest, SherdID, SherdIDRequest
 from gazebo_msgs.msg import ContactsState
 from gazebo_msgs.srv import GetLinkProperties, GetLinkPropertiesRequest
 

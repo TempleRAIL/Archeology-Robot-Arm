@@ -6,7 +6,7 @@
 import rospy
 from cv_bridge import CvBridge, CvBridgeError  # Convert between ROS image msgs and OpenCV images
 from sensor_msgs.msg import Image
-from robot_arm.srv import *
+from rascal_msgs.srv import *
 
 # ROS service clients
 rospy.wait_for_service('take_photo_server')

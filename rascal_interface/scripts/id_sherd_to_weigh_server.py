@@ -3,13 +3,13 @@
 # Import ROS libraries and message types
 import rospy
 from gazebo_msgs.msg import ContactsState
-from robot_arm.srv import SherdID, SherdIDResponse
+from rascal_msgs.srv import SherdID, SherdIDResponse
 
 ##############################################################
 # id_sherd_callback(req)
 # This function is the callback for the id_sherd_to_weigh service
-# inputs: robot_arm/SherdIDRequest
-# returns: robot_arm/SherdIDResponse 
+# inputs: rascal_msgs/SherdIDRequest
+# returns: rascal_msgs/SherdIDResponse 
 
 # gazebo_msgs/GetLinkProperties Service: https://docs.ros.org/kinetic/api/gazebo_msgs/html/srv/GetLinkProperties.html
 

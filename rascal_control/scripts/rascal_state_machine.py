@@ -15,11 +15,11 @@ from pyrobot.locobot.arm import Arm
 import rospy
 import smach
 import smach_ros
-from robot_arm.msg import SherdData
+from rascal_msgs.msg import SherdData
 from std_msgs.msg import String
 
 # Import autocore
-from AutoCore import AutoCore, PlanningFailure, GraspFailure
+from rascal_control import RascalControl, PlanningFailure, GraspFailure
 from mat_configuration import MatConfiguration
 
 # Publishers
@@ -56,7 +56,7 @@ class Calibrate(smach.State):
             self.core.get_color_mask_fun(self.mat.calibration_poses['mat'], mask_type='mat')
             self.core.get_color_mask_fun(self.mat.calibration_poses['scale'], mask_type='scale', num_colors=2)
             self.core.get_background_fun(self.mat.calibration_poses['camera'], station='camera')
-        except PlanningFailure: # may be raised by AutoCore's get_color_mask or get_background functions
+        except PlanningFailure: # may be raised by RascalControl's get_color_mask or get_background functions
             return 'replan'
         except Exception as e:
             rospy.logwarn('Exception raised: {}'.format(e))
@@ -107,7 +107,7 @@ class Examine(smach.State):
                 (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['scale'])  
             elif userdata.station == self.mat.stations['camera_pick']:
                 (found, sherd_poses) = self.core.detect_fun(self.core.color_masks['mat'], self.core.bgnds['camera'])
-        except PlanningFailure: # may be raised by AutoCore's shard_fun
+        except PlanningFailure: # may be raised by RascalControl's shard_fun
             return 'replan'
         except Exception as e:
             rospy.logwarn('Exception raised: {}'.format(e))
@@ -156,7 +156,7 @@ class Acquire(smach.State):
                 return 'check_camera'
         # Try to acquire sherd
         try:
-            # skip AutoCore pick_place_fun on first attempt to grasp from scale
+            # skip RascalControl pick_place_fun on first attempt to grasp from scale
             if userdata.station == self.mat.stations['scale_pick'] and userdata.attempts == 0:
                 self.core.publish_status("Grasping")
                 self.core.gripper.open()
@@ -167,7 +167,7 @@ class Acquire(smach.State):
                 self.core.publish_status("Locomotion")
                 self.core.move_fun_retry(pose, use_MoveIt=True) # Use MoveIt to prevent swinging at wrist
                 self.core.grip_check_fun(pose)
-            else: # pick up with AutoCore's pick_place_fun, which takes care of gripper length and clearance
+            else: # pick up with RascalControl's pick_place_fun, which takes care of gripper length and clearance
                 self.core.pick_place_fun(pose, self.mat.working_z, pick=True)
         except GraspFailure:
             userdata.drop_counter += 1
@@ -180,7 +180,7 @@ class Acquire(smach.State):
                 if userdata.station == self.mat.stations['scale_search']:
                     userdata.station = self.mat.stations['scale_pick']
                 return 'regrasp'
-        except PlanningFailure: # may be raised by AutoCore's pick_place_fun
+        except PlanningFailure: # may be raised by RascalControl's pick_place_fun
             return 'replan'
         else:
             userdata.attempts = 0
@@ -210,7 +210,7 @@ class PlaceSherd(smach.State):
             userdata.attempts += 1
             userdata.station -= 1 # go back
             return 'regrasp'
-        except PlanningFailure: # may be raised by AutoCore's pick_place_fun
+        except PlanningFailure: # may be raised by RascalControl's pick_place_fun
             return 'replan'
         except Exception as e:
             rospy.logwarn('Could not execute placement because of Exception: {}'.format(e))
@@ -269,8 +269,8 @@ def process_sherds():
     bot = Robot("locobot", use_base=False)
     configs = bot.configs
     gripper = LoCoBotGripper(configs, wait_time=1)
-    # Initialize AutoCore
-    core = AutoCore(bot, gripper)
+    # Initialize RascalControl
+    core = RascalControl(bot, gripper)
     mat = MatConfiguration()
     # ** Creates the state machine **
     sm = smach.StateMachine(outcomes = ['NotReady'])
