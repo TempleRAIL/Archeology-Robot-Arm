@@ -2,19 +2,18 @@
 
   <arg name="record_sherd_data" default="true" />
 
-  <include file="$(find robot_arm)/launch/perception.launch"/>
+  <include file="$(find rascal_launch)/launch/perception.launch"/>
 
-  <node name="sherd_states" pkg="robot_arm" type="sherd_states.py" output="screen">
-    <rosparam command="load" file="$(find robot_arm)/config/mat_layout.yaml"/>
+  <node name="sherd_states" pkg="rascal_control" type="sherd_states.py" output="screen">
+    <rosparam command="load" file="$(find rascal_launch)/config/mat_layout.yaml"/>
   </node>
 
-  <node name="id_sherd_to_weigh_server" pkg="robot_arm" type="id_sherd_to_weigh_server.py" output="screen" respawn="true"/>
-  <node name="read_scale_server" pkg="robot_arm" type="read_scale_server.py" output="screen" respawn="true"/>
+  <node name="id_sherd_to_weigh_server" pkg="rascal_interface" type="id_sherd_to_weigh_server.py" output="screen" respawn="true"/>
+  <node name="read_scale_server" pkg="rascal_interface" type="read_scale_server.py" output="screen" respawn="true"/>
+  <node name="take_photo_server" pkg="rascal_interface" type="take_photo_server.py" output="screen" respawn="true"/>
 
-  <node name="take_photo_server" pkg="robot_arm" type="take_photo_server.py" output="screen" respawn="true"/>
-
-  <node pkg="rosbag" type="record" name="record_sherd_data" args="-o $(find robot_arm)/bagfiles/sherd_data /sherd_data /clock 
-    /status" output="screen"
+  <node pkg="rosbag" type="record" name="record_sherd_data" output="screen"
+    args="-o $(find rascal_data)/bagfiles/sherd_data /sherd_data /clock /status" 
     if="$(arg record_sherd_data)" />
 
 </launch> 
