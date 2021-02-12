@@ -2,6 +2,8 @@
 
   <arg name="record_sherd_data" default="true" />
 
+  <include file="$(find robot_arm)/launch/perception.launch"/>
+
   <node name="sherd_states" pkg="robot_arm" type="sherd_states.py" output="screen">
     <rosparam command="load" file="$(find robot_arm)/config/mat_layout.yaml"/>
   </node>

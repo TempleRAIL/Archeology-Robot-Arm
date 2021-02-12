@@ -138,13 +138,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
- include
-  ${catkin_INCLUDE_DIRS}
-)
-add_executable(locobot_gazebo_no_pan_tilt src/gazebo_locobot_control.cpp)
-add_dependencies(locobot_gazebo_no_pan_tilt ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(locobot_gazebo_no_pan_tilt ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
