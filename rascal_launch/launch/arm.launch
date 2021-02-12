@@ -4,7 +4,7 @@
 
   <include file="$(find rascal_launch)/launch/perception.launch"/>
 
-  <node name="sherd_states" pkg="rascal_control" type="sherd_states.py" output="screen">
+  <node name="sherd_states" pkg="rascal_control" type="rascal_state_machine.py" output="screen">
     <rosparam command="load" file="$(find rascal_launch)/config/mat_layout.yaml"/>
   </node>
 

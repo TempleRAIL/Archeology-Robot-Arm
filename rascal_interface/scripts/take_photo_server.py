@@ -22,10 +22,10 @@ def take_photo_callback(req):
     # Subscribe to archival camera image ROS topic (echoed from gazebo topic)
     if req.which_camera == 'archival':
         msg = rospy.wait_for_message('/archival_camera/image_raw', Image)
-        #ROS_DEBUG("Got message from /archival_camera/image_raw topic.")
+        #rospy.logdebug("Got message from /archival_camera/image_raw topic.")
     else:
         msg = rospy.wait_for_message('/camera/color/image_raw', Image)
-        ROS_DEBUG("Got message from /camera/color/image_raw topic.")
+        rospy.logdebug("Got message from /camera/color/image_raw topic.")
 
     display = rospy.get_param('sherd_states/show_cam_photo', False)
     if display:

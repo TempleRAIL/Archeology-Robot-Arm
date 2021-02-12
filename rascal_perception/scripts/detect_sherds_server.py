@@ -178,7 +178,7 @@ def locate_sherds(sherds_image, points, header):
         _, contours, _ = cv2.findContours( gray_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE ) # find all contours
 
     #Debugging
-    ROS_DEBUG("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
+    rospy.logdebug("Found %d objects in this frame - may or may not all be sherds." % (len(contours)))
     # exclude boxes smaller than a minimum area
     use_min_area = False
     min_area = 0.0006  # sq. meters (roughly 1 sq. inch)

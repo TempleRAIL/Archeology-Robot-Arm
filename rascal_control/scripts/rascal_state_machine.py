@@ -18,9 +18,9 @@ import smach_ros
 from rascal_msgs.msg import SherdData
 from std_msgs.msg import String
 
-# Import autocore
-from rascal_control import RascalControl, PlanningFailure, GraspFailure
-from mat_configuration import MatConfiguration
+# Import rascal_control
+from rascal_control.rascal_control import RascalControl, PlanningFailure, GraspFailure
+from rascal_control.mat_configuration import MatConfiguration
 
 # Publishers
 sherd_data_pub = rospy.Publisher('sherd_data', SherdData, queue_size=1)
