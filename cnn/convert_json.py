@@ -1,6 +1,6 @@
 import json
 
-# open json file in write mode
+# open json file in read mode
 json_file = open('./sherd_datasets/via_validation_coco.json', 'r')
 print('\nvia.json file opened\n')
 
